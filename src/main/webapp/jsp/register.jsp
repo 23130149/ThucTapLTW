@@ -8,7 +8,7 @@
   <title>Đăng Ký</title>
 
   <link rel="stylesheet"
-        href="${pageContext.request.contextPath}/css/dangky.css">
+        href="${pageContext.request.contextPath}/css/css/dangky.css">
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
   <c:if test="${empty step}">
   <form action="${pageContext.request.contextPath}/Register"
