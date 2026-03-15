@@ -15,7 +15,6 @@ body {
     padding: 0 15px;
 }
 
-/* PRODUCT */
 .product-detail-content {
     display: flex;
     gap: 40px;
@@ -213,8 +212,8 @@ body {
 }
 .cart-toast {
     position: fixed;
-    top: 80px;              /* 👈 đẩy xuống dưới header */
-    right: 24px;            /* 👈 sát phải, không đè icon */
+    top: 80px;
+    right: 24px;
     background: #2ecc71;
     color: #fff;
     padding: 12px 18px;
