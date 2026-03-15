@@ -6,7 +6,7 @@
 <html lang="en">
 <head>
   <link rel="stylesheet"
-        href="${pageContext.request.contextPath}/Header_Footer/Styles.css">
+        href="${pageContext.request.contextPath}/css/css/header_footer.css">
   <link rel="stylesheet"
         href="${pageContext.request.contextPath}/css/css/trangchu.css">
 
@@ -21,7 +21,7 @@
   <div class="header-top-container">
     <div class="header-content">
       <div class="logo">
-        <a href="${pageContext.request.contextPath}/home">Handmade House</a>
+        <a href="${pageContext.request.contextPath}/jsp/home.css">Handmade House</a>
       </div>
       <form class="search-form" action="${pageContext.request.contextPath}/product" method="GET">
         <input type="text" class="search-input" name="keyword" value="${keyword}" placeholder="Tìm kiếm bất cứ thứ gì" aria-label="Tìm kiếm sản phẩm" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
@@ -147,7 +147,8 @@
           <div class="product-info">
             <a href="${pageContext.request.contextPath}/product?categoryId=${p.categoryId}" class="product-cat">${p.categoryName}</a>
             <a href="${pageContext.request.contextPath}/product-detail?id=${p.productId}" class="product-name">${p.productName}</a>
-            <fmt:formatNumber value="${p.productPrice}" type="currency" currencySymbol="₫"/>                    </div>
+            <fmt:formatNumber value="${p.productPrice}" type="currency" currencySymbol="₫"/>
+          </div>
         </div>
       </c:forEach>
     </div>
