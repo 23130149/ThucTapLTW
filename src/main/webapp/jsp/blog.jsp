@@ -3,9 +3,9 @@
 <html lang="vi">
 <head>
   <link rel="stylesheet"
-        href="${pageContext.request.contextPath}/css/blog.css">
+        href="${pageContext.request.contextPath}/css/css/blog.css">
   <link rel="stylesheet"
-        href="${pageContext.request.contextPath}/Header_Footer/Styles.css">
+        href="${pageContext.request.contextPath}/css/css/header_footer.css">
   <meta charset="UTF-8">
   <title>Blog - Handmade House</title>
 
