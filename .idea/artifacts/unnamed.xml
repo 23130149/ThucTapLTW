@@ -1,9 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="exploded-war" name="unnamed">
-    <output-path>$PROJECT_DIR$/out/artifacts/unnamed</output-path>
-    <root id="root">
-      <element id="module-output" name="TTLTW" />
-      <element id="artifact" artifact-name="unnamed2" />
-    </root>
-  </artifact>
-</component>
