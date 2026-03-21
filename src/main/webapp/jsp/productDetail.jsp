@@ -7,9 +7,9 @@
 <html lang="en">
 <head>
   <link rel="stylesheet"
-        href="${pageContext.request.contextPath}/css/css/chitietsp.css">
+        href="${pageContext.request.contextPath}/css/chitietsp.css">
   <link rel="stylesheet"
-        href="${pageContext.request.contextPath}/css/css/header_footer.css">
+        href="${pageContext.request.contextPath}/css/header_footer.css">
   <meta charset="UTF-8">
   <title>${product.productName}</title>
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
