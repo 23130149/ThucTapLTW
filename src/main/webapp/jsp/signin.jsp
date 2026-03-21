@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <title>Đăng nhập</title>
   <link rel="stylesheet"
-        href="${pageContext.request.contextPath}/css/css/dangnhap.css">
+        href="${pageContext.request.contextPath}/css/dangnhap.css">
   <link href="https://cdn.boxicons.com/fonts/basic/boxicons.min.css" rel="stylesheet">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
