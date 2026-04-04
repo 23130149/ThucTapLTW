@@ -286,3 +286,73 @@ main.about-us-container {
     font-size: 13px;
     margin-top: 4px;
 }
+ .address-box {
+     max-width: 650px;
+     background: #fff;
+     padding: 30px;
+     border-radius: 14px;
+     margin-bottom: 30px;
+ }
+
+.address-item {
+    border: 1px solid #ddd;
+    padding: 14px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+}
+
+.address-item p {
+    margin: 0 0 6px 0;
+    font-size: 14px;
+}
+
+.address-item a {
+    margin-right: 12px;
+    font-size: 14px;
+    color: #111;
+    text-decoration: none;
+}
+
+.address-item a:hover {
+    text-decoration: underline;
+}
+
+.form-row {
+    margin-bottom: 16px;
+}
+
+.form-row label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.form-row input {
+    width: 100%;
+    padding: 11px 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+}
+
+.address-actions {
+    margin-top: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-save {
+    background: #111;
+    color: #fff;
+    padding: 10px 22px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-cancel {
+    font-size: 14px;
+    text-decoration: none;
+    color: #555;
+}
