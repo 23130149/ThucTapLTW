@@ -1,8 +1,6 @@
 package dao;
 
-
 import com.mysql.cj.jdbc.MysqlDataSource;
-import dao.DBProperties;
 import org.jdbi.v3.core.Jdbi;
 
 import java.sql.SQLException;
