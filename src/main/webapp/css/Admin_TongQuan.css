@@ -322,23 +322,22 @@ a {
     outline: none;
 }
 
-/* === PHẦN BIỂU ĐỒ ĐÃ FIX HOÀN TOÀN === */
 .bar-chart-container {
     display: flex;
     align-items: flex-end;
-    justify-content: space-around; /* Căn đều các cột */
-    height: 280px;                 /* Chiều cao cố định, đủ chỗ cho label trên + dưới */
-    padding: 0 20px 50px 20px;     /* Padding dưới để label ngày không bị cắt */
+    justify-content: space-around;
+    height: 280px;
+    padding: 0 20px 50px 20px;
     position: relative;
 }
 
 .bar-chart {
-    width: 40px;                   /* Độ rộng cột */
+    width: 40px;
     background: linear-gradient(to top, #11998e, #38ef7d);
     border-radius: 8px 8px 0 0;
     position: relative;
     transition: all 0.3s ease;
-    min-height: 4px;               /* Đảm bảo cột không biến mất nếu value = 0 */
+    min-height: 4px;
 }
 
 .bar-chart:hover {
@@ -346,8 +345,6 @@ a {
     opacity: 0.9;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
-
-/* Label doanh thu ở trên đầu cột */
 .bar-chart .revenue-label {
     position: absolute;
     top: -28px;
@@ -363,8 +360,6 @@ a {
     white-space: nowrap;
     pointer-events: none;
 }
-
-/* Label ngày ở dưới */
 .bar-chart p {
     position: absolute;
     bottom: -35px;
