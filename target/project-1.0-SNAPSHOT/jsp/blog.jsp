@@ -5,7 +5,7 @@
   <link rel="stylesheet"
         href="${pageContext.request.contextPath}/css/blog.css">
   <link rel="stylesheet"
-        href="${pageContext.request.contextPath}/Header_Footer/Styles.css">
+        href="${pageContext.request.contextPath}/css/header_footer.css">
   <meta charset="UTF-8">
   <title>Blog - Handmade House</title>
 
