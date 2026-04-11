@@ -57,7 +57,10 @@
             <h3 class="inactive"></h3>
         </div>
     </div>
-
+    <div class="search-review-box">
+        <i class="bx bx-search"></i>
+        <input type="text" placeholder="Tìm kiếm...">
+    </div>
     <div class="banner-action">
         <button class="btn-add">
             <i class="bx bx-plus"></i> Thêm Banner Mới
