@@ -1,10 +1,12 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Admin</title>
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="tongquan.css">
+    <link rel="stylesheet"
+          href="${pageContext.request.contextPath}/css/Admin_TongQuan.css">
 </head>
 <body>
 <aside class="sliderbar">

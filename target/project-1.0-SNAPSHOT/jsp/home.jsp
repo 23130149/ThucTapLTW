@@ -6,9 +6,10 @@
 <html lang="en">
 <head>
   <link rel="stylesheet"
-        href="${pageContext.request.contextPath}/css/css/header_footer.css">
+        href="${pageContext.request.contextPath}/css/header_footer.css">
   <link rel="stylesheet"
-        href="${pageContext.request.contextPath}/css/css/trangchu.css">
+        href="${pageContext.request.contextPath}/css/trangchu.css">
+
   <meta charset="UTF-8">
   <title>Handmade Shop</title>
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
