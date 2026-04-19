@@ -5,18 +5,20 @@ public class Product {
     private Integer categoryId;
     private String productName;
     private String categoryName;
-    private Integer productPrice;
+    private Double productPrice;
     private Integer stockQuantity;
     private String productDescription;
     private String imageUrl;
+    private Integer sold;
 
-    public Product(Integer productId, Integer categoryId, String productName, Integer productPrice, String categoryName, Integer stockQuantity, String productDescription, String imageUrl) {
+    public Product(Integer productId, Integer categoryId, String productName, String categoryName, Double productPrice, Integer stockQuantity, Integer sold, String productDescription, String imageUrl) {
         this.productId = productId;
         this.categoryId = categoryId;
         this.productName = productName;
-        this.productPrice = productPrice;
         this.categoryName = categoryName;
+        this.productPrice = productPrice;
         this.stockQuantity = stockQuantity;
+        this.sold = sold;
         this.productDescription = productDescription;
         this.imageUrl = imageUrl;
     }
@@ -35,6 +37,7 @@ public class Product {
                 ", stockQuantity=" + stockQuantity +
                 ", productDescription='" + productDescription + '\'' +
                 ", imageUrl='" + imageUrl + '\'' +
+                ", sold='" + sold + '\'' +
                 '}';
     }
 
@@ -70,11 +73,11 @@ public class Product {
         this.categoryName = categoryName;
     }
 
-    public Integer getProductPrice() {
+    public Double getProductPrice() {
         return productPrice;
     }
 
-    public void setProductPrice(Integer productPrice) {
+    public void setProductPrice(Double productPrice) {
         this.productPrice = productPrice;
     }
 
@@ -100,5 +103,13 @@ public class Product {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public Integer getSold() {
+        return sold;
+    }
+
+    public void setSold(Integer sold) {
+        this.sold = sold;
     }
 }
