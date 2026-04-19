@@ -21,7 +21,7 @@
   <div class="header-top-container">
     <div class="header-content">
       <div class="logo">
-        <a href="${pageContext.request.contextPath}/jsp/home.css">Handmade House</a>
+        <a href="${pageContext.request.contextPath}/home">Handmade House</a>
       </div>
       <form class="search-form" action="${pageContext.request.contextPath}/product" method="GET">
         <input type="text" class="search-input" name="keyword" value="${keyword}" placeholder="Tìm kiếm bất cứ thứ gì" aria-label="Tìm kiếm sản phẩm" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
