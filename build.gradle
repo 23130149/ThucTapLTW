@@ -1,0 +1,48 @@
+plugins {
+    id 'java'
+    id 'war'
+}
+war {
+    archiveBaseName = 'thuctap'
+}
+group = 'vn.edu.nlu.fit'
+version = '1.0-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    // Servlet API (provided)
+    compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
+
+    // Gson
+    implementation 'com.google.code.gson:gson:2.13.2'
+
+    // JSTL
+    implementation 'org.glassfish.web:jakarta.servlet.jsp.jstl:3.0.1'
+    implementation 'jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api:3.0.1'
+
+    // JDBI
+    implementation 'org.jdbi:jdbi3-core:3.50.0'
+
+    // MySQL
+    implementation 'com.mysql:mysql-connector-j:9.3.0'
+
+    // Mail
+    implementation 'com.sun.mail:jakarta.mail:2.0.1'
+
+    // BCrypt
+    implementation 'org.mindrot:jbcrypt:0.4'
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
