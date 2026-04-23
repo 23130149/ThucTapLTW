@@ -7,9 +7,9 @@
 <html lang="en">
 <head>
   <link rel="stylesheet"
-        href="${pageContext.request.contextPath}/css/css/chitietsp.css">
+        href="${pageContext.request.contextPath}/css/chitietsp.css">
   <link rel="stylesheet"
-        href="${pageContext.request.contextPath}/css/css/header_footer.css">
+        href="${pageContext.request.contextPath}/css/header_footer.css">
   <meta charset="UTF-8">
   <title>${product.productName}</title>
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
@@ -121,48 +121,6 @@
       </div>
     </div>
   </div>
-  <div class="container">
-    <div class="rating-section">
-      <h2>Đánh giá sản phẩm</h2>
-      <div class="rating-sumary">
-        <p class="rating-number">5.0/5</p>
-        <div class="stars">
-          <i class="bx bxs-star"></i>
-          <i class="bx bxs-star"></i>
-          <i class="bx bxs-star"></i>
-          <i class="bx bxs-star"></i>
-          <i class="bx bxs-star"></i>
-        </div>
-        <p class="rating-count">86 đánh giá</p>
-      </div>
-      <div class="rating-breakdown">
-        <div class="rating-bar-now">
-          <span>5<i class="bx bxs-star"></i></span>
-          <div class="rating-bar"><div class="rating-fill" style="width: 95%"></div></div>
-          <span>82</span>
-        </div>
-        <div class="rating-bar-now">
-          <span>4<i class="bx bxs-star"></i></span>
-          <div class="rating-bar"><div class="rating-fill" style="width: 4%"></div></div>
-          <span>3</span>
-        </div>
-        <div class="rating-bar-now">
-          <span>3<i class="bx bxs-star"></i></span>
-          <div class="rating-bar"><div class="rating-fill" style="width: 1%"></div></div>
-          <span>1</span>
-        </div>
-        <div class="rating-bar-now">
-          <span>2<i class="bx bxs-star"></i></span>
-          <div class="rating-bar"><div class="rating-fill" style="width: 0%"></div></div>
-          <span>0</span>
-        </div>
-        <div class="rating-bar-now">
-          <span>1<i class="bx bxs-star"></i></span>
-          <div class="rating-bar"><div class="rating-fill" style="width: 0%"></div></div>
-          <span>0</span>
-        </div>
-      </div>
-    </div>
     <div class="review-list">
       <h3>Bình luận từ khách hàng (${reviewCount})</h3>
       <c:if test="${empty reviews}">
