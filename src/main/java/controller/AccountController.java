@@ -40,7 +40,7 @@ public class AccountController extends HttpServlet {
 
         request.setAttribute("orderList", recentOrders);
 
-        request.getRequestDispatcher("/jsp/account.jsp")
+        request.getRequestDispatcher("/jsp/myaccount.jsp")
                 .forward(request, response);
     }
 }

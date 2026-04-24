@@ -23,7 +23,7 @@ public class SignInController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        request.getRequestDispatcher("/signin.jsp").forward(request, response);
+        request.getRequestDispatcher("/jsp/signin.jsp").forward(request, response);
     }
 
     @Override
