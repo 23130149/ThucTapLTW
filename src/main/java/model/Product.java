@@ -5,13 +5,13 @@ public class Product {
     private Integer categoryId;
     private String productName;
     private String categoryName;
-    private Double productPrice;
+    private Integer productPrice;
     private Integer stockQuantity;
     private String productDescription;
     private String imageUrl;
     private Integer sold;
 
-    public Product(Integer productId, Integer categoryId, String productName, String categoryName, Double productPrice, Integer stockQuantity, Integer sold, String productDescription, String imageUrl) {
+    public Product(Integer productId, Integer categoryId, String productName, String categoryName, Integer productPrice, Integer stockQuantity, Integer sold, String productDescription, String imageUrl) {
         this.productId = productId;
         this.categoryId = categoryId;
         this.productName = productName;
@@ -73,11 +73,11 @@ public class Product {
         this.categoryName = categoryName;
     }
 
-    public Double getProductPrice() {
+    public Integer getProductPrice() {
         return productPrice;
     }
 
-    public void setProductPrice(Double productPrice) {
+    public void setProductPrice(Integer productPrice) {
         this.productPrice = productPrice;
     }
 
