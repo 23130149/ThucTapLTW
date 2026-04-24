@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib prefix="util" uri="http://handmade/Util" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -8,6 +9,8 @@
   <title>Tài khoản của tôi - Handmade House</title>
   <link rel="stylesheet"
         href="${pageContext.request.contextPath}/css/account.css">
+  <link rel="stylesheet"
+        href="${pageContext.request.contextPath}/css/header_footer.css">
   <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
@@ -50,16 +53,17 @@
     </div>
   </div>
 </header>
-
 <main class="about-us-container">
 
   <h1>Tài khoản của tôi</h1>
 
   <div class="account-info">
     <i class='bx bxs-user-circle'></i>
-    <h2>Xin chào ,</h2>
+    <h2>Xin chào ${sessionScope.user.userName},</h2>
+    <h3>${sessionScope.user.email}</h3>
 
   </div>
+
 
   <ul class="account-menu">
     <li>
@@ -92,15 +96,67 @@
   <div class="recent-orders-box">
     <h2>Đơn hàng gần đây</h2>
 
-  </div>
+    <c:choose>
+      <c:when test="${empty orderList}">
+        <p>Bạn chưa có đơn hàng nào.</p>
+      </c:when>
 
+      <c:otherwise>
+        <table class="orders-table">
+          <thead>
+          <tr>
+            <th>Mã đơn</th>
+            <th>Ngày đặt</th>
+            <th>Tổng tiền</th>
+            <th>Trạng thái</th>
+          </tr>
+          </thead>
+
+          <tbody>
+          <c:forEach var="order" items="${orderList}">
+            <tr>
+              <td>
+                <a href="${pageContext.request.contextPath}/OrderDetail?orderId=${order.orderId}"
+                   style="color:#11998e; font-weight:600;">
+                    ${order.orderCode}
+                </a>
+              </td>
+              <td>
+                  ${util:formatDateTime(order.createAt)}
+              </td>
+              <td>
+                  ${util:formatMoney(order.totalPrice)}
+              </td>
+              <td>
+            <span class="status-${order.status}">
+                ${util:orderStatusIcon(order.status)}
+                ${util:orderStatusLabel(order.status)}
+            </span>
+              </td>
+            </tr>
+          </c:forEach>
+          </tbody>
+        </table>
+      </c:otherwise>
+    </c:choose>
+  </div>
+  <c:if test="${not empty orderList}">
+    <div class="view-all-wrapper">
+      <a href="${pageContext.request.contextPath}/OrderHistory"
+         class="btn-view-all-orders">
+        <i class='bx bx-list-ul'></i>
         Xem tất cả đơn hàng
       </a>
     </div>
+  </c:if>
+
+
   <a href="${pageContext.request.contextPath}/Logout"
      class="btn-logout">
     Đăng xuất
   </a>
+
+
 </main>
 <footer class="footer">
   <div class="container">
