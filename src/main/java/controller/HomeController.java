@@ -17,7 +17,7 @@ public class HomeController extends HttpServlet {
 
         request.setAttribute("categoryList", cDao.getAllCategories());
         request.setAttribute("productList", pDao.getFeaturedProducts());
-        request.getRequestDispatcher("home.jsp").forward(request, response);
+        request.getRequestDispatcher("/jsp/home.jsp").forward(request, response);
     }
 
     @Override
