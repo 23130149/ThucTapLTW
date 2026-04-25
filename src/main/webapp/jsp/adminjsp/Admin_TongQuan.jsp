@@ -1,9 +1,12 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin</title>
+    <title>Admin Dashboard</title>
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet"
           href="${pageContext.request.contextPath}/css/Admin_TongQuan.css">
@@ -15,20 +18,19 @@
     </div>
     <nav class="slidebar-nav">
         <ul>
-            <li class="active"><a href="../Tongquan/tongquan.html"><i class="bx bx-chart"></i>Tổng quan</a></li>
-            <li><a href="../../../../../../trangadmin/Sanpham/qlsanpham.html"><i class="bx bx-package"></i>Sản phẩm</a>
-            </li>
-            <li><a href="../../../../../../trangadmin/Donhang/donhang.html"><i class="bx bx-receipt"></i>Đơn hàng</a>
-            </li>
-            <li><a href="../../../../../../trangadmin/Khachhang/khachhang.html"><i class="bx bx-group"></i>Khách
-                hàng</a></li>
-            <li><a href="../../../../../../trangadmin/Danhgia/danhgia.html"><i class="bx bx-star"></i>Đánh giá</a></li>
-            <li><a href="../../../../../../trangadmin/Caidat/caidat.html"><i class="bx bx-cog"></i>Cài đặt</a></li>
-
+            <li class="active"><a href="${pageContext.request.contextPath}/admin/dashboard"><i class="bx bx-chart"></i>Tổng quan</a></li>
+            <li><a href="${pageContext.request.contextPath}/jsp/adminjsp/Admin_DanhMuc.jsp"><i class="bx bx-category"></i>Danh mục</a></li>
+            <li><a href="${pageContext.request.contextPath}/admin/products"><i class="bx bx-package"></i>Sản phẩm</a></li>
+            <li><a href="${pageContext.request.contextPath}/admin/orders"><i class="bx bx-receipt"></i>Đơn hàng</a></li>
+            <li><a href="${pageContext.request.contextPath}/admin/customers"><i class="bx bx-group"></i>Khách hàng</a></li>
+            <li><a href="${pageContext.request.contextPath}/admin/reviews"><i class="bx bx-star"></i> Đánh giá</a></li>
+            <li><a href="${pageContext.request.contextPath}/admin/contacts"><i class="bx bx-envelope"></i> Liên hệ</a></li>
+            <li><a href="${pageContext.request.contextPath}/jsp/adminjsp/Admin_Banner.jspanner.jsp"><i class="bx bx-image"></i>Banner</a></li>
+            <li><a href="${pageContext.request.contextPath}/admin/setting"><i class="bx bx-cog"></i>Cài đặt</a></li>
         </ul>
     </nav>
     <div class="logout">
-        <a href="../../../../../../html/trangchu.html"><i class="bx bx-log-out"></i>Đăng xuất</a>
+        <a href="${pageContext.request.contextPath}/home"><i class="bx bx-log-out"></i>Đăng Xuất</a>
     </div>
 </aside>
 <main class="main-content">
@@ -53,46 +55,53 @@
         <div class="stat-card stat-revenue">
             <div class="stat-icon"><i class="bx bx-money"></i></div>
             <div class="stat-details">
-                <p class="title">Doanh thu tháng này</p>
-                <p class="value">205,000,000đ</p>
-                <span class="stat-change positive">+17.5% so với tháng trước</span>
+                <p class="title">Doanh thu</p>
+                <p class="value">
+                    <fmt:formatNumber value="${totalRevenue}" groupingUsed="true"/>đ
+                </p>
+                <span class="stat-change positive">Tổng doanh thu hệ thống</span>
             </div>
         </div>
         <div class="stat-card stat-new-orders">
             <div class="stat-icon"><i class="bx bx-receipt"></i></div>
             <div class="stat-details">
-                <p class="title">Đơn hàng mới</p>
-                <p class="value">148</p>
-                <span class="stat-change positive">+9.1% so với tháng trước</span>
+                <p class="title">Đơn hàng</p>
+                <p class="value">${totalOrders}</p>
+                <span class="stat-change positive">Tổng đơn đã tạo</span>
             </div>
         </div>
         <div class="stat-card stat-customers">
             <div class="stat-icon"><i class="bx bx-user-pin"></i></div>
             <div class="stat-details">
                 <p class="title">Khách hàng</p>
-                <p class="value">86</p>
-                <span class="stat-change positive">+12.1% so với tháng trước</span>
+                <p class="value">${totalUsers}</p>
+                <span class="stat-change positive">Tổng người dùng hệ thống</span>
             </div>
         </div>
     </div>
     <div class="charts-section">
         <div class="chart-card">
             <div class="card-header">
-                <h3 class="card-title">Doanh thu 7 ngày qua</h3>
-                <select class="chart-filter">
-                    <option>7 ngày</option>
-                    <option>30 ngày</option>
+                <h3 class="card-title">
+                    Doanh thu ${range == '30' ? '30 ngày' : '7 ngày'}
+                </h3>
+
+                <select class="chart-filter"
+                        onchange="location.href='${pageContext.request.contextPath}/admin/dashboard?range=' + this.value">
+                    <option value="7" ${range == '7' ? 'selected' : ''}>7 ngày</option>
+                    <option value="30" ${range == '30' ? 'selected' : ''}>30 ngày</option>
                 </select>
             </div>
             <div class="chart-area">
                 <div class="bar-chart-container">
-                    <div class="bar-chart" style="height: 50%"><p>T2</p></div>
-                    <div class="bar-chart" style="height: 60%"><p>T3</p></div>
-                    <div class="bar-chart" style="height: 40%"><p>T4</p></div>
-                    <div class="bar-chart" style="height: 45%"><p>T5</p></div>
-                    <div class="bar-chart" style="height: 70%"><p>T6</p></div>
-                    <div class="bar-chart" style="height: 85%"><p>T7</p></div>
-                    <div class="bar-chart" style="height: 75%"><p>CN</p></div>
+                    <c:forEach items="${revenueChart}" var="item">
+                        <div class="bar-chart" style="height: ${item.value}%">
+                            <span class="revenue-label">
+                                <fmt:formatNumber value="${item.originalValue}" groupingUsed="true"/>đ
+                            </span>
+                            <p>${item.key}</p>
+                        </div>
+                    </c:forEach>
                 </div>
             </div>
         </div>
@@ -101,45 +110,16 @@
                 <h3 class="card-title">Top sản phẩm bán chạy</h3>
             </div>
             <div class="top-products">
+                <c:forEach items="${topProducts}" var="p" varStatus="st">
                 <div class="product-item">
-                    <span class="product-rank">1</span>
+                    <span class="product-rank">${st.count}</span>
                     <div class="product-info">
-                        <p class="product-name">Ốp lưng điện thoại</p>
-                        <p class="product-sales">205 đã bán</p>
+                        <p class="product-name">${p.productName}</p>
+                        <p class="product-sales">${p.sold} đã bán</p>
                     </div>
-                    <span class="product-price">35.300.000đ</span>
-                </div>
-                <div class="product-item">
-                    <span class="product-rank">2</span>
-                    <div class="product-info">
-                        <p class="product-name">Móc khóa lá cờ Việt Nam</p>
-                        <p class="product-sales">184 đã bán</p>
-                    </div>
-                    <span class="product-price">30.360.000đ</span>
-                </div>
-                <div class="product-item">
-                    <span class="product-rank">3</span>
-                    <div class="product-info">
-                        <p class="product-name">Nến thơm xương rồng</p>
-                        <p class="product-sales">155 đã bán</p>
-                    </div>
-                    <span class="product-price">41.120.000đ</span>
-                </div>
-                <div class="product-item">
-                    <span class="product-rank">4</span>
-                    <div class="product-info">
-                        <p class="product-name">Kẹp tóc hoa dâu tay nhí</p>
-                        <p class="product-sales">103 đã bán</p>
-                    </div>
-                    <span class="product-price">21.000.000đ</span>
-                </div>
-                <div class="product-item">
-                    <span class="product-rank">5</span>
-                    <div class="product-info">
-                        <p class="product-name">Túi hoa Tulip</p>
-                        <p class="product-sales">86 đã bán</p>
-                    </div>
-                    <span class="product-price">25.300.000đ</span>
+                    <span class="product-price">
+                        <fmt:formatNumber value="${p.revenue}" groupingUsed="true"/>đ
+                    </span>
                 </div>
             </div>
         </div>
@@ -178,61 +158,24 @@
                 </td>
             </tr>
             <tr>
-                <td>#DH002</td>
+                <td>${o.orderCode}</td>
                 <td class="customer-info">
-                    <span class="customer-avatar">K</span>
-                    Lê Viết Khanh
+                    <span class="customer-avatar">
+                            ${fn:substring(o.userName,0,1)}
+                    </span>
+                    ${o.userName}
                 </td>
-                <td>Móc khóa lá cờ Việt Nam</td>
-                <td>10</td>
-                <td>150.000đ</td>
-                <td><span class="status status-completed">Hoàn thành</span></td>
-                <td>2/9/2025</td>
+                <td>${o.productName}</td>
+                <td>${o.quantity}</td>
                 <td>
-                    <i class="bx bx-show-alt action-icon"></i>
+                    <fmt:formatNumber value="${o.totalPrice}" groupingUsed="true"/>đ
                 </td>
-            </tr>
-            <tr>
-                <td>#DH003</td>
-                <td class="customer-info">
-                    <span class="customer-avatar">Q</span>
-                    Trần Hoàng Quân
-                </td>
-                <td>Nến thơm xương rồng</td>
-                <td>2</td>
-                <td>300.000đ</td>
-                <td><span class="status status-shipping">Đang giao</span></td>
-                <td>17/9/2025</td>
                 <td>
-                    <i class="bx bx-show-alt action-icon"></i>
+                    <span class="status ${statusClass}">
+                        ${o.status}
+                    </span>
                 </td>
-            </tr>
-            <tr>
-                <td>#DH004</td>
-                <td class="customer-info">
-                    <span class="customer-avatar">Đ</span>
-                    Nguyễn Lê Tiến Đạt
-                </td>
-                <td>Kẹp tóc hoa dâu tây nhí</td>
-                <td>5</td>
-                <td>150.000đ</td>
-                <td><span class="status status-completed">Hoàn thành</span></td>
-                <td>10/10/2025</td>
-                <td>
-                    <i class="bx bx-show-alt action-icon"></i>
-                </td>
-            </tr>
-            <tr>
-                <td>#DH005</td>
-                <td class="customer-info">
-                    <span class="customer-avatar">B</span>
-                    Nguyễn Huy Bảo
-                </td>
-                <td>Túi hoa Tulip</td>
-                <td>1</td>
-                <td>120.000đ</td>
-                <td><span class="status status-pending">Đang xử lý</span></td>
-                <td>12/11/2025</td>
+                <td>${o.createAtFormatted}</td>
                 <td>
                     <i class="bx bx-show-alt action-icon"></i>
                 </td>
