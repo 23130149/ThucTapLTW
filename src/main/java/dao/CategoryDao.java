@@ -7,7 +7,7 @@ import java.util.List;
 
 public class CategoryDao extends BaseDao{
     public List<Category> getAllCategories() {
-        String sql = "select * from category";
+        String sql = "select * from categories";
         return getJdbi().withHandle(
                 handle ->
                         handle.createQuery(sql)

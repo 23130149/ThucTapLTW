@@ -1,5 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix = "c" uri = "http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<fmt:setLocale value="vi_VN"/>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -77,19 +79,19 @@
                     </div>
                 </div>
                 <div class="product-grid">
-                    <c:forEach items="${list}" var="p">
+                    <c:forEach items="${productList}" var="p">
                         <div class="product-item">
                             <div class="product-top">
-                                <a href="${pageContext.request.contextPath}/jsp/productDetail.jsp?id=${p.product_id}"
+                                <a href="${pageContext.request.contextPath}/jsp/productDetail.jsp?id=${p.productId}"
                                    class="product-thumb">
-                                    <img src="${p.image_url}" alt="${p.product_name}">
+                                    <img src="${p.imageUrl}" alt="${p.productName}">
                                 </a>
                                 <div class="add-to-cart-btn"><i class="bx bx-shopping-bag"></i>Thêm vào giỏ</div>
                             </div>
                             <div class="product-info">
-                                <a href="#" class="product-cat">Mã loại: ${p.category_id}</a>
-                                <a href="#" class="product-name">${p.product_name}</a>
-                                <div class="product-price">${p.product_price}</div>
+                                <a href="#" class="product-cat">Mã loại: ${p.categoryId}</a>
+                                <a href="#" class="product-name">${p.productName}</a>
+                                <div class="product-price">${p.productPrice}</div>
                             </div>
                         </div>
                     </c:forEach>
