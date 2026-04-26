@@ -22,6 +22,5 @@ public class ProductDao extends BaseDao{
                             .list());
   }
 
-    public List<Product> getTopProducts(int i) {
-    }
+
 }
