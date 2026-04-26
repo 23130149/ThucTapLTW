@@ -19,13 +19,13 @@
     <nav class="slidebar-nav">
         <ul>
             <li class="active"><a href="${pageContext.request.contextPath}/admin/dashboard"><i class="bx bx-chart"></i>Tổng quan</a></li>
-            <li><a href="${pageContext.request.contextPath}/jsp/adminjsp/Admin_DanhMuc.jsp"><i class="bx bx-category"></i>Danh mục</a></li>
+            <li><a href="${pageContext.request.contextPath}/admin/category"><i class="bx bx-category"></i>Danh mục</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/products"><i class="bx bx-package"></i>Sản phẩm</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/orders"><i class="bx bx-receipt"></i>Đơn hàng</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/customers"><i class="bx bx-group"></i>Khách hàng</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/reviews"><i class="bx bx-star"></i> Đánh giá</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/contacts"><i class="bx bx-envelope"></i> Liên hệ</a></li>
-            <li><a href="${pageContext.request.contextPath}/jsp/adminjsp/Admin_Banner.jspanner.jsp"><i class="bx bx-image"></i>Banner</a></li>
+            <li><a href="${pageContext.request.contextPath}/admin/banner"><i class="bx bx-image"></i>Banner</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/setting"><i class="bx bx-cog"></i>Cài đặt</a></li>
         </ul>
     </nav>
@@ -121,6 +121,7 @@
                         <fmt:formatNumber value="${p.revenue}" groupingUsed="true"/>đ
                     </span>
                 </div>
+                </c:forEach>
             </div>
         </div>
     </div>
@@ -142,21 +143,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr>
-                <td>#DH001</td>
-                <td class="customer-info">
-                    <span class="customer-avatar">P</span>
-                    Nguyễn Thanh Phú
-                </td>
-                <td>Ốp lưng điện thoại</td>
-                <td>3</td>
-                <td>267.000đ</td>
-                <td><span class="status status-pending">Đang xử lý</span></td>
-                <td>17/10/2025</td>
-                <td>
-                    <i class="bx bx-show-alt action-icon"></i>
-                </td>
-            </tr>
+            <c:forEach items="${orders}" var="o">
             <tr>
                 <td>${o.orderCode}</td>
                 <td class="customer-info">
@@ -180,6 +167,7 @@
                     <i class="bx bx-show-alt action-icon"></i>
                 </td>
             </tr>
+            </c:forEach>
             </tbody>
         </table>
     </div>

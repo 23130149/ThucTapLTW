@@ -29,18 +29,18 @@ public class AdminDashboardController extends HttpServlet {
     int totalUsers = uDao.countUsers();
 
 
-    List<Product> topProducts = pDao.getTopProducts(5);
+    //List<Product> topProducts = pDao.getTopProducts(5);
 
     List<Order> latestOrders = oDao.getLatestOrders(5);
 
-        if (topProducts == null) topProducts = new ArrayList<>();
+        //if (topProducts == null) topProducts = new ArrayList<>();
         if (latestOrders == null) latestOrders = new ArrayList<>();
 
         request.setAttribute("range", days);
         request.setAttribute("totalRevenue", totalRevenue);
         request.setAttribute("totalOrders", totalOrders);
         request.setAttribute("totalUsers", totalUsers);
-        request.setAttribute("topProducts", topProducts);
+      //  request.setAttribute("topProducts", topProducts);
         request.setAttribute("latestOrders", latestOrders);
         request.getRequestDispatcher("/jsp/adminjsp/Admin_TongQuan.jsp")
                 .forward(request, response);
