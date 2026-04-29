@@ -2,21 +2,21 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard</title>
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet"
-          href="${pageContext.request.contextPath}/css/Admin_TongQuan.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/Admin_TongQuan.css">
 </head>
 <body>
 <aside class="sliderbar">
     <div class="slidebar-header">
         <h2 class="logo">Handmade House</h2>
     </div>
-    <nav class="slidebar-nav">
+    <div class="slidebar-nav">
         <ul>
             <li class="active"><a href="${pageContext.request.contextPath}/admin/dashboard"><i class="bx bx-chart"></i>Tổng quan</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/category"><i class="bx bx-category"></i>Danh mục</a></li>
@@ -28,9 +28,11 @@
             <li><a href="${pageContext.request.contextPath}/admin/banner"><i class="bx bx-image"></i>Banner</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/setting"><i class="bx bx-cog"></i>Cài đặt</a></li>
         </ul>
-    </nav>
+    </div>
     <div class="logout">
-        <a href="${pageContext.request.contextPath}/home"><i class="bx bx-log-out"></i>Đăng Xuất</a>
+        <a href="${pageContext.request.contextPath}/home">
+            <i class="bx bx-log-out"></i> Đăng xuất
+        </a>
     </div>
 </aside>
 <main class="main-content">
@@ -41,12 +43,21 @@
             <button><i class="bx bx-search"></i></button>
         </div>
         <div class="user-info">
-            <span class="notification-badge"><i class="bx bx-bell"></i></span>
+            <span class="notification-badge">
+                <i class="bx bx-bell"></i>
+            </span>
             <div class="profile-admin">
-                <span class="admin-avatar">L</span>
-                <div class="user-details">
-                    <span class="user-name">Phan Đình Long</span>
-                    <span class="user-role">Quản trị viên</span>
+                <span class="admin-avatar">
+                    <c:choose>
+                        <c:when test="${not empty sessionScope.user.userName}">
+                            ${fn:substring(sessionScope.user.userName,0,1)}
+                        </c:when>
+                        <c:otherwise>A</c:otherwise>
+                    </c:choose>
+                </span>
+                <div>
+                    <p class="user-name">${sessionScope.user.userName}</p>
+                    <small class="user-role">Quản trị viên</small>
                 </div>
             </div>
         </div>
@@ -55,133 +66,109 @@
         <div class="stat-card stat-revenue">
             <div class="stat-icon"><i class="bx bx-money"></i></div>
             <div class="stat-details">
-                <p class="title">Doanh thu</p>
-                <p class="value">
+                <div class="title">Doanh thu</div>
+                <div class="value">
                     <fmt:formatNumber value="${totalRevenue}" groupingUsed="true"/>đ
-                </p>
-                <span class="stat-change positive">Tổng doanh thu hệ thống</span>
+                </div>
             </div>
         </div>
         <div class="stat-card stat-new-orders">
             <div class="stat-icon"><i class="bx bx-receipt"></i></div>
             <div class="stat-details">
-                <p class="title">Đơn hàng</p>
-                <p class="value">${totalOrders}</p>
-                <span class="stat-change positive">Tổng đơn đã tạo</span>
+                <div class="title">Đơn hàng</div>
+                <div class="value">${totalOrders}</div>
             </div>
         </div>
         <div class="stat-card stat-customers">
-            <div class="stat-icon"><i class="bx bx-user-pin"></i></div>
+            <div class="stat-icon"><i class="bx bx-user"></i></div>
             <div class="stat-details">
-                <p class="title">Khách hàng</p>
-                <p class="value">${totalUsers}</p>
-                <span class="stat-change positive">Tổng người dùng hệ thống</span>
+                <div class="title">Khách hàng</div>
+                <div class="value">${totalUsers}</div>
             </div>
         </div>
     </div>
     <div class="charts-section">
-        <div class="chart-card">
-            <div class="card-header">
-                <h3 class="card-title">
-                    Doanh thu ${range == '30' ? '30 ngày' : '7 ngày'}
-                </h3>
-
-                <select class="chart-filter"
-                        onchange="location.href='${pageContext.request.contextPath}/admin/dashboard?range=' + this.value">
-                    <option value="7" ${range == '7' ? 'selected' : ''}>7 ngày</option>
-                    <option value="30" ${range == '30' ? 'selected' : ''}>30 ngày</option>
-                </select>
-            </div>
-            <div class="chart-area">
-                <div class="bar-chart-container">
-                    <c:forEach items="${revenueChart}" var="item">
-                        <div class="bar-chart" style="height: ${item.value}%">
-                            <span class="revenue-label">
-                                <fmt:formatNumber value="${item.originalValue}" groupingUsed="true"/>đ
-                            </span>
-                            <p>${item.key}</p>
-                        </div>
-                    </c:forEach>
-                </div>
-            </div>
+    <div class="chart-card">
+        <div class="card-header">
+            <h3>Doanh thu ${range == '30' ? '30 ngày' : '7 ngày'}</h3>
+            <select onchange="changeRange(this.value)">
+                <option value="7" ${range=='7'?'selected':''}>7 ngày</option>
+                <option value="30" ${range=='30'?'selected':''}>30 ngày</option>
+            </select>
         </div>
-        <div class="chart-card">
-            <div class="card-header">
-                <h3 class="card-title">Top sản phẩm bán chạy</h3>
-            </div>
-            <div class="top-products">
-                <c:forEach items="${topProducts}" var="p" varStatus="st">
-                <div class="product-item">
-                    <span class="product-rank">${st.count}</span>
-                    <div class="product-info">
-                        <p class="product-name">${p.productName}</p>
-                        <p class="product-sales">${p.sold} đã bán</p>
+        <div class="bar-chart-container">
+            <c:forEach items="${revenueChart}" var="item">
+                <div class="bar-chart" style="height:${item.percent}%">
+                    <div class="revenue-label">
+                        <fmt:formatNumber value="${item.value}" groupingUsed="true"/>đ
                     </div>
-                    <span class="product-price">
-                        <fmt:formatNumber value="${p.revenue}" groupingUsed="true"/>đ
-                    </span>
+                    <p>${item.label}</p>
                 </div>
-                </c:forEach>
-            </div>
+            </c:forEach>
         </div>
     </div>
-    <div class="order-table-container">
-        <div class="card-header">
-            <h3 class="card-title">Đơn hàng mới nhất</h3>
-        </div>
-        <table class="data-table">
-            <thead>
-            <tr>
-                <th>Mã đơn</th>
-                <th>Khách hàng</th>
-                <th>Sản phẩm</th>
-                <th>Số lượng</th>
-                <th>Tổng tiền</th>
-                <th>Trạng thái</th>
-                <th>Ngày đặt</th>
-                <th>Thao tác</th>
-            </tr>
-            </thead>
-            <tbody>
-            <c:forEach items="${orders}" var="o">
-            <tr>
-                <td>${o.orderCode}</td>
-                <td class="customer-info">
-                    <span class="customer-avatar">
-                            ${fn:substring(o.userName,0,1)}
-                    </span>
-                    ${o.userName}
-                </td>
-                <td>${o.productName}</td>
-                <td>${o.quantity}</td>
-                <td>
-                    <fmt:formatNumber value="${o.totalPrice}" groupingUsed="true"/>đ
-                </td>
-                <td>
-                    <span class="status ${statusClass}">
-                        ${o.status}
-                    </span>
-                </td>
-                <td>${o.createAtFormatted}</td>
-                <td>
-                    <i class="bx bx-show-alt action-icon"></i>
-                </td>
-            </tr>
+    <div class="chart-card">
+        <h3>Top sản phẩm</h3>
+        <div class="top-products">
+            <c:forEach items="${topProducts}" var="p" varStatus="st">
+                <a href="${pageContext.request.contextPath}/admin/products?id=${p.productId}"
+                   class="product-item">
+                    <div class="product-rank rank-${st.count}">
+                        #${st.count}
+                    </div>
+                    <img src="${pageContext.request.contextPath}/${p.imageUrl}"
+                         class="product-img"
+                         onerror="this.src='${pageContext.request.contextPath}/images/default.png'">
+                    <div class="product-info">
+                        <div class="product-name">${p.productName}</div>
+                        <div class="product-sales">${p.sold} đã bán</div>
+                    </div>
+                    <div class="product-price">
+                        <fmt:formatNumber value="${p.revenue}" groupingUsed="true"/>đ
+                    </div>
+                </a>
             </c:forEach>
-            </tbody>
-        </table>
+        </div>
+    </div>
+    </div>
+    <div class="table-card">
+        <h3>Đơn hàng mới</h3>
+        <div class="order-table-container">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Mã</th>
+                    <th>Khách</th>
+                    <th>Sản phẩm</th>
+                    <th>SL</th>
+                    <th>Tổng</th>
+                    <th>Trạng thái</th>
+                </tr>
+                </thead>
+                <tbody>
+                <c:forEach items="${latestOrders}" var="o">
+                    <tr>
+                        <td>${o.orderCode}</td>
+                        <td>${o.userName != null ? o.userName : 'Unknown'}</td>
+                        <td>${o.productName}</td>
+                        <td>${o.quantity}</td>
+                        <td>
+                            <fmt:formatNumber value="${o.totalPrice}" groupingUsed="true"/>đ
+                        </td>
+                        <td>
+                            <span class="status
+                                ${o.status == 'PENDING' ? 'status-pending' :
+                                  o.status == 'COMPLETED' ? 'status-completed' :
+                                  o.status == 'SHIPPING' ? 'status-shipping' : ''}">
+                                    ${o.status}
+                            </span>
+                        </td>
+                    </tr>
+                </c:forEach>
+                </tbody>
+            </table>
+        </div>
     </div>
 </main>
-
-<div id="orderModal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn">&times;</span>
-        <h3>Chi Tiết Đơn Hàng</h3>
-        <hr>
-        <div id="modalBody">
-        </div>
-    </div>
-</div>
-
 </body>
 </html>

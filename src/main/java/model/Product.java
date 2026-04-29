@@ -10,8 +10,9 @@ public class Product {
     private String productDescription;
     private String imageUrl;
     private Integer sold;
+    private double revenue;
 
-    public Product(Integer productId, Integer categoryId, String productName, String categoryName, Integer productPrice, Integer stockQuantity, Integer sold, String productDescription, String imageUrl) {
+    public Product(Integer productId, Integer categoryId, String productName, String categoryName, Integer productPrice, Integer stockQuantity, Integer sold, String productDescription, String imageUrl, double revenue) {
         this.productId = productId;
         this.categoryId = categoryId;
         this.productName = productName;
@@ -21,6 +22,7 @@ public class Product {
         this.sold = sold;
         this.productDescription = productDescription;
         this.imageUrl = imageUrl;
+        this.revenue = revenue;
     }
 
     public Product() {
@@ -38,6 +40,7 @@ public class Product {
                 ", productDescription='" + productDescription + '\'' +
                 ", imageUrl='" + imageUrl + '\'' +
                 ", sold='" + sold + '\'' +
+                ", revenue='" + revenue + '\'' +
                 '}';
     }
 
@@ -111,5 +114,13 @@ public class Product {
 
     public void setSold(Integer sold) {
         this.sold = sold;
+    }
+
+    public double getRevenue() {
+        return revenue;
+    }
+
+    public void setRevenue(double revenue) {
+        this.revenue = revenue;
     }
 }
