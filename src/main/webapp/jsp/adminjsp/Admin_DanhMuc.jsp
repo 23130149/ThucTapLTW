@@ -1,10 +1,11 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin</title>
+    <title>Admin - Danh mục</title>
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet"
           href="${pageContext.request.contextPath}/css/Admin_DanhMuc.css">
@@ -14,7 +15,7 @@
     <div class="slidebar-header">
         <h2 class="logo">Handmade House</h2>
     </div>
-    <nav class="slidebar-nav">
+    <div class="slidebar-nav">
         <ul>
             <li><a href="${pageContext.request.contextPath}/admin/dashboard"><i class="bx bx-chart"></i>Tổng quan</a></li>
             <li class="active"><a href="${pageContext.request.contextPath}/admin/category"><i class="bx bx-category"></i>Danh mục</a></li>
@@ -23,24 +24,35 @@
             <li><a href="${pageContext.request.contextPath}/admin/customers"><i class="bx bx-group"></i>Khách hàng</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/reviews"><i class="bx bx-star"></i> Đánh giá</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/contacts"><i class="bx bx-envelope"></i> Liên hệ</a></li>
-            <li><a href="${pageContext.request.contextPath}/jsp/adminjsp/Admin_Banner.jsp"><i class="bx bx-image"></i>Banner</a></li>
+            <li><a href="${pageContext.request.contextPath}/admin/banner"><i class="bx bx-image"></i>Banner</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/setting"><i class="bx bx-cog"></i>Cài đặt</a></li>
         </ul>
-    </nav>
+    </div>
     <div class="logout">
-        <a href="${pageContext.request.contextPath}/home"><i class="bx bx-log-out"></i>Đăng xuất</a>
+        <a href="${pageContext.request.contextPath}/home">
+            <i class="bx bx-log-out"></i> Đăng xuất
+        </a>
     </div>
 </aside>
 <main class="main-content">
     <header class="header">
         <h2>Quản lý danh mục</h2>
         <div class="user-info">
-            <span class="notification-badge"><i class="bx bx-bell"></i></span>
+            <span class="notification-badge">
+                <i class="bx bx-bell"></i>
+            </span>
             <div class="profile-admin">
-                <span class="admin-avatar">L</span>
-                <div class="user-details">
-                    <span class="user-name">Phan Đình Long</span>
-                    <span class="user-role">Quản trị viên</span>
+                <span class="admin-avatar">
+                    <c:choose>
+                        <c:when test="${not empty sessionScope.user.userName}">
+                            ${fn:substring(sessionScope.user.userName,0,1)}
+                        </c:when>
+                        <c:otherwise>A</c:otherwise>
+                    </c:choose>
+                </span>
+                <div>
+                    <p class="user-name">${sessionScope.user.userName}</p>
+                    <small class="user-role">Quản trị viên</small>
                 </div>
             </div>
         </div>
