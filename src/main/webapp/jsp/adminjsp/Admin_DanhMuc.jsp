@@ -1,4 +1,4 @@
-
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <!DOCTYPE html>
 <html lang="en">
@@ -17,18 +17,18 @@
     <nav class="slidebar-nav">
         <ul>
             <li><a href="${pageContext.request.contextPath}/admin/dashboard"><i class="bx bx-chart"></i>Tổng quan</a></li>
-            <li class="active"><a href="${pageContext.request.contextPath}/jsp/adminjsp/Admin_DanhMuc.jsp"><i class="bx bx-category"></i>Danh mục</a></li>
+            <li class="active"><a href="${pageContext.request.contextPath}/admin/category"><i class="bx bx-category"></i>Danh mục</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/products"><i class="bx bx-package"></i>Sản phẩm</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/orders"><i class="bx bx-receipt"></i>Đơn hàng</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/customers"><i class="bx bx-group"></i>Khách hàng</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/reviews"><i class="bx bx-star"></i> Đánh giá</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/contacts"><i class="bx bx-envelope"></i> Liên hệ</a></li>
-            <li><a href="${pageContext.request.contextPath}/jsp/adminjsp/Admin_Banner.jspanner.jsp"><i class="bx bx-image"></i>Banner</a></li>
+            <li><a href="${pageContext.request.contextPath}/jsp/adminjsp/Admin_Banner.jsp"><i class="bx bx-image"></i>Banner</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/setting"><i class="bx bx-cog"></i>Cài đặt</a></li>
         </ul>
     </nav>
     <div class="logout">
-        <a href="../../../../../../html/trangchu.html"><i class="bx bx-log-out"></i>Đăng xuất</a>
+        <a href="${pageContext.request.contextPath}/home"><i class="bx bx-log-out"></i>Đăng xuất</a>
     </div>
 </aside>
 <main class="main-content">
@@ -47,16 +47,19 @@
     </header>
     <div class="category-summary-grid">
         <div class="summary-card total-category">
+            <div class="card-icon"><i class="bx bx-category"></i></div>
             <p>Tổng danh mục</p>
-            <h3></h3>
+            <h3>${totalCategory}</h3>
         </div>
         <div class="summary-card total-product">
+            <div class="card-icon"><i class="bx bx-package"></i></div>
             <p>Tổng sản phẩm</p>
-            <h3></h3>
+            <h3>${totalProduct}</h3>
         </div>
         <div class="summary-card avg-category">
+            <div class="card-icon"><i class="bx bx-bar-chart"></i></div>
             <p>Trung bình mỗi danh mục</p>
-            <h3></h3>
+            <h3>${avgCategory}</h3>
         </div>
     </div>
     <div class="customer-search-filter-row">
@@ -72,20 +75,20 @@
             <tr>
                 <th>Tên danh mục</th>
                 <th>Sản phẩm</th>
-                <th>Ngày tạo</th>
                 <th>Thao tác</th>
             </tr>
             </thead>
             <tbody>
-            <tr>
-                <td>Móc khóa</td>
-                <td>28</td>
-                <td>28/12/2024</td>
-                <td>
-                    <i class="bx bx-edit action-icon"></i>
-                    <i class="bx bx-trash action-icon"></i>
-                </td>
-            </tr>
+            <c:forEach var="c" items="${categories}">
+                <tr>
+                    <td>${c.name}</td>
+                    <td>${c.productCount}</td>
+                    <td>
+                        <i class="bx bx-edit action-icon"></i>
+                        <i class="bx bx-trash action-icon"></i>
+                    </td>
+                </tr>
+            </c:forEach>
             </tbody>
         </table>
     </div>
