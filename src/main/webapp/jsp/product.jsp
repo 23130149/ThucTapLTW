@@ -42,7 +42,7 @@
         <div class="container nav-only-container">
             <nav class="nav__links">
                 <ul>
-                    <li><a href="${pageContext.request.contextPath}/jsp/home.jsp">Trang chủ</a></li>
+                    <li><a href="${pageContext.request.contextPath}/home">Trang chủ</a></li>
                     <li><a href="${pageContext.request.contextPath}/product">Sản phẩm</a></li>
                     <li><a href="${pageContext.request.contextPath}/blog.jsp">Blog</a></li>
                     <li><a href="${pageContext.request.contextPath}/contact.jsp">Liên hệ</a></li>
@@ -86,7 +86,10 @@
                                    class="product-thumb">
                                     <img src="${p.imageUrl}" alt="${p.productName}">
                                 </a>
-                                <div class="add-to-cart-btn"><i class="bx bx-shopping-bag"></i>Thêm vào giỏ</div>
+                                <a href="${pageContext.request.contextPath}/Add-Cart?id=${p.productId}&quantity=1"
+                                   class="add-to-cart-btn">
+                                    <i class="bx bx-shopping-bag"></i>Thêm vào giỏ
+                                </a>
                             </div>
                             <div class="product-info">
                                 <a href="#" class="product-cat">Mã loại: ${p.categoryId}</a>
