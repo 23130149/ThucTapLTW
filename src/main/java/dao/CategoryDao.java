@@ -15,4 +15,12 @@ public class CategoryDao extends BaseDao{
                                 .list()
         );
     }
+    public int getTotalProduct() {
+        String sql = "select count(*) from products";
+        return getJdbi().withHandle(
+                handle -> handle.createQuery(sql)
+                        .mapTo(int.class)
+                        .one()
+        );
+    }
 }

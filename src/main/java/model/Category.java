@@ -4,15 +4,17 @@ public class Category {
     private Integer categoryId;
     private String name;
     private String imageUrl;
+    private int productCount;
 
 
     public Category() {
     }
 
-    public Category(Integer categoryId, String name, String imageUrl) {
+    public Category(Integer categoryId, String name, String imageUrl, int productCount) {
         this.categoryId = categoryId;
         this.name = name;
         this.imageUrl = imageUrl;
+        this.productCount = productCount;
     }
 
     @Override
@@ -46,5 +48,13 @@ public class Category {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public int getProductCount() {
+        return productCount;
+    }
+
+    public void setProductCount(int productCount) {
+        this.productCount = productCount;
     }
 }

@@ -1,10 +1,14 @@
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <title>Admin - Quản lý sản phẩm</title>
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="qlsanpham.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/Admin_SanPham.css">
 </head>
 <body>
 <aside class="sliderbar">
@@ -13,32 +17,42 @@
     </div>
     <nav class="slidebar-nav">
         <ul>
-            <li><a href="../Tongquan/tongquan.html"><i class="bx bx-chart"></i>Tổng quan</a></li>
-            <li class="active"><a href="../Sanpham/qlsanpham.html"><i class="bx bx-package"></i>Sản phẩm</a></li>
-            <li><a href="../Donhang/donhang.html"><i class="bx bx-receipt"></i>Đơn hàng</a></li>
-            <li><a href="../Khachhang/khachhang.html"><i class="bx bx-group"></i>Khách hàng</a></li>
-            <li><a href="../Danhgia/danhgia.html"><i class="bx bx-star"></i>Đánh giá</a></li>
-            <li><a href="../Caidat/caidat.html"><i class="bx bx-cog"></i>Cài đặt</a></li>
+            <li><a href="${pageContext.request.contextPath}/admin/dashboard"><i class="bx bx-chart"></i>Tổng quan</a></li>
+            <li><a href="${pageContext.request.contextPath}/admin/category"><i class="bx bx-category"></i>Danh mục</a></li>
+            <li class="active"><a href="${pageContext.request.contextPath}/admin/products"><i class="bx bx-package"></i>Sản phẩm</a></li>
+            <li><a href="${pageContext.request.contextPath}/admin/orders"><i class="bx bx-receipt"></i>Đơn hàng</a></li>
+            <li><a href="${pageContext.request.contextPath}/admin/customers"><i class="bx bx-group"></i>Khách hàng</a></li>
+            <li><a href="${pageContext.request.contextPath}/admin/reviews"><i class="bx bx-star"></i> Đánh giá</a></li>
+            <li><a href="${pageContext.request.contextPath}/admin/contacts"><i class="bx bx-envelope"></i> Liên hệ</a></li>
+            <li><a href="${pageContext.request.contextPath}/admin/banner"><i class="bx bx-image"></i>Banner</a></li>
+            <li><a href="${pageContext.request.contextPath}/admin/setting"><i class="bx bx-cog"></i>Cài đặt</a></li>
         </ul>
     </nav>
     <div class="logout">
-        <a href="../../../../../../html/trangchu.html"><i class="bx bx-log-out"></i>Đăng xuất</a>
+        <a href="${pageContext.request.contextPath}/home">
+            <i class="bx bx-log-out"></i> Đăng xuất
+        </a>
     </div>
 </aside>
 <main class="main-content">
     <header class="header">
-        <h2>Sản phẩm</h2>
-        <div class="search-box">
-            <input type="text" placeholder="Tìm kiếm...">
-            <button><i class="bx bx-search"></i></button>
-        </div>
+        <h2>Tổng quan</h2>
         <div class="user-info">
-            <span class="notification-badge"><i class="bx bx-bell"></i></span>
+            <span class="notification-badge">
+                <i class="bx bx-bell"></i>
+            </span>
             <div class="profile-admin">
-                <span class="admin-avatar">L</span>
-                <div class="user-details">
-                    <span class="user-name">Phan Đình Long</span>
-                    <span class="user-role">Quản trị viên</span>
+                <span class="admin-avatar">
+                    <c:choose>
+                        <c:when test="${not empty sessionScope.user.userName}">
+                            ${fn:substring(sessionScope.user.userName,0,1)}
+                        </c:when>
+                        <c:otherwise>A</c:otherwise>
+                    </c:choose>
+                </span>
+                <div>
+                    <p class="user-name">${sessionScope.user.userName}</p>
+                    <small class="user-role">Quản trị viên</small>
                 </div>
             </div>
         </div>
@@ -48,7 +62,7 @@
             <div class="stat-icon"><i class="bx bx-cube"></i></div>
             <div class="stat-details">
                 <p class="title">Tổng sản phẩm</p>
-                <p class="value">80</p>
+                <p class="value">${totalProducts}</p>
                 <span class="stat-change positive"></span>
             </div>
         </div>
@@ -56,7 +70,9 @@
             <div class="stat-icon"><i class="bx bx-dollar-circle"></i></div>
             <div class="stat-details">
                 <p class="title">Tổng giá trị hàng</p>
-                <p class="value">48.700.000đ</p>
+                <p class="value">
+                    <fmt:formatNumber value="${totalValue}" type="number"/>đ
+                </p>
                 <span class="stat-change positive"></span>
             </div>
         </div>
@@ -64,7 +80,7 @@
             <div class="stat-icon"><i class="bx bx-error-alt"></i></div>
             <div class="stat-details">
                 <p class="title">Sản phẩm hết hàng</p>
-                <p class="value">0</p>
+                <p class="value">${outOfStock}</p>
                 <span class="stat-change positive"></span>
             </div>
         </div>
@@ -72,7 +88,7 @@
             <div class="stat-icon"><i class="bx bx-package"></i></div>
             <div class="stat-details">
                 <p class="title">Tổng tồn kho</p>
-                <p class="value">330</p>
+                <p class="value">${totalStock}</p>
                 <span class="stat-change positive"></span>
             </div>
         </div>
@@ -91,6 +107,7 @@
             <tr>
                 <th>Mã đơn</th>
                 <th>Tên sản phẩm</th>
+                <th class="img-col-header">Hình ảnh</th>
                 <th>Giá bán</th>
                 <th>Tồn kho</th>
                 <th>Đã bán</th>
@@ -99,66 +116,33 @@
             </tr>
             </thead>
             <tbody>
+            <c:forEach var="p" items="${products}">
             <tr>
-                <td>#DH001</td>
-                <td>Ốp lưng điện thoại</td>
-                <td>89.000đ</td>
-                <td>18</td>
-                <td>29</td>
-                <td><span class="status status-completed">Còn hàng</span></td>
+                <td>#SP${p.productId}</td>
+                <td>${p.productName}</td>
+                <td class="img-col">
+                    <img src="${p.imageUrl}" alt="${p.productName}" width="50">
+                </td>
+                <td><fmt:formatNumber value="${p.productPrice}" type="number"/>đ</td>
+                <td>${p.stockQuantity}</td>
+                <td>${p.sold != null ? p.sold : 0}</td>
+                <td><c:choose>
+                    <c:when test="${p.stockQuantity == 0}">
+                        <span class="status status-pending">Hết hàng</span>
+                    </c:when>
+                    <c:when test="${p.stockQuantity < 5}">
+                        <span class="status status-warning">Sắp hết</span>
+                    </c:when>
+                    <c:otherwise>
+                        <span class="status status-completed">Còn hàng</span>
+                    </c:otherwise>
+                </c:choose></td>
                 <td>
                     <button class="action-icon"><i class="bx bx-pencil"></i></button>
                     <button class="action-icon"><i class="bx bx-trash"></i></button>
                 </td>
             </tr>
-            <tr>
-                <td>#DH002</td>
-                <td>Móc khóa lá cờ Việt Nam</td>
-                <td>15.000đ</td>
-                <td>0</td>
-                <td>41</td>
-                <td><span class="status status-pending">Hết hàng</span></td>
-                <td>
-                    <button class="action-icon"><i class="bx bx-pencil"></i></button>
-                    <button class="action-icon"><i class="bx bx-trash"></i></button>
-                </td>
-            </tr>
-            <tr>
-                <td>#DH003</td>
-                <td>Nến thơm xương rồng</td>
-                <td>150.000đ</td>
-                <td>18</td>
-                <td>29</td>
-                <td><span class="status status-completed">Còn hàng</span></td>
-                <td>
-                    <button class="action-icon"><i class="bx bx-pencil"></i></button>
-                    <button class="action-icon"><i class="bx bx-trash"></i></button>
-                </td>
-            </tr>
-            <tr>
-                <td>#DH004</td>
-                <td>Kẹp tóc hoa dâu tây nhí</td>
-                <td>30.000đ</td>
-                <td>10</td>
-                <td>41</td>
-                <td><span class="status status-completed">Còn hàng</span></td>
-                <td>
-                    <button class="action-icon"><i class="bx bx-pencil"></i></button>
-                    <button class="action-icon"><i class="bx bx-trash"></i></button>
-                </td>
-            </tr>
-            <tr>
-                <td>#DH005</td>
-                <td>Túi hoa Tulip</td>
-                <td>120.000đ</td>
-                <td>5</td>
-                <td>30</td>
-                <td><span class="status status-warning">Sắp hết</span></td>
-                <td>
-                    <button class="action-icon"><i class="bx bx-pencil"></i></button>
-                    <button class="action-icon"><i class="bx bx-trash"></i></button>
-                </td>
-            </tr>
+            </c:forEach>
             </tbody>
         </table>
     </div>

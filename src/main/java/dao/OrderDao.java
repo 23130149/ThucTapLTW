@@ -3,9 +3,7 @@ package dao;
 import model.Order;
 import model.Product;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class OrderDao extends BaseDao {
 
@@ -104,30 +102,6 @@ public class OrderDao extends BaseDao {
                 handle.createQuery(sql)
                         .bind("limit", limit)
                         .mapToBean(Order.class)
-                        .list()
-        );
-    }
-    public List<Product> getTopProducts(int limit) {
-        String sql = """
-            SELECT 
-                p.product_id AS productId,
-                p.product_name AS productName,
-                p.product_price AS productPrice,
-                SUM(oi.quantity) AS sold,
-                SUM(oi.quantity * p.product_price) AS revenue
-            FROM products p
-            JOIN order_items oi ON p.product_id = oi.product_id
-            JOIN orders o ON oi.order_id = o.order_id
-            WHERE o.Status IN ('COMPLETED', 'SHIPPED')
-            GROUP BY p.product_id, p.product_name, p.product_price
-            ORDER BY sold DESC
-            LIMIT :limit
-        """;
-
-        return getJdbi().withHandle(handle ->
-                handle.createQuery(sql)
-                        .bind("limit", limit)
-                        .mapToBean(Product.class)
                         .list()
         );
     }
@@ -301,40 +275,34 @@ public class OrderDao extends BaseDao {
                         .one()
         );
     }
+    public List<Map<String, Object>> getRevenueChart(String range) {
 
-    public Map<String, Double> getRevenueChart(String range) {
-        Map<String, Double> chart = new LinkedHashMap<>();
+        List<Map<String, Object>> list = new ArrayList<>();
         int days = "30".equals(range) ? 30 : 7;
 
         String sql = """
-            SELECT DATE(o.Create_At) AS order_date,
-                   COALESCE(SUM(oi.quantity * p.product_price), 0) AS daily_revenue
-            FROM orders o
-            JOIN order_items oi ON o.Order_Id = oi.Order_Id
-            JOIN products p ON oi.product_id = p.product_id
-            WHERE o.Create_At >= DATE_SUB(CURDATE(), INTERVAL :days DAY)
-              AND o.Status IN ('COMPLETED', 'SHIPPED')
-            GROUP BY DATE(o.Create_At)
-            ORDER BY order_date ASC
-        """;
-
-        getJdbi().withHandle(handle -> {
-            handle.createQuery(sql)
-                    .bind("days", days)
-                    .map((rs, ctx) -> {
-                        java.sql.Date sqlDate = rs.getDate("order_date");
-                        if (sqlDate != null) {
-                            String dateStr = sqlDate.toLocalDate()
+        SELECT DATE(o.Create_At) AS order_date,
+               COALESCE(SUM(o.Total_Price), 0) AS revenue
+        FROM orders o
+        WHERE o.Create_At >= DATE_SUB(CURDATE(), INTERVAL :days DAY)
+          AND o.Status IN ('COMPLETED', 'SHIPPED')
+        GROUP BY DATE(o.Create_At)
+        ORDER BY order_date ASC
+    """;
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("days", days)
+                        .map((rs, ctx) -> {
+                            Map<String, Object> map = new HashMap<>();
+                            String label = rs.getDate("order_date")
+                                    .toLocalDate()
                                     .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM"));
-                            double rev = rs.getDouble("daily_revenue");
-                            chart.put(dateStr, rev);
-                        }
-                        return null;
-                    })
-                    .list();
-            return null;
-        });
-
-        return chart;
+                            double value = rs.getDouble("revenue");
+                            map.put("label", label);
+                            map.put("value", value);
+                            return map;
+                        })
+                        .list()
+        );
     }
 }

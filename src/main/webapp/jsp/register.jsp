@@ -128,11 +128,11 @@
                 /\d/.test(v) &&
                 /[^A-Za-z0-9]/.test(v) &&
                 v.length >= 8;
-            showMsg(passwordMsg, "Ít nhất 8 ký tự, đủ mạnh", ok);
+            showMsg(passwordMsg, "Ít nhất 8 ký tự, có chữ hoa, thường và con số", ok);
         });
         confirmPassword.addEventListener("input", () => {
             showMsg(confirmMsg,
-                "Mật khẩu xác nhận phải trùng",
+                "Mật khẩu xác nhận phải trùng khớp",
                 confirmPassword.value === password.value && confirmPassword.value !== "");
         });
         form.addEventListener("submit", e => {
