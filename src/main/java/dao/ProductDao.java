@@ -46,16 +46,4 @@ public class ProductDao extends BaseDao{
                         .list()
         );
     }
-    public Product getProductById(int id){
-       String sql = "select p.Product_Id, p.Product_Name, p.Product_Price,p.stock_quantity,p.product_description,  p.Category_Id, c.Name AS categoryName,(select pi.image_url from product_images pi where pi.product_id = p.product_id order by pi.image_id ASC limit 1) as imageUrl from products p left join categories c on p.Category_Id = c.Category_Id where p.Product_Id = :id";
-        return getJdbi().withHandle(
-                handle ->
-                        handle.createQuery(sql)
-                                .bind("id", id)
-                                .mapToBean(Product.class)
-                                .findOne()
-                                .orElse(null));
-    }
-
-
 }
