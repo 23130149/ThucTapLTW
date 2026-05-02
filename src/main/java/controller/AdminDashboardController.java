@@ -14,7 +14,7 @@
     import java.util.List;
     import java.util.Map;
 
-    @WebServlet(name = "AdminDashboardController", value = "/admin/dashboard")
+    @WebServlet(name = "AdminDashboardController")
     public class AdminDashboardController extends HttpServlet {
         @Override
         protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
