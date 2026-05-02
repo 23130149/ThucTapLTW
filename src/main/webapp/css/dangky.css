@@ -213,3 +213,18 @@ body {
     color: #aaa;
     cursor: not-allowed;
 }
+.login-link {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.login-link a {
+    font-weight: 600;
+    text-decoration: none;
+    color: black;
+}
+
+.login-link a:hover {
+    text-decoration: underline;
+}

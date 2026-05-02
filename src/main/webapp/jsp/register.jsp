@@ -51,6 +51,12 @@
                 <p id="confirmMsg" class="msg"></p>
             </div>
             <button type="submit" class="btn">Đăng Ký</button>
+            <div class="login-link">
+                <p>
+                    Đã có tài khoản?
+                    <a href="${pageContext.request.contextPath}/SignIn">Đăng Nhập</a>
+                </p>
+            </div>
         </form>
     </c:if>
     <c:if test="${step eq 'OTP_SENT'}">
