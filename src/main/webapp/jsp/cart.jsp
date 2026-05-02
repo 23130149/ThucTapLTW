@@ -1,22 +1,26 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<fmt:setLocale value="vi_VN"/>
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <title>Giỏ Hàng</title>
 
-    <link rel="stylesheet" href="css/cart.css">
-    <link rel="stylesheet" href="Header_Footer/Styles.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/cart.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/header_footer.css">
 
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
-
-git rm -r .idea<body>
+<body>
 
 <header class="header">
     <div class="header-content">
         <div class="logo">
-            <a href="#">Handmade House</a>
+            <a href="${pageContext.request.contextPath}/home">Handmade House</a>
         </div>
 
         <form class="search-form">
@@ -27,8 +31,8 @@ git rm -r .idea<body>
         </form>
 
         <div class="icons">
-            <a href="#" class="icon-btn"><i class='bx bx-cart'></i></a>
-            <a href="#" class="icon-btn"><i class='bx bx-user'></i></a>
+            <a href="${pageContext.request.contextPath}/cart" class="icon-btn"><i class='bx bx-cart'></i></a>
+            <a href="${pageContext.request.contextPath}/Account" class="icon-btn"><i class='bx bx-user'></i></a>
         </div>
     </div>
 </header>
