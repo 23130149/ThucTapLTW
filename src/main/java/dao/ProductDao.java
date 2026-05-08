@@ -46,16 +46,41 @@ public class ProductDao extends BaseDao{
                         .list()
         );
     }
-    public Product getProductById(int id){
-       String sql = "select p.Product_Id, p.Product_Name, p.Product_Price,p.stock_quantity,p.product_description,  p.Category_Id, c.Name AS categoryName,(select pi.image_url from product_images pi where pi.product_id = p.product_id order by pi.image_id ASC limit 1) as imageUrl from products p left join categories c on p.Category_Id = c.Category_Id where p.Product_Id = :id";
-        return getJdbi().withHandle(
-                handle ->
-                        handle.createQuery(sql)
-                                .bind("id", id)
-                                .mapToBean(Product.class)
-                                .findOne()
-                                .orElse(null));
+    public int getTotalStock() {
+        String sql = "SELECT COALESCE(SUM(stock_quantity),0) FROM products";
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .mapTo(int.class)
+                        .one()
+        );
     }
+    public int countOutOfStock() {
+        String sql = "SELECT COUNT(*) FROM products WHERE stock_quantity = 0";
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .mapTo(int.class)
+                        .one()
+        );
+    }
+    public double getTotalValue() {
+        String sql = "SELECT COALESCE(SUM(product_price * stock_quantity),0) FROM products";
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .mapTo(double.class)
+                        .one()
+        );
+    }
+    public Product getProductById(int id) {
+        String sql = "select p.product_id AS productId, p.category_id AS categoryId, p.product_name AS productName, c.name AS categoryName, p.product_price AS productPrice, p.stock_quantity AS stockQuantity, p.product_description AS productDescription, (select pi.image_url from product_images pi where pi.product_id = p.product_id order by pi.image_id ASC limit 1) as imageUrl from products p join categories c on p.category_id = c.category_id where p.product_id = :id";
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("id", id)
+                        .mapToBean(Product.class)
+                        .findOne()
+                        .orElse(null)
+        );
+    }
+
 
 
 }
