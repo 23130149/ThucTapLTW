@@ -36,7 +36,7 @@
 </aside>
 <main class="main-content">
     <header class="header">
-        <h2>Tổng quan</h2>
+        <h2>Quản lý sản phẩm</h2>
         <div class="user-info">
             <span class="notification-badge">
                 <i class="bx bx-bell"></i>
@@ -96,16 +96,16 @@
     <div class="search-filter-row">
         <div class="search-review-box">
             <i class="bx bx-search"></i>
-            <input type="text" placeholder="Tìm kiếm sản phẩm...">
+            <input type="text" name="keyword" placeholder="Tìm kiếm sản phẩm...">
         </div>
         <button class="filter-button-icon"><i class="bx bx-filter"></i>Lọc</button>
-        <button class="view-all-btn"><i class="bx bx-plus"></i>Thêm sản phẩm</button>
+        <button type="button" class="view-all-btn" id="openModalBtn"><i class="bx bx-plus"></i>Thêm sản phẩm</button>
     </div>
     <div class="order-table-container">
         <table class="data-table">
             <thead>
             <tr>
-                <th>Mã đơn</th>
+                <th>Mã sản phẩm</th>
                 <th>Tên sản phẩm</th>
                 <th class="img-col-header">Hình ảnh</th>
                 <th>Giá bán</th>
@@ -121,7 +121,15 @@
                 <td>#SP${p.productId}</td>
                 <td>${p.productName}</td>
                 <td class="img-col">
-                    <img src="${p.imageUrl}" alt="${p.productName}" width="50">
+                    <c:choose>
+                        <c:when test="${not empty p.imageUrl}">
+                            <img src="${p.imageUrl}" alt="${p.productName}" width="50">
+                        </c:when>
+                        <c:otherwise>
+                            <img src="${pageContext.request.contextPath}/images/no-image.png"
+                                 alt="No Image" width="50">
+                        </c:otherwise>
+                    </c:choose>
                 </td>
                 <td><fmt:formatNumber value="${p.productPrice}" type="number"/>đ</td>
                 <td>${p.stockQuantity}</td>
@@ -138,8 +146,8 @@
                     </c:otherwise>
                 </c:choose></td>
                 <td>
-                    <button class="action-icon"><i class="bx bx-pencil"></i></button>
-                    <button class="action-icon"><i class="bx bx-trash"></i></button>
+                    <button type="button" class="action-icon"><i class="bx bx-pencil"></i></button>
+                    <button type="button" class="action-icon"><i class="bx bx-trash"></i></button>
                 </td>
             </tr>
             </c:forEach>
