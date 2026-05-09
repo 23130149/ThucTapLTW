@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<taglib xmlns="https://jakarta.ee/xml/ns/jakartaee"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee
+        https://jakarta.ee/xml/ns/jakartaee/web-jsptaglibrary_3_0.xsd"
+        version="3.0">
+
+    <tlib-version>1.0</tlib-version>
+    <short-name>util</short-name>
+    <uri>http://handmade/util</uri>
+
+    <function>
+        <name>formatDateTime</name>
+        <function-class>util.FormatUtil</function-class>
+        <function-signature>
+            java.lang.String formatDateTime(java.time.LocalDateTime)
+        </function-signature>
+    </function>
+
+    <function>
+        <name>formatMoney</name>
+        <function-class>util.FormatUtil</function-class>
+        <function-signature>
+            java.lang.String formatMoney(java.math.BigDecimal)
+        </function-signature>
+    </function>
+
+    <function>
+        <name>orderStatusLabel</name>
+        <function-class>util.FormatUtil</function-class>
+        <function-signature>
+            java.lang.String orderStatusLabel(java.lang.String)
+        </function-signature>
+    </function>
+
+    <function>
+        <name>orderStatusIcon</name>
+        <function-class>util.FormatUtil</function-class>
+        <function-signature>
+            java.lang.String orderStatusIcon(java.lang.String)
+        </function-signature>
+    </function>
+
+</taglib>
