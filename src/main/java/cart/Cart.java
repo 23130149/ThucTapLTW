@@ -8,7 +8,9 @@ import java.util.Map;
 
 public class Cart implements Serializable {
         private Map<Integer,CartItem> data;
-
+    public Map<Integer, CartItem> getData() {
+        return data;
+    }
         public Cart(){data = new HashMap<Integer, CartItem>();}
     public void addProduct(Product p, int quantity ){
         if( quantity <= 0) quantity = 1;
@@ -19,4 +21,8 @@ public class Cart implements Serializable {
             data.put(p.getProductId(), new CartItem(p,quantity,p.getProductPrice()));
         }
     }
+//    public boolean update(int ProductId, int quantity){
+//        CartItem item = data.get(ProductId);
+//
+//    }
 }
