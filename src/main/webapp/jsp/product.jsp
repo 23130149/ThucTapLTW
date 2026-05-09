@@ -20,7 +20,7 @@
     <div class="header-top-container">
         <div class="header-content">
             <div class="logo">
-                <a href="${pageContext.request.contextPath}/jsp/home.jsp">Handmade House</a>
+                <a href="${pageContext.request.contextPath}/home">Handmade House</a>
             </div>
             <form class="search-form" action="#" method="GET">
                 <input type="text" class="search-input" placeholder="Tìm kiếm bất cứ thứ gì..." aria-label="Tìm kiếm sản phẩm">
@@ -29,10 +29,10 @@
                 </button>
             </form>
             <div class="icons" >
-                <a  href="${pageContext.request.contextPath}/cart.jsp" class="icon-btn" id="cartBtn">
+                <a  href="${pageContext.request.contextPath}/cart" class="icon-btn" id="cartBtn">
                     <i class='bx  bx-cart'></i>
                 </a>
-                <a href="${pageContext.request.contextPath}/account.jsp" class="icon-btn" id="userBtn">
+                <a href="${pageContext.request.contextPath}/account" class="icon-btn" id="userBtn">
                     <i class='bx  bx-user'></i>
                 </a>
             </div>
@@ -44,8 +44,8 @@
                 <ul>
                     <li><a href="${pageContext.request.contextPath}/home">Trang chủ</a></li>
                     <li><a href="${pageContext.request.contextPath}/product">Sản phẩm</a></li>
-                    <li><a href="${pageContext.request.contextPath}/blog.jsp">Blog</a></li>
-                    <li><a href="${pageContext.request.contextPath}/contact.jsp">Liên hệ</a></li>
+                    <li><a href="${pageContext.request.contextPath}/blog">Blog</a></li>
+                    <li><a href="${pageContext.request.contextPath}/contact">Liên hệ</a></li>
                 </ul>
             </nav>
         </div>
