@@ -42,7 +42,47 @@
     <h1 class="cart-header">
         <i class='bx bx-cart'></i> Giỏ Hàng Của Bạn
     </h1>
+        <c:choose>
+            <c:when test="${empty cart.data}">
+                <p> Giỏ Hàng Của Bạn Đang Trống</p>
+                <a href="${pageContext.request.contextPath}/product">Tiếp tục mua sắm</a>
+            </c:when>
+            <c:otherwise>
+                <div class="cart-list">
+                    <c:forEach items="${cart.data.values()}" var="item">
+                        <div class="cart-item">
+                            <img src="${item.product.imageUrl}" alt="${item.product.productName}">
+                            <div class="product-info">
+                                <div class="product-name">${item.product.productName}</div>
+                                <div class="unit-price">
+                                    <fmt:formatNumber value="${item.price}" type="number"/> đ
+                                </div>
+                            </div>
 
+                            <div class="qty-box">
+                                <span class="qty">${item.quantity}</span>
+                            </div>
+
+                            <div class="item-total-price">
+                                <fmt:formatNumber value="${item.price * item.quantity}" type="number"/> đ
+                            </div>
+                        </div>
+                    </c:forEach>
+                </div>
+
+                <div class="cart-total">
+                    <h3>Đơn Hàng Của Bạn</h3>
+                    <div class="line">
+                        <span>Tổng sản phẩm</span>
+                        <span>${cart.totalQuantity}</span>
+                    </div>
+                    <div class="line total">
+                        <span>Tổng cộng</span>
+                        <span><fmt:formatNumber value="${cart.totalPrice}" type="number"/> đ</span>
+                    </div>
+                </div>
+            </c:otherwise>
+        </c:choose>
     <div class="cart-summary-bar">
         <div>
             <div class="summary-title">Tổng tiền ước tính</div>
