@@ -93,14 +93,47 @@
             </div>
         </div>
     </div>
-    <div class="search-filter-row">
+    <form method="get"
+          action="${pageContext.request.contextPath}/admin/products"
+          class="search-filter-row">
         <div class="search-review-box">
             <i class="bx bx-search"></i>
             <input type="text" name="keyword" placeholder="Tìm kiếm sản phẩm...">
         </div>
-        <button class="filter-button-icon"><i class="bx bx-filter"></i>Lọc</button>
+        <select name="categoryId" class="filter-select">
+            <option value="">Tất cả danh mục</option>
+            <option value="1">Móc khóa</option>
+            <option value="2">Vòng tay</option>
+            <option value="3">Nến thơm</option>
+            <option value="4">Ốp lưng</option>
+            <option value="5">Thời trang</option>
+            <option value="6">Len-Crochet</option>
+            <option value="7">Đồ trang trí</option>
+            <option value="8">Thú cưng</option>
+        </select>
+        <select name="status" class="filter-select">
+            <option value="">Tất cả trạng thái</option>
+            <option value="instock">Còn hàng</option>
+            <option value="lowstock">Sắp hết</option>
+            <option value="outstock">Hết hàng</option>
+        </select>
+        <select name="priceRange" class="filter-select">
+            <option value="">Tất cả giá</option>
+            <option value="0-100000">
+                Dưới 100k
+            </option>
+            <option value="100000-300000">
+                100k - 300k
+            </option>
+            <option value="300000-500000">
+                300k - 500k
+            </option>
+            <option value="500000+">
+                Trên 500k
+            </option>
+        </select>
         <button type="button" class="view-all-btn" id="openModalBtn"><i class="bx bx-plus"></i>Thêm sản phẩm</button>
-    </div>
+    </form>
     <div class="order-table-container">
         <table class="data-table">
             <thead>
@@ -134,7 +167,8 @@
                 <td><fmt:formatNumber value="${p.productPrice}" type="number"/>đ</td>
                 <td>${p.stockQuantity}</td>
                 <td>${p.sold != null ? p.sold : 0}</td>
-                <td><c:choose>
+                <td>
+                    <c:choose>
                     <c:when test="${p.stockQuantity == 0}">
                         <span class="status status-pending">Hết hàng</span>
                     </c:when>
@@ -144,40 +178,166 @@
                     <c:otherwise>
                         <span class="status status-completed">Còn hàng</span>
                     </c:otherwise>
-                </c:choose></td>
+                </c:choose>
+                </td>
                 <td>
-                    <button type="button" class="action-icon"><i class="bx bx-pencil"></i></button>
-                    <button type="button" class="action-icon"><i class="bx bx-trash"></i></button>
+                    <button class="action-icon" type="button"
+                            data-id="${p.productId}"
+                            data-name="${p.productName}"
+                            data-price="${p.productPrice}"
+                            data-stock="${p.stockQuantity}"
+                            data-category="${p.categoryId}"
+                            data-description="${p.productDescription}"
+                            data-image="${p.imageUrl}"
+                            onclick="openEditModal(this)"> <i class="bx bx-pencil"></i>
+                    </button>
+                    <form action="${pageContext.request.contextPath}/admin/products"
+                          method="post" style="display:inline">
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="productId" value="${p.productId}">
+                        <button type="submit" class="action-icon" onclick="return confirm('Xoá sản phẩm này?')">
+                            <i class="bx bx-trash"></i>
+                        </button>
+                    </form>
                 </td>
             </tr>
             </c:forEach>
             </tbody>
         </table>
+        <div class="pagination">
+            <c:if test="${currentPage > 1}">
+                <a href="?page=${currentPage - 1}">Previous</a>
+            </c:if>
+            <c:forEach begin="1" end="${totalPages}" var="i">
+                <a href="?page=${i}"
+                   class="${i == currentPage ? 'active-page' : ''}">
+                        ${i}
+                </a>
+            </c:forEach>
+            <c:if test="${currentPage < totalPages}">
+                <a href="?page=${currentPage + 1}">Next</a>
+            </c:if>
+        </div>
     </div>
 </main>
-<div id="toast-container"></div>
 <div id="productModal" class="modal">
     <div class="modal-content">
-        <span class="close-btn">&times;</span>
-        <h3 id="modalTitle">Thông tin sản phẩm</h3>
-        <form id="productForm">
+        <div class="modal-header">
+            <h3>Thêm sản phẩm mới</h3>
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+        </div>
+
+        <form action="${pageContext.request.contextPath}/admin/products" method="post" id="productForm">
+
+            <input type="hidden" name="action" id="modalAction" value="add">
+            <input type="hidden" name="productId" id="prodId">
+
             <div class="form-group">
                 <label>Tên sản phẩm</label>
-                <input type="text" id="prodName" required>
+                <input type="text" name="name" id="prodName" placeholder="Ví dụ: Móc khóa len cờ Việt Nam..." required>
             </div>
+
             <div class="form-row">
                 <div class="form-group">
-                    <label>Giá bán</label>
-                    <input type="text" id="prodPrice" required>
+                    <label>Giá bán (VNĐ)</label>
+                    <input type="number" name="price" id="prodPrice" required>
                 </div>
                 <div class="form-group">
-                    <label>Tồn kho</label>
-                    <input type="number" id="prodStock" required>
+                    <label>Số lượng kho</label>
+                    <input type="number" name="stock" id="prodStock" required>
                 </div>
             </div>
-            <button type="submit" class="btn-save">Lưu dữ liệu</button>
+
+            <div class="form-group">
+                <label>Danh mục</label>
+                <select name="categoryId" id="prodCategory">
+                    <option value="1">Móc khóa</option>
+                    <option value="2">Vòng tay</option>
+                    <option value="3">Nến thơm</option>
+                    <option value="4">Ốp lưng</option>
+                    <option value="5">Thời trang</option>
+                    <option value="6">Len-Crochet</option>
+                    <option value="7">Đồ trang trí</option>
+                    <option value="8">Thú cưng</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Mô tả sản phẩm</label>
+                <textarea name="description" id="prodDescription" rows="3" placeholder="Mô tả ngắn gọn về sản phẩm..."></textarea>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" onclick="closeModal()">Hủy bỏ</button>
+                <button type="submit" class="btn-submit">Xác nhận Lưu</button>
+            </div>
         </form>
     </div>
 </div>
+<script>
+    const filters = document.querySelectorAll(".filter-select");
+    filters.forEach(filter => {
+        filter.addEventListener("change", function () {
+            this.form.submit();
+        });
+    });
+    const modal = document.getElementById("productModal");
+    const productForm = document.getElementById("productForm");
+    const modalTitle = document.querySelector(".modal-header h3");
+    document.getElementById("openModalBtn").onclick = function () {
+        modal.style.display = "flex";
+        productForm.reset();
+        modalTitle.innerText = "Thêm sản phẩm mới";
+        document.getElementById("modalAction").value = "add";
+        document.getElementById("prodId").value = "";
+    };
+    function closeModal() {
+        modal.style.display = "none";
+    }
+    function openEditModal(btn) {
+        modal.style.display = "flex";
+        modalTitle.innerText = "Cập nhật sản phẩm";
+        document.getElementById("modalAction").value = "update";
+        document.getElementById("prodId").value =
+            btn.dataset.id;
+        document.getElementById("prodName").value =
+            btn.dataset.name;
+        document.getElementById("prodPrice").value =
+            btn.dataset.price;
+        document.getElementById("prodStock").value =
+            btn.dataset.stock;
+        document.getElementById("prodCategory").value =
+            btn.dataset.category;
+        document.getElementById("prodDescription").value =
+            btn.dataset.description;
+    }
+    window.onclick = function (event) {
+        if (event.target === modal) {
+            closeModal();
+        }
+    };
+    productForm.addEventListener("submit", function (e) {
+        const name =
+            document.getElementById("prodName").value.trim();
+        const price =
+            document.getElementById("prodPrice").value;
+        const stock =
+            document.getElementById("prodStock").value;
+        if (name === "") {
+            alert("Tên sản phẩm không được để trống!");
+            e.preventDefault()
+            return;
+        }
+        if (price <= 0) {
+            alert("Giá sản phẩm phải lớn hơn 0!");
+            e.preventDefault();
+            return;
+        }
+        if (stock < 0) {
+            alert("Số lượng kho không hợp lệ!");
+            e.preventDefault();
+            return;
+        }
+    });
+</script>
 </body>
 </html>
