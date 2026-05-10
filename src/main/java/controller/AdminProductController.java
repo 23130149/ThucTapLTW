@@ -17,7 +17,8 @@ public class AdminProductController extends HttpServlet {
 
         List<Product> products = pDao.getListProduct();
 
-        int totalProducts = products.size();
+        int totalProducts = pDao.getTotalProducts();
+        int totalPages = (int) Math.ceil((double) totalProducts / limit);
         int totalStock = pDao.getTotalStock();
         int outOfStock = pDao.countOutOfStock();
         double totalValue = pDao.getTotalValue();
