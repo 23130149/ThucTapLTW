@@ -46,6 +46,14 @@ public class ProductDao extends BaseDao{
                         .list()
         );
     }
+    public int getTotalProducts() {
+        String sql = "select count(*) from products";
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .mapTo(Integer.class)
+                        .one()
+        );
+    }
     public int getTotalStock() {
         String sql = "SELECT COALESCE(SUM(stock_quantity),0) FROM products";
         return getJdbi().withHandle(handle ->
@@ -80,7 +88,4 @@ public class ProductDao extends BaseDao{
                         .orElse(null)
         );
     }
-
-
-
 }
