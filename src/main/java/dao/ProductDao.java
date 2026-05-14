@@ -46,6 +46,14 @@ public class ProductDao extends BaseDao{
                         .list()
         );
     }
+    public int getTotalProducts() {
+        String sql = "select count(*) from products";
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .mapTo(Integer.class)
+                        .one()
+        );
+    }
     public int getTotalStock() {
         String sql = "SELECT COALESCE(SUM(stock_quantity),0) FROM products";
         return getJdbi().withHandle(handle ->
@@ -78,6 +86,42 @@ public class ProductDao extends BaseDao{
                         .mapToBean(Product.class)
                         .findOne()
                         .orElse(null)
+        );
+    }
+    public void insertProduct(Product p) {
+        String sql = "insert into products (product_name, product_price, stock_quantity, category_id, product_description) values (:name, :price, :stock, :catId, :desc)";
+        int productId = getJdbi().withHandle(handle ->
+                handle.createUpdate(sql)
+                        .bind("name", p.getProductName())
+                        .bind("price", p.getProductPrice())
+                        .bind("stock", p.getStockQuantity())
+                        .bind("catId", p.getCategoryId())
+                        .bind("desc", p.getProductDescription())
+                        .executeAndReturnGeneratedKeys("product_id")
+                        .mapTo(Integer.class)
+                        .one()
+        );
+        p.setProductId(productId);
+    }
+    public void updateProduct(Product p) {
+        String sql = "update products set product_name = :name, product_price = :price, stock_quantity = :stock, category_id = :catId, product_description = :desc where product_id = :id";
+        getJdbi().withHandle(handle ->
+                handle.createUpdate(sql)
+                        .bind("id", p.getProductId())
+                        .bind("name", p.getProductName())
+                        .bind("price", p.getProductPrice())
+                        .bind("stock", p.getStockQuantity())
+                        .bind("catId", p.getCategoryId())
+                        .bind("desc", p.getProductDescription())
+                        .execute()
+        );
+    }
+    public void deleteProduct(int productId) {
+        String sql = "delete from products where product_id = :id";
+        getJdbi().withHandle(handle ->
+                handle.createUpdate(sql)
+                        .bind("id", productId)
+                        .execute()
         );
     }
 
