@@ -42,140 +42,102 @@
     <h1 class="cart-header">
         <i class='bx bx-cart'></i> Giỏ Hàng Của Bạn
     </h1>
-        <c:choose>
-            <c:when test="${empty cart.data}">
-                <p> Giỏ Hàng Của Bạn Đang Trống</p>
-                <a href="${pageContext.request.contextPath}/product">Tiếp tục mua sắm</a>
-            </c:when>
-            <c:otherwise>
+    <c:choose>
+        <c:when test="${empty sessionScope.cart.data}">
+            <p>Giỏ Hàng Của Bạn Đang Trống</p>
+            <a href="${pageContext.request.contextPath}/product">Tiếp tục mua sắm</a>
+        </c:when>
+        <c:otherwise>
+            <div class="cart-summary-bar">
+                <div>
+                    <div class="summary-title">Tổng tiền ước tính</div>
+                    <div class="summary-price">
+                        <fmt:formatNumber value="${sessionScope.cart.totalPrice}" type="number" maxFractionDigits="0"/> đ
+                    </div>
+                    <div class="summary-note">
+                        <c:out value="${sessionScope.cart.totalQuantity}"/> sản phẩm đã chọn
+                    </div>
+                </div>
+                <a href="${pageContext.request.contextPath}/payment" class="summary-checkout">Thanh toán</a>
+            </div>
+
+            <form action="${pageContext.request.contextPath}/DelSelectProduct" method="post">
+                <div class="cart-action">
+                    <label class="check-all">
+                        <input type="checkbox" id="checkAll">
+                        <span>Chọn tất cả (<c:out value="${sessionScope.cart.totalQuantity}"/>)</span>
+                    </label>
+
+                    <button type="submit" class="btn-delete-selected">
+                        <i class='bx bx-trash'></i> Xóa đã chọn
+                    </button>
+                </div>
+
                 <div class="cart-list">
-                    <c:forEach items="${cart.data.values()}" var="item">
+                    <c:forEach items="${sessionScope.cart.data.values()}" var="item">
                         <div class="cart-item">
-                            <img src="${item.product.imageUrl}" alt="${item.product.productName}">
+                            <input type="checkbox" class="item-checkbox" name="productIds" value="${item.product.productId}">
+
+                            <img src="${item.product.imageUrl}" alt="${item.product.productName}"
+                                 onerror="this.src='${pageContext.request.contextPath}/images/no-image.png'">
+
                             <div class="product-info">
                                 <div class="product-name">${item.product.productName}</div>
                                 <div class="unit-price">
-                                    <fmt:formatNumber value="${item.price}" type="number"/> đ
+                                    <fmt:formatNumber value="${item.price}" type="number" maxFractionDigits="0"/> đ
                                 </div>
                             </div>
 
                             <div class="qty-box">
+                                <a class="qty-btn" href="${pageContext.request.contextPath}/CartUpdate?productId=${item.product.productId}&amp;action=dec">−</a>
                                 <span class="qty">${item.quantity}</span>
+                                <a class="qty-btn" href="${pageContext.request.contextPath}/CartUpdate?productId=${item.product.productId}&amp;action=inc">+</a>
                             </div>
 
                             <div class="item-total-price">
-                                <fmt:formatNumber value="${item.price * item.quantity}" type="number"/> đ
+                                <fmt:formatNumber value="${item.total}" type="number" maxFractionDigits="0"/> đ
                             </div>
+
+                            <a class="item-remove" href="${pageContext.request.contextPath}/DelProduct?id=${item.product.productId}" title="Xóa">
+                                <i class='bx bx-trash'></i>
+                            </a>
                         </div>
                     </c:forEach>
                 </div>
+            </form>
 
-                <div class="cart-total">
-                    <h3>Đơn Hàng Của Bạn</h3>
-                    <div class="line">
-                        <span>Tổng sản phẩm</span>
-                        <span>${cart.totalQuantity}</span>
-                    </div>
-                    <div class="line total">
-                        <span>Tổng cộng</span>
-                        <span><fmt:formatNumber value="${cart.totalPrice}" type="number"/> đ</span>
-                    </div>
+            <div class="cart-total">
+                <h3>Đơn Hàng Của Bạn</h3>
+
+                <div class="line">
+                    <span>Tổng sản phẩm</span>
+                    <span><c:out value="${sessionScope.cart.totalQuantity}"/></span>
                 </div>
-            </c:otherwise>
-        </c:choose>
-    <div class="cart-summary-bar">
-        <div>
-            <div class="summary-title">Tổng tiền ước tính</div>
-            <div class="summary-price">500.000đ</div>
-            <div class="summary-note">2 sản phẩm đã chọn</div>
-        </div>
-        <button class="summary-checkout">
-            <a href="#">Thanh toán</a>
-        </button>
-    </div>
 
-    <div class="cart-action">
-        <label>
-            <input type="checkbox" id="checkAll">
-            <span>Chọn tất cả</span>
-        </label>
+                <div class="line">
+                    <span>Tạm tính</span>
+                    <span><fmt:formatNumber value="${sessionScope.cart.totalPrice}" type="number" maxFractionDigits="0"/> đ</span>
+                </div>
 
-        <button class="btn-delete-selected">
-            <i class='bx bx-trash'></i> Xóa đã chọn
-        </button>
-    </div>
+                <div class="line">
+                    <span>Phí vận chuyển</span>
+                    <span class="free">Miễn phí</span>
+                </div>
 
-    <div class="cart-list">
+                <hr>
 
-        <div class="cart-item">
-            <input type="checkbox" class="item-checkbox">
+                <div class="line total">
+                    <span>Tổng cộng</span>
+                    <span><fmt:formatNumber value="${sessionScope.cart.totalPrice}" type="number" maxFractionDigits="0"/> đ</span>
+                </div>
 
-            <img src="https://via.placeholder.com/100" alt="">
-
-            <div class="product-info">
-                <div class="product-name">Sản phẩm 1</div>
-                <div class="unit-price">200.000đ</div>
+                <a href="${pageContext.request.contextPath}/payment" class="summary-checkout">
+                    Thanh toán
+                </a>
             </div>
+        </c:otherwise>
+    </c:choose>
 
-            <div class="qty-box">
-                <button class="qty-btn">−</button>
-                <span class="qty">1</span>
-                <button class="qty-btn">+</button>
-            </div>
-
-            <div class="item-total-price">200.000đ</div>
-
-            <i class='bx bx-trash item-remove'></i>
-        </div>
-
-        <!-- ITEM 2 -->
-        <div class="cart-item">
-            <input type="checkbox" class="item-checkbox">
-
-            <img src="https://via.placeholder.com/100" alt="">
-
-            <div class="product-info">
-                <div class="product-name">Sản phẩm 2</div>
-                <div class="unit-price">300.000đ</div>
-            </div>
-
-            <div class="qty-box">
-                <button class="qty-btn">−</button>
-                <span class="qty">1</span>
-                <button class="qty-btn">+</button>
-            </div>
-
-            <div class="item-total-price">300.000đ</div>
-
-            <i class='bx bx-trash item-remove'></i>
-        </div>
-
-    </div>
-
-    <div class="cart-total">
-        <h3>Đơn Hàng Của Bạn</h3>
-
-        <div class="line">
-            <span>Tạm tính</span>
-            <span>500.000đ</span>
-        </div>
-
-        <div class="line">
-            <span>Phí vận chuyển</span>
-            <span class="free">Miễn phí</span>
-        </div>
-
-        <hr>
-
-        <div class="line total">
-            <span>Tổng cộng</span>
-            <span>500.000đ</span>
-        </div>
-
-        <a href="#" class="summary-checkout">
-            Thanh toán
-        </a>
-    </div>
 
 </section>
 </body>
