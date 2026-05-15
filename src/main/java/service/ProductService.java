@@ -14,4 +14,7 @@ public class ProductService {
     public Product getProductById(int id){
         return pdao.getProductById(id);
     }
+    public int getStockById(int productId){
+        return pdao.getStockById(productId);
+    }
 }

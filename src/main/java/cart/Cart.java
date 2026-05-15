@@ -47,4 +47,7 @@ public class Cart implements Serializable {
         }
         return total.doubleValue();
     }
+    public CartItem getItem(int ProductId){
+       return data.get(ProductId);
+    }
 }
