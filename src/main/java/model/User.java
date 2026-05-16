@@ -5,6 +5,7 @@ import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.time.LocalDate;
 
 public class User {
 
@@ -18,6 +19,66 @@ public class User {
     private String googleId;
     private int orderCount;
     private BigDecimal totalSpend;
+    private String customerCode;
+    private LocalDate dateOfBirth;
+    private String gender;
+    private String avatarUrl;
+    private String bio;
+
+    public String getCustomerCode() {
+        return customerCode;
+    }
+
+    public void setCustomerCode(String customerCode) {
+        this.customerCode = customerCode;
+    }
+
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth(LocalDate dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
+    public String getDateOfBirthFormatted() {
+        if (dateOfBirth == null) return "Chưa cập nhật";
+        return dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+    }
+
+    public String getGenderLabel() {
+        if (gender == null || gender.isBlank()) return "Chưa cập nhật";
+        switch (gender) {
+            case "MALE": return "Nam";
+            case "FEMALE": return "Nữ";
+            case "OTHER": return "Khác";
+            default: return gender;
+        }
+    }
 
     public int getUserId() {
         return userId;
@@ -108,10 +169,12 @@ public class User {
     }
 
     public String getCustomerType() {
+        if (totalSpend == null) return "new";
         if (totalSpend.doubleValue() >= 10000000) return "vip";
         if (totalSpend.doubleValue() >= 3000000) return "regular";
         return "new";
     }
+
 
 
     public String getCustomerTypeLabel() {

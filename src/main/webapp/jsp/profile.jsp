@@ -59,62 +59,133 @@
     </div>
 </header>
 
-<main class="about-us-container">
-
+<main class="about-us-container profile-dashboard">
     <h1>Thông tin cá nhân</h1>
 
-    <div class="account-info">
-        <i class='bx bxs-user-circle'></i>
-        <h3>${sessionScope.user.userName}</h3>
-        <p>${sessionScope.user.email}</p>
+    <div class="account-hero">
+        <div class="account-avatar">
+            <i class='bx bxs-user-circle'></i>
+        </div>
+
+        <div class="account-hero-text">
+            <p>Hồ sơ tài khoản</p>
+            <h2>
+                <c:choose>
+                    <c:when test="${empty sessionScope.user.userName}">
+                        Chưa cập nhật tên
+                    </c:when>
+                    <c:otherwise>
+                        ${sessionScope.user.userName}
+                    </c:otherwise>
+                </c:choose>
+            </h2>
+            <span>${sessionScope.user.email}</span>
+        </div>
     </div>
-    <ul class="account-menu">
-        <li>
-            <a href="${pageContext.request.contextPath}/Account">
-                <i class='bx bx-home'></i>
-                <span>Tổng quan</span>
-            </a>
-        </li>
-        <li class="active">
-            <a href="${pageContext.request.contextPath}/Profile">
-                <i class='bx bx-edit-alt'></i>
-                <span>Thông tin cá nhân</span>
-            </a>
-        </li>
-        <li>
-            <a href="${pageContext.request.contextPath}/ChangePassword">
-                <i class='bx bx-lock-alt'></i>
-                <span>Đổi mật khẩu</span>
-            </a>
-        </li>
-        <li>
-            <a href="${pageContext.request.contextPath}/Address">
-                <i class='bx bx-map'></i>
-                <span>Sổ địa chỉ</span>
-            </a>
-        </li>
-    </ul>
 
-    <div class="recent-orders-box">
-        <h2>Chi tiết hồ sơ</h2>
+    <div class="profile-info-grid">
+        <div class="profile-info-card">
+            <i class='bx bx-id-card'></i>
+            <span>Mã khách hàng</span>
+            <strong>
+                <c:choose>
+                    <c:when test="${empty sessionScope.user.customerCode}">
+                        Chưa cập nhật
+                    </c:when>
+                    <c:otherwise>
+                        ${sessionScope.user.customerCode}
+                    </c:otherwise>
+                </c:choose>
+            </strong>
+        </div>
 
-        <table class="orders-table">
-            <tr>
-                <th>Họ và tên</th>
-            </tr>
-            <tr>
-                <th>Email</th>
-            </tr>
-            <tr>
-                <th>Số điện thoại</th>
-            </tr>
-        </table>
+        <div class="profile-info-card">
+            <i class='bx bx-user'></i>
+            <span>Họ và tên</span>
+            <strong>
+                <c:choose>
+                    <c:when test="${empty sessionScope.user.userName}">
+                        Chưa cập nhật
+                    </c:when>
+                    <c:otherwise>
+                        ${sessionScope.user.userName}
+                    </c:otherwise>
+                </c:choose>
+            </strong>
+        </div>
 
-        <a href="${pageContext.request.contextPath}/Profile/Edit"
-           class="btn-logout">
+        <div class="profile-info-card">
+            <i class='bx bx-envelope'></i>
+            <span>Email</span>
+            <strong>${sessionScope.user.email}</strong>
+        </div>
+
+        <div class="profile-info-card">
+            <i class='bx bx-phone'></i>
+            <span>Số điện thoại</span>
+            <strong>
+                <c:choose>
+                    <c:when test="${empty sessionScope.user.phone}">
+                        Chưa cập nhật
+                    </c:when>
+                    <c:otherwise>
+                        ${sessionScope.user.phone}
+                    </c:otherwise>
+                </c:choose>
+            </strong>
+        </div>
+
+        <div class="profile-info-card">
+            <i class='bx bx-calendar-heart'></i>
+            <span>Ngày sinh</span>
+            <strong>${sessionScope.user.dateOfBirthFormatted}</strong>
+        </div>
+
+        <div class="profile-info-card">
+            <i class='bx bx-user-pin'></i>
+            <span>Giới tính</span>
+            <strong>${sessionScope.user.genderLabel}</strong>
+        </div>
+
+        <div class="profile-info-card">
+            <i class='bx bx-calendar'></i>
+            <span>Ngày tham gia</span>
+            <strong>${sessionScope.user.joinDateFormatted}</strong>
+        </div>
+
+        <div class="profile-info-card">
+            <i class='bx bx-message-rounded-detail'></i>
+            <span>Giới thiệu</span>
+            <strong>
+                <c:choose>
+                    <c:when test="${empty sessionScope.user.bio}">
+                        Chưa cập nhật
+                    </c:when>
+                    <c:otherwise>
+                        ${sessionScope.user.bio}
+                    </c:otherwise>
+                </c:choose>
+            </strong>
+        </div>
+    </div>
+
+    <div class="account-bottom-actions">
+        <a href="${pageContext.request.contextPath}/Account" class="btn-account-secondary">
+            <i class='bx bx-arrow-back'></i>
+            Quay lại tài khoản
+        </a>
+
+        <a href="${pageContext.request.contextPath}/Profile/Edit" class="btn-account-primary">
+            <i class='bx bx-edit-alt'></i>
             Chỉnh sửa hồ sơ
         </a>
+
+        <a href="${pageContext.request.contextPath}/ChangePassword" class="btn-account-secondary">
+            <i class='bx bx-lock-alt'></i>
+            Đổi mật khẩu
+        </a>
     </div>
+
 </main>
 <footer class="footer">
     <div class="container">
