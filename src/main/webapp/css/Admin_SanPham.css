@@ -474,3 +474,14 @@ a {
 .btn-submit:hover {
     opacity: 0.9;
 }
+.pagination-dots {
+    min-width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 500;
+    color: #aaa;
+    cursor: default;
+}

@@ -100,7 +100,7 @@
         <select name="categoryId" class="filter-select">
             <option value="">Tất cả danh mục</option>
             <c:forEach var="cat" items="${categories}">
-                <option value="${cat.categoryId}" ${param.categoryId == cat.categoryId ? 'selected' : ''}>${cat.categoryName}</option>
+                <option value="${cat.categoryId}" ${param.categoryId == cat.categoryId ? 'selected' : ''}>${cat.name}</option>
             </c:forEach>
         </select>
         <select name="status" class="filter-select">
@@ -198,13 +198,24 @@
         </table>
         <div class="pagination">
             <c:if test="${currentPage > 1}">
-                <a href="?page=${currentPage - 1}&keyword=${fn:escapeXml(param.keyword)}&categoryId=${param.categoryId}&status=${param.status}&priceRange=${param.priceRange}">&laquo; Trước</a>
+                <a href="?page=${currentPage - 1}&keyword=${param.keyword}&categoryId=${param.categoryId}&status=${param.status}&priceRange=${param.priceRange}">&laquo; Trước</a>
+            </c:if>
+            <c:if test="${currentPage > 3}">
+                <a href="?page=1&keyword=${param.keyword}&categoryId=${param.categoryId}&status=${param.status}&priceRange=${param.priceRange}">1</a>
+                <c:if test="${currentPage > 4}"><span class="pagination-dots">...</span></c:if>
             </c:if>
             <c:forEach begin="1" end="${totalPages}" var="i">
-                <a href="?page=${i}&keyword=${fn:escapeXml(param.keyword)}&categoryId=${param.categoryId}&status=${param.status}&priceRange=${param.priceRange}" class="${i == currentPage ? 'active-page' : ''}">${i}</a>
+                <c:if test="${i >= currentPage - 2 && i <= currentPage + 2}">
+                    <a href="?page=${i}&keyword=${param.keyword}&categoryId=${param.categoryId}&status=${param.status}&priceRange=${param.priceRange}"
+                       class="${i == currentPage ? 'active-page' : ''}">${i}</a>
+                </c:if>
             </c:forEach>
+            <c:if test="${currentPage < totalPages - 2}">
+                <c:if test="${currentPage < totalPages - 3}"><span class="pagination-dots">...</span></c:if>
+                <a href="?page=${totalPages}&keyword=${param.keyword}&categoryId=${param.categoryId}&status=${param.status}&priceRange=${param.priceRange}">${totalPages}</a>
+            </c:if>
             <c:if test="${currentPage < totalPages}">
-                <a href="?page=${currentPage + 1}&keyword=${fn:escapeXml(param.keyword)}&categoryId=${param.categoryId}&status=${param.status}&priceRange=${param.priceRange}">Tiếp &raquo;</a>
+                <a href="?page=${currentPage + 1}&keyword=${param.keyword}&categoryId=${param.categoryId}&status=${param.status}&priceRange=${param.priceRange}">Tiếp &raquo;</a>
             </c:if>
         </div>
     </div>
@@ -242,7 +253,7 @@
                 <select name="categoryId" id="prodCategory">
                     <c:forEach var="cat" items="${categories}">
                         <option value="${cat.categoryId}">
-                            ${cat.categoryName}
+                            ${cat.name}
                         </option>
                     </c:forEach>
                 </select>
