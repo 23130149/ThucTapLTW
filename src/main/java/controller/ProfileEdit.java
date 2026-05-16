@@ -2,7 +2,7 @@ package controller;
 
 import dao.UserDao;
 import model.User;
-
+import java.time.LocalDate;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
@@ -46,6 +46,15 @@ public class ProfileEdit extends HttpServlet {
 
         user.setUserName(request.getParameter("userName"));
         user.setPhone(request.getParameter("phone"));
+        user.setDateOfBirth(null);
+        String dob = request.getParameter("dateOfBirth");
+        if (dob != null && !dob.isBlank()) {
+            user.setDateOfBirth(LocalDate.parse(dob));
+        }
+
+        user.setGender(request.getParameter("gender"));
+        user.setAvatarUrl(request.getParameter("avatarUrl"));
+        user.setBio(request.getParameter("bio"));
 
         userDao.updateProfile(user);
         session.setAttribute("user", user);

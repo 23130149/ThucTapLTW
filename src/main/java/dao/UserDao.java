@@ -8,19 +8,44 @@ public class UserDao extends BaseDao {
 
     public void register(User user) {
         String sql = """
-            INSERT INTO user (User_Name, Email, Phone, Password, Create_At, Role)
-            VALUES (:user_name, :email, :phone, :password, NOW(), :role)
+            INSERT INTO user (
+                Customer_Code,
+                User_Name,
+                Email,
+                Phone,
+                Password,
+                Create_At,
+                Role
+            )
+            VALUES (
+                :customerCode,
+                :user_name,
+                :email,
+                :phone,
+                :password,
+                NOW(),
+                :role
+            )
         """;
-        getJdbi().withHandle(handle ->
-                handle.createUpdate(sql)
-                        .bind("user_name", user.getUserName())
-                        .bind("email", user.getEmail())
-                        .bind("phone", user.getPhone())
-                        .bind("password", user.getPassword())
-                        .bind("role", user.getRole())
-                        .execute()
-        );
+
+        getJdbi().useTransaction(handle -> {
+            int nextId = handle.createQuery("SELECT COALESCE(MAX(User_Id), 0) + 1 FROM user")
+                    .mapTo(Integer.class)
+                    .one();
+
+            String customerCode = "HH" + String.format("%06d", nextId);
+
+            handle.createUpdate(sql)
+                    .bind("customerCode", customerCode)
+                    .bind("user_name", user.getUserName())
+                    .bind("email", user.getEmail())
+                    .bind("phone", user.getPhone())
+                    .bind("password", user.getPassword())
+                    .bind("role", user.getRole())
+                    .execute();
+        });
     }
+
     public boolean emailExists(String email) {
         String sql = "SELECT COUNT(*) FROM user WHERE Email = :email";
 
@@ -34,18 +59,23 @@ public class UserDao extends BaseDao {
 
     public User findByEmail(String email) {
         String sql = """
-        SELECT
-            User_Id     AS userId,
-            User_Name   AS userName,
-            Email       AS email,
-            Phone       AS phone,
-            Password    AS password,
-            Google_Id   AS googleId,
-            Create_At   AS createAt,
-            Role        AS role
-        FROM user
-        WHERE Email = :email
-    """;
+            SELECT
+                User_Id       AS userId,
+                Customer_Code AS customerCode,
+                User_Name     AS userName,
+                Email         AS email,
+                Phone         AS phone,
+                Date_Of_Birth AS dateOfBirth,
+                Gender        AS gender,
+                Password      AS password,
+                Google_Id     AS googleId,
+                Avatar_Url    AS avatarUrl,
+                Bio           AS bio,
+                Create_At     AS createAt,
+                Role          AS role
+            FROM user
+            WHERE Email = :email
+        """;
 
         return getJdbi().withHandle(handle ->
                 handle.createQuery(sql)
@@ -56,21 +86,24 @@ public class UserDao extends BaseDao {
         );
     }
 
-    public boolean updateProfile(User user) {
+    public void updateProfile(User user) {
         String sql = """
             UPDATE user
-            SET User_Name = :user_name,
-                Phone = :phone
-            WHERE User_Id = :user_id
+            SET
+                User_Name = :userName,
+                Phone = :phone,
+                Date_Of_Birth = :dateOfBirth,
+                Gender = :gender,
+                Avatar_Url = :avatarUrl,
+                Bio = :bio
+            WHERE User_Id = :userId
         """;
 
-        return getJdbi().withHandle(handle ->
+        getJdbi().withHandle(handle ->
                 handle.createUpdate(sql)
-                        .bind("user_name", user.getUserName())
-                        .bind("phone", user.getPhone())
-                        .bind("user_id", user.getUserId())
+                        .bindBean(user)
                         .execute()
-        ) > 0;
+        );
     }
 
     public boolean updatePassword(int userId, String hashedPassword) {
@@ -91,6 +124,7 @@ public class UserDao extends BaseDao {
 
     public int countUsers() {
         String sql = "SELECT COUNT(*) FROM user";
+
         return getJdbi().withHandle(handle ->
                 handle.createQuery(sql)
                         .mapTo(Integer.class)
@@ -100,28 +134,53 @@ public class UserDao extends BaseDao {
 
     public void insertGoogleUser(String email, String googleId) {
         String sql = """
-            INSERT INTO user (Email, Google_Id, Role, Create_At)
-            VALUES (:email, :google_id, 'USER', NOW())
+            INSERT INTO user (
+                Customer_Code,
+                Email,
+                Google_Id,
+                Role,
+                Create_At
+            )
+            VALUES (
+                :customerCode,
+                :email,
+                :google_id,
+                'USER',
+                NOW()
+            )
         """;
 
-        getJdbi().withHandle(handle ->
-                handle.createUpdate(sql)
-                        .bind("email", email)
-                        .bind("google_id", googleId)
-                        .execute()
-        );
+        getJdbi().useTransaction(handle -> {
+            int nextId = handle.createQuery("SELECT COALESCE(MAX(User_Id), 0) + 1 FROM user")
+                    .mapTo(Integer.class)
+                    .one();
+
+            String customerCode = "HH" + String.format("%06d", nextId);
+
+            handle.createUpdate(sql)
+                    .bind("customerCode", customerCode)
+                    .bind("email", email)
+                    .bind("google_id", googleId)
+                    .execute();
+        });
     }
 
     public User getAdmin() {
         String sql = """
             SELECT
-                User_Id   AS userId,
-                User_Name AS userName,
-                Email     AS email,
-                Phone     AS phone,
-                Password  AS password,
-                Create_At AS createAt,
-                Role      AS role
+                User_Id       AS userId,
+                Customer_Code AS customerCode,
+                User_Name     AS userName,
+                Email         AS email,
+                Phone         AS phone,
+                Date_Of_Birth AS dateOfBirth,
+                Gender        AS gender,
+                Password      AS password,
+                Google_Id     AS googleId,
+                Avatar_Url    AS avatarUrl,
+                Bio           AS bio,
+                Create_At     AS createAt,
+                Role          AS role
             FROM user
             WHERE Role = :role
             LIMIT 1
@@ -135,19 +194,26 @@ public class UserDao extends BaseDao {
                         .orElse(null)
         );
     }
+
     public List<User> getAllUsers() {
         String sql = """
-        SELECT
-            User_Id   AS userId,
-            User_Name AS userName,
-            Email     AS email,
-            Phone     AS phone,
-            Password  AS password,
-            Google_Id AS googleId,
-            Role      AS role
-        FROM user
-        WHERE Password IS NOT NULL
-    """;
+            SELECT
+                User_Id       AS userId,
+                Customer_Code AS customerCode,
+                User_Name     AS userName,
+                Email         AS email,
+                Phone         AS phone,
+                Date_Of_Birth AS dateOfBirth,
+                Gender        AS gender,
+                Password      AS password,
+                Google_Id     AS googleId,
+                Avatar_Url    AS avatarUrl,
+                Bio           AS bio,
+                Create_At     AS createAt,
+                Role          AS role
+            FROM user
+            WHERE Password IS NOT NULL
+        """;
 
         return getJdbi().withHandle(handle ->
                 handle.createQuery(sql)
@@ -155,34 +221,58 @@ public class UserDao extends BaseDao {
                         .list()
         );
     }
-    public List<User> getAllCustomers() {
 
+    public List<User> getAllCustomers() {
         String sql = """
-                    SELECT 
-                        u.User_Id,
-                        u.User_Name,
-                        u.Phone,
-                        u.Email,
-                        u.Create_At,
-                        COUNT(o.Order_Id) AS orderCount,
-                        COALESCE(SUM(o.Total_Price),0) AS totalSpend
-                    FROM user u
-                    LEFT JOIN orders o 
-                        ON u.User_Id = o.User_Id
-                        AND o.Status = 'COMPLETED'
-                    WHERE u.Role = 'USER'
-                    GROUP BY u.User_Id
-                    ORDER BY u.Create_At DESC
-                """;
+            SELECT
+                u.User_Id,
+                u.Customer_Code,
+                u.User_Name,
+                u.Phone,
+                u.Email,
+                u.Date_Of_Birth,
+                u.Gender,
+                u.Avatar_Url,
+                u.Bio,
+                u.Create_At,
+                COUNT(o.Order_Id) AS orderCount,
+                COALESCE(SUM(o.Total_Price), 0) AS totalSpend
+            FROM user u
+            LEFT JOIN orders o
+                ON u.User_Id = o.User_Id
+                AND o.Status = 'COMPLETED'
+            WHERE u.Role = 'USER'
+            GROUP BY
+                u.User_Id,
+                u.Customer_Code,
+                u.User_Name,
+                u.Phone,
+                u.Email,
+                u.Date_Of_Birth,
+                u.Gender,
+                u.Avatar_Url,
+                u.Bio,
+                u.Create_At
+            ORDER BY u.Create_At DESC
+        """;
 
         return getJdbi().withHandle(h ->
                 h.createQuery(sql)
                         .map((rs, ctx) -> {
                             User u = new User();
                             u.setUserId(rs.getInt("User_Id"));
+                            u.setCustomerCode(rs.getString("Customer_Code"));
                             u.setUserName(rs.getString("User_Name"));
                             u.setPhone(rs.getString("Phone"));
                             u.setEmail(rs.getString("Email"));
+
+                            if (rs.getDate("Date_Of_Birth") != null) {
+                                u.setDateOfBirth(rs.getDate("Date_Of_Birth").toLocalDate());
+                            }
+
+                            u.setGender(rs.getString("Gender"));
+                            u.setAvatarUrl(rs.getString("Avatar_Url"));
+                            u.setBio(rs.getString("Bio"));
                             u.setCreateAt(rs.getTimestamp("Create_At").toLocalDateTime());
                             u.setOrderCount(rs.getInt("orderCount"));
                             u.setTotalSpend(rs.getBigDecimal("totalSpend"));
@@ -191,23 +281,38 @@ public class UserDao extends BaseDao {
                         .list()
         );
     }
-    public User getCustomerDetail(int userId) {
 
+    public User getCustomerDetail(int userId) {
         String sql = """
-            SELECT 
+            SELECT
                 u.User_Id,
+                u.Customer_Code,
                 u.User_Name,
                 u.Phone,
                 u.Email,
+                u.Date_Of_Birth,
+                u.Gender,
+                u.Avatar_Url,
+                u.Bio,
                 u.Create_At,
                 COUNT(o.Order_Id) AS orderCount,
-                COALESCE(SUM(o.Total_Price),0) AS totalSpend
+                COALESCE(SUM(o.Total_Price), 0) AS totalSpend
             FROM user u
-            LEFT JOIN orders o 
+            LEFT JOIN orders o
                 ON u.User_Id = o.User_Id
                 AND o.Status = 'COMPLETED'
             WHERE u.User_Id = :id
-            GROUP BY u.User_Id
+            GROUP BY
+                u.User_Id,
+                u.Customer_Code,
+                u.User_Name,
+                u.Phone,
+                u.Email,
+                u.Date_Of_Birth,
+                u.Gender,
+                u.Avatar_Url,
+                u.Bio,
+                u.Create_At
         """;
 
         return getJdbi().withHandle(h ->
@@ -216,9 +321,18 @@ public class UserDao extends BaseDao {
                         .map((rs, ctx) -> {
                             User u = new User();
                             u.setUserId(rs.getInt("User_Id"));
+                            u.setCustomerCode(rs.getString("Customer_Code"));
                             u.setUserName(rs.getString("User_Name"));
                             u.setPhone(rs.getString("Phone"));
                             u.setEmail(rs.getString("Email"));
+
+                            if (rs.getDate("Date_Of_Birth") != null) {
+                                u.setDateOfBirth(rs.getDate("Date_Of_Birth").toLocalDate());
+                            }
+
+                            u.setGender(rs.getString("Gender"));
+                            u.setAvatarUrl(rs.getString("Avatar_Url"));
+                            u.setBio(rs.getString("Bio"));
                             u.setCreateAt(rs.getTimestamp("Create_At").toLocalDateTime());
                             u.setOrderCount(rs.getInt("orderCount"));
                             u.setTotalSpend(rs.getBigDecimal("totalSpend"));
@@ -228,14 +342,15 @@ public class UserDao extends BaseDao {
                         .orElse(null)
         );
     }
+
     public void updateCustomer(int userId, String userName, String phone) {
         String sql = """
-        UPDATE user
-        SET User_Name = :name,
-            Phone = :phone
-        WHERE User_Id = :id
-          AND Role <> 'ADMIN'
-    """;
+            UPDATE user
+            SET User_Name = :name,
+                Phone = :phone
+            WHERE User_Id = :id
+              AND Role <> 'ADMIN'
+        """;
 
         getJdbi().withHandle(h ->
                 h.createUpdate(sql)
@@ -245,26 +360,29 @@ public class UserDao extends BaseDao {
                         .execute()
         );
     }
+
     public int countTotalCustomers() {
         String sql = "SELECT COUNT(*) FROM user WHERE Role = 'USER'";
+
         return getJdbi().withHandle(h ->
                 h.createQuery(sql)
                         .mapTo(Integer.class)
                         .one()
         );
     }
+
     public int countVipCustomers() {
         String sql = """
-        SELECT COUNT(*) FROM (
-            SELECT u.User_Id
-            FROM user u
-            JOIN orders o ON u.User_Id = o.User_Id
-            WHERE u.Role = 'USER'
-              AND o.Status = 'COMPLETED'
-            GROUP BY u.User_Id
-            HAVING SUM(o.Total_Price) >= 5000000
-        ) vip
-    """;
+            SELECT COUNT(*) FROM (
+                SELECT u.User_Id
+                FROM user u
+                JOIN orders o ON u.User_Id = o.User_Id
+                WHERE u.Role = 'USER'
+                  AND o.Status = 'COMPLETED'
+                GROUP BY u.User_Id
+                HAVING SUM(o.Total_Price) >= 5000000
+            ) vip
+        """;
 
         return getJdbi().withHandle(h ->
                 h.createQuery(sql)
@@ -272,14 +390,15 @@ public class UserDao extends BaseDao {
                         .one()
         );
     }
+
     public int countNewCustomersThisMonth() {
         String sql = """
-        SELECT COUNT(*) 
-        FROM user
-        WHERE Role = 'USER'
-          AND MONTH(Create_At) = MONTH(CURRENT_DATE())
-          AND YEAR(Create_At) = YEAR(CURRENT_DATE())
-    """;
+            SELECT COUNT(*)
+            FROM user
+            WHERE Role = 'USER'
+              AND MONTH(Create_At) = MONTH(CURRENT_DATE())
+              AND YEAR(Create_At) = YEAR(CURRENT_DATE())
+        """;
 
         return getJdbi().withHandle(h ->
                 h.createQuery(sql)
@@ -287,16 +406,17 @@ public class UserDao extends BaseDao {
                         .one()
         );
     }
+
     public double getAverageSpendPerCustomer() {
         String sql = """
-        SELECT 
-            COALESCE(SUM(o.Total_Price) / COUNT(DISTINCT u.User_Id), 0)
-        FROM user u
-        LEFT JOIN orders o 
-            ON u.User_Id = o.User_Id
-            AND o.Status = 'COMPLETED'
-        WHERE u.Role = 'USER'
-    """;
+            SELECT
+                COALESCE(SUM(o.Total_Price) / COUNT(DISTINCT u.User_Id), 0)
+            FROM user u
+            LEFT JOIN orders o
+                ON u.User_Id = o.User_Id
+                AND o.Status = 'COMPLETED'
+            WHERE u.Role = 'USER'
+        """;
 
         return getJdbi().withHandle(h ->
                 h.createQuery(sql)
@@ -304,8 +424,4 @@ public class UserDao extends BaseDao {
                         .one()
         );
     }
-
-
-
-
 }

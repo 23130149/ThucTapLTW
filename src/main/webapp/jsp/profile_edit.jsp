@@ -145,6 +145,33 @@
         <input type="text" name="phone"
                value="${sessionScope.user.phone}">
       </div>
+      <div class="form-row">
+        <label>Ngày sinh</label>
+        <input type="date" name="dateOfBirth"
+               value="${sessionScope.user.dateOfBirth}">
+      </div>
+
+      <div class="form-row">
+        <label>Giới tính</label>
+        <select name="gender">
+          <option value="">Chọn giới tính</option>
+          <option value="MALE" ${sessionScope.user.gender == 'MALE' ? 'selected' : ''}>Nam</option>
+          <option value="FEMALE" ${sessionScope.user.gender == 'FEMALE' ? 'selected' : ''}>Nữ</option>
+          <option value="OTHER" ${sessionScope.user.gender == 'OTHER' ? 'selected' : ''}>Khác</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label>Ảnh đại diện URL</label>
+        <input type="text" name="avatarUrl"
+               value="${sessionScope.user.avatarUrl}">
+      </div>
+
+      <div class="form-row">
+        <label>Giới thiệu ngắn</label>
+        <input type="text" name="bio"
+               value="${sessionScope.user.bio}">
+      </div>
 
       <div class="profile-actions">
         <button type="submit" class="btn-save">
