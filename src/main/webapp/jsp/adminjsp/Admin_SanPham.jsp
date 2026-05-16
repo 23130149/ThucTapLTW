@@ -63,7 +63,6 @@
             <div class="stat-details">
                 <p class="title">Tổng sản phẩm</p>
                 <p class="value">${totalProducts}</p>
-                <span class="stat-change positive"></span>
             </div>
         </div>
         <div class="stat-card stat-new-orders">
@@ -81,7 +80,6 @@
             <div class="stat-details">
                 <p class="title">Sản phẩm hết hàng</p>
                 <p class="value">${outOfStock}</p>
-                <span class="stat-change positive"></span>
             </div>
         </div>
         <div class="stat-card stat-customers">
@@ -89,46 +87,40 @@
             <div class="stat-details">
                 <p class="title">Tổng tồn kho</p>
                 <p class="value">${totalStock}</p>
-                <span class="stat-change positive"></span>
             </div>
         </div>
     </div>
     <form method="get"
           action="${pageContext.request.contextPath}/admin/products"
-          class="search-filter-row">
+          class="search-filter-row" id="filterForm">
         <div class="search-review-box">
             <i class="bx bx-search"></i>
-            <input type="text" name="keyword" placeholder="Tìm kiếm sản phẩm...">
+            <input type="text" name="keyword" placeholder="Tìm kiếm sản phẩm..." value="${param.keyword}">
         </div>
         <select name="categoryId" class="filter-select">
             <option value="">Tất cả danh mục</option>
-            <option value="1">Móc khóa</option>
-            <option value="2">Vòng tay</option>
-            <option value="3">Nến thơm</option>
-            <option value="4">Ốp lưng</option>
-            <option value="5">Thời trang</option>
-            <option value="6">Len-Crochet</option>
-            <option value="7">Đồ trang trí</option>
-            <option value="8">Thú cưng</option>
+            <c:forEach var="cat" items="${categories}">
+                <option value="${cat.categoryId}" ${param.categoryId == cat.categoryId ? 'selected' : ''}>${cat.categoryName}</option>
+            </c:forEach>
         </select>
         <select name="status" class="filter-select">
             <option value="">Tất cả trạng thái</option>
-            <option value="instock">Còn hàng</option>
-            <option value="lowstock">Sắp hết</option>
-            <option value="outstock">Hết hàng</option>
+            <option value="instock" ${param.status == 'instock' ? 'selected' : ''}>Còn hàng</option>
+            <option value="lowstock" ${param.status == 'lowstock' ? 'selected' : ''}>Sắp hết</option>
+            <option value="outstock" ${param.status == 'outstock' ? 'selected' : ''}>Hết hàng</option>
         </select>
         <select name="priceRange" class="filter-select">
             <option value="">Tất cả giá</option>
-            <option value="0-100000">
+            <option value="0-100000" ${param.priceRange == '0-100000' ? 'selected' : ''}>
                 Dưới 100k
             </option>
-            <option value="100000-300000">
+            <option value="100000-300000" ${param.priceRange == '100000-300000' ? 'selected' : ''}>
                 100k - 300k
             </option>
-            <option value="300000-500000">
+            <option value="300000-500000" ${param.priceRange == '300000-500000' ? 'selected' : ''}>
                 300k - 500k
             </option>
-            <option value="500000+">
+            <option value="500000+" ${param.priceRange == '500000+' ? 'selected' : ''}>
                 Trên 500k
             </option>
         </select>
@@ -206,16 +198,13 @@
         </table>
         <div class="pagination">
             <c:if test="${currentPage > 1}">
-                <a href="?page=${currentPage - 1}">Previous</a>
+                <a href="?page=${currentPage - 1}&keyword=${fn:escapeXml(param.keyword)}&categoryId=${param.categoryId}&status=${param.status}&priceRange=${param.priceRange}">&laquo; Trước</a>
             </c:if>
             <c:forEach begin="1" end="${totalPages}" var="i">
-                <a href="?page=${i}"
-                   class="${i == currentPage ? 'active-page' : ''}">
-                        ${i}
-                </a>
+                <a href="?page=${i}&keyword=${fn:escapeXml(param.keyword)}&categoryId=${param.categoryId}&status=${param.status}&priceRange=${param.priceRange}" class="${i == currentPage ? 'active-page' : ''}">${i}</a>
             </c:forEach>
             <c:if test="${currentPage < totalPages}">
-                <a href="?page=${currentPage + 1}">Next</a>
+                <a href="?page=${currentPage + 1}&keyword=${fn:escapeXml(param.keyword)}&categoryId=${param.categoryId}&status=${param.status}&priceRange=${param.priceRange}">Tiếp &raquo;</a>
             </c:if>
         </div>
     </div>
@@ -233,39 +222,48 @@
             <input type="hidden" name="productId" id="prodId">
 
             <div class="form-group">
-                <label>Tên sản phẩm</label>
+                <label>Tên sản phẩm <span class="required">*</span></label>
                 <input type="text" name="name" id="prodName" placeholder="Ví dụ: Móc khóa len cờ Việt Nam..." required>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
-                    <label>Giá bán (VNĐ)</label>
-                    <input type="number" name="price" id="prodPrice" required>
+                    <label>Giá bán (VNĐ) <span class="required">*</span></label>
+                    <input type="number" name="price" id="prodPrice" min="1" required>
                 </div>
                 <div class="form-group">
-                    <label>Số lượng kho</label>
-                    <input type="number" name="stock" id="prodStock" required>
+                    <label>Số lượng kho <span class="required">*</span></label>
+                    <input type="number" name="stock" id="prodStock" min="0" required>
                 </div>
             </div>
 
             <div class="form-group">
                 <label>Danh mục</label>
                 <select name="categoryId" id="prodCategory">
-                    <option value="1">Móc khóa</option>
-                    <option value="2">Vòng tay</option>
-                    <option value="3">Nến thơm</option>
-                    <option value="4">Ốp lưng</option>
-                    <option value="5">Thời trang</option>
-                    <option value="6">Len-Crochet</option>
-                    <option value="7">Đồ trang trí</option>
-                    <option value="8">Thú cưng</option>
+                    <c:forEach var="cat" items="${categories}">
+                        <option value="${cat.categoryId}">
+                            ${cat.categoryName}
+                        </option>
+                    </c:forEach>
                 </select>
             </div>
             <div class="form-group">
                 <label>Mô tả sản phẩm</label>
                 <textarea name="description" id="prodDescription" rows="3" placeholder="Mô tả ngắn gọn về sản phẩm..."></textarea>
             </div>
-
+            <div class="form-group">
+                <label>URL hình ảnh</label>
+                <input type="text" name="imageUrl" id="prodImageUrl" placeholder="https://... hoặc để trống nếu upload file">
+            </div>
+            <div class="form-group">
+                <label for="prodImageFile">Hoặc tải ảnh lên</label>
+                <input type="file" name="imageFile" id="prodImageFile"
+                       accept="image/*" onchange="previewImage(this)">
+                <div id="imagePreviewWrap" style="margin-top:8px; display:none;">
+                    <img id="imagePreview" src="" alt="Preview"
+                         style="max-width:120px; max-height:120px; border-radius:6px; border:1px solid #ddd;">
+                </div>
+            </div>
             <div class="modal-footer">
                 <button type="button" class="btn-cancel" onclick="closeModal()">Hủy bỏ</button>
                 <button type="submit" class="btn-submit">Xác nhận Lưu</button>
@@ -274,11 +272,8 @@
     </div>
 </div>
 <script>
-    const filters = document.querySelectorAll(".filter-select");
-    filters.forEach(filter => {
-        filter.addEventListener("change", function () {
-            this.form.submit();
-        });
+    document.querySelectorAll(".filter-select").forEach(function (sel) {
+        sel.addEventListener("change", function () { this.form.submit(); });
     });
     const modal = document.getElementById("productModal");
     const productForm = document.getElementById("productForm");
@@ -290,52 +285,62 @@
         document.getElementById("modalAction").value = "add";
         document.getElementById("prodId").value = "";
     };
-    function closeModal() {
-        modal.style.display = "none";
-    }
+    function closeModal() { modal.style.display = "none"; }
+
+    window.addEventListener("click", function (e) {
+        if (e.target === modal) closeModal();
+    });
+
     function openEditModal(btn) {
         modal.style.display = "flex";
         modalTitle.innerText = "Cập nhật sản phẩm";
         document.getElementById("modalAction").value = "update";
-        document.getElementById("prodId").value =
-            btn.dataset.id;
-        document.getElementById("prodName").value =
-            btn.dataset.name;
-        document.getElementById("prodPrice").value =
-            btn.dataset.price;
-        document.getElementById("prodStock").value =
-            btn.dataset.stock;
-        document.getElementById("prodCategory").value =
-            btn.dataset.category;
-        document.getElementById("prodDescription").value =
-            btn.dataset.description;
-    }
-    window.onclick = function (event) {
-        if (event.target === modal) {
-            closeModal();
+        document.getElementById("prodId").value = btn.dataset.id;
+        document.getElementById("prodName").value = btn.dataset.name;
+        document.getElementById("prodPrice").value = btn.dataset.price;
+        document.getElementById("prodStock").value = btn.dataset.stock;
+        document.getElementById("prodCategory").value = btn.dataset.category;
+        document.getElementById("prodDescription").value = btn.dataset.description;
+        document.getElementById("prodImageUrl").value    = btn.dataset.image || "";
+
+        if (btn.dataset.image) {
+            document.getElementById("imagePreview").src              = btn.dataset.image;
+            document.getElementById("imagePreviewWrap").style.display = "block";
+        } else {
+            clearImagePreview();
         }
-    };
+    }
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById("imagePreview").src              = e.target.result;
+                document.getElementById("imagePreviewWrap").style.display = "block";
+                document.getElementById("prodImageUrl").value = "";
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function clearImagePreview() {
+        document.getElementById("imagePreview").src              = "";
+        document.getElementById("imagePreviewWrap").style.display = "none";
+    }
     productForm.addEventListener("submit", function (e) {
-        const name =
-            document.getElementById("prodName").value.trim();
-        const price =
-            document.getElementById("prodPrice").value;
-        const stock =
-            document.getElementById("prodStock").value;
+        const name = document.getElementById("prodName").value.trim();
+        const price = parseFloat(document.getElementById("prodPrice").value);
+        const stock = parseInt(document.getElementById("prodStock").value);
         if (name === "") {
             alert("Tên sản phẩm không được để trống!");
-            e.preventDefault()
-            return;
+            e.preventDefault(); return;
         }
-        if (price <= 0) {
+        if (isNaN(price) || price <= 0) {
             alert("Giá sản phẩm phải lớn hơn 0!");
-            e.preventDefault();
-            return;
+            e.preventDefault(); return;
         }
-        if (stock < 0) {
+        if (isNaN(stock) || stock < 0) {
             alert("Số lượng kho không hợp lệ!");
-            e.preventDefault();
-            return;
+            e.preventDefault(); return;
         }
     });
 </script>
