@@ -3,20 +3,18 @@ package controller;
 import dao.OrderDao;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.*;
 import model.Order;
 import model.User;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @WebServlet("/Account")
 public class AccountController extends HttpServlet {
 
-    private OrderDao orderDao = new OrderDao();
+    private final OrderDao orderDao = new OrderDao();
 
     @Override
     protected void doGet(HttpServletRequest request,
@@ -24,6 +22,7 @@ public class AccountController extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = request.getSession(false);
+
         if (session == null || session.getAttribute("user") == null) {
             response.sendRedirect(request.getContextPath() + "/SignIn");
             return;
@@ -31,14 +30,17 @@ public class AccountController extends HttpServlet {
 
         User user = (User) session.getAttribute("user");
 
-        List<Order> recentOrders =
-                orderDao.getOrdersByUserId(user.getUserId())
-                        .stream()
-                        .limit(3)
-                        .toList();
+        int recentLimit = 5;
+        String recent = request.getParameter("recent");
 
+        if ("10".equals(recent)) {
+            recentLimit = 10;
+        }
 
-        request.setAttribute("orderList", recentOrders);
+        List<Order> orderList = orderDao.getRecentOrdersByUser(user.getUserId(), recentLimit);
+
+        request.setAttribute("orderList", orderList != null ? orderList : new ArrayList<>());
+        request.setAttribute("recentLimit", recentLimit);
 
         request.getRequestDispatcher("/jsp/myaccount.jsp")
                 .forward(request, response);

@@ -9,9 +9,12 @@
 
   <link rel="stylesheet"
         href="${pageContext.request.contextPath}/css/account.css">
+  <link rel="stylesheet"
+        href="${pageContext.request.contextPath}/css/header_footer.css">
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
 <header class="header">
   <div class="header-top-container">
@@ -19,6 +22,7 @@
       <div class="logo">
         <a href="${pageContext.request.contextPath}/home">Handmade House</a>
       </div>
+
       <form class="search-form" action="#" method="GET">
         <input type="text" class="search-input" placeholder="Tìm kiếm bất cứ thứ gì..."
                aria-label="Tìm kiếm sản phẩm">
@@ -26,16 +30,18 @@
           <i class="bx bx-search-alt-2"></i>
         </button>
       </form>
+
       <div class="icons">
         <a href="${pageContext.request.contextPath}/cart" class="icon-btn" id="cartBtn">
-          <i class='bx  bx-cart'></i>
+          <i class='bx bx-cart'></i>
         </a>
         <a href="${pageContext.request.contextPath}/Account" class="icon-btn" id="userBtn">
-          <i class='bx  bx-user'></i>
+          <i class='bx bx-user'></i>
         </a>
       </div>
     </div>
   </div>
+
   <div class="search-bar-section header-bottom-nav">
     <div class="container nav-only-container">
       <nav class="nav__links">
@@ -49,13 +55,16 @@
     </div>
   </div>
 </header>
+
 <main class="about-us-container">
   <h1>Sổ địa chỉ</h1>
+
   <div class="account-info">
     <i class='bx bxs-user-circle'></i>
     <h3>${sessionScope.user.userName}</h3>
     <p>${sessionScope.user.email}</p>
   </div>
+
   <ul class="account-menu">
     <li>
       <a href="${pageContext.request.contextPath}/Account">
@@ -82,21 +91,106 @@
       </a>
     </li>
   </ul>
+
   <div class="recent-orders-box address-box">
-    <h2>Danh sách địa chỉ</h2>
-      <p>Bạn chưa có địa chỉ nào.</p>
-      <div class="address-actions">
-        <button type="submit" class="btn-save">
-          Lưu địa chỉ
+    <div class="address-header">
+      <h2>Danh sách địa chỉ</h2>
+
+      <c:if test="${address.userAddressId == 0}">
+        <button type="button" class="btn-add-address" id="btnAddAddress">
+          <i class='bx bx-plus'></i>
+          <span>Thêm địa chỉ mới</span>
         </button>
-          <a href="${pageContext.request.contextPath}/Address"
-             class="btn-cancel">
-            Hủy sửa
+      </c:if>
+    </div>
+
+    <c:choose>
+      <c:when test="${empty addresses}">
+        <p class="empty-address">Bạn chưa có địa chỉ nào.</p>
+      </c:when>
+
+      <c:otherwise>
+        <div class="address-list">
+          <c:forEach var="addr" items="${addresses}">
+            <div class="address-card">
+              <div class="address-card-icon">
+                <i class='bx bx-map'></i>
+              </div>
+
+              <div class="address-card-content">
+                <h4>${addr.street}</h4>
+                <p>${addr.district}, ${addr.province}</p>
+                <p>${addr.country}</p>
+              </div>
+
+              <div class="address-card-actions">
+                <a href="${pageContext.request.contextPath}/Address?edit=${addr.userAddressId}"
+                   title="Sửa địa chỉ">
+                  <i class='bx bx-edit'></i>
+                </a>
+
+                <a href="${pageContext.request.contextPath}/Address?delete=${addr.userAddressId}"
+                   title="Xóa địa chỉ"
+                   onclick="return confirm('Bạn có chắc muốn xóa địa chỉ này?')">
+                  <i class='bx bx-trash'></i>
+                </a>
+              </div>
+            </div>
+          </c:forEach>
+        </div>
+      </c:otherwise>
+    </c:choose>
+
+    <div id="addressFormBox"
+         class="address-form-box ${address.userAddressId > 0 ? 'show' : ''}">
+      <h3>
+        <c:choose>
+          <c:when test="${address.userAddressId > 0}">
+            Sửa địa chỉ
+          </c:when>
+          <c:otherwise>
+            Thêm địa chỉ mới
+          </c:otherwise>
+        </c:choose>
+      </h3>
+
+      <form action="${pageContext.request.contextPath}/Address" method="post">
+        <input type="hidden" name="userAddressId" value="${address.userAddressId}" />
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Quốc gia</label>
+            <input type="text" name="country" value="${address.country}" required>
+          </div>
+
+          <div class="form-group">
+            <label>Tỉnh/Thành phố</label>
+            <input type="text" name="province" value="${address.province}" required>
+          </div>
+
+          <div class="form-group">
+            <label>Quận/Huyện</label>
+            <input type="text" name="district" value="${address.district}" required>
+          </div>
+
+          <div class="form-group">
+            <label>Đường/Số nhà</label>
+            <input type="text" name="street" value="${address.street}" required>
+          </div>
+        </div>
+
+        <div class="address-actions">
+          <button type="submit" class="btn-save">Lưu địa chỉ</button>
+
+          <a href="${pageContext.request.contextPath}/Address" class="btn-cancel">
+            Hủy
           </a>
-      </div>
-    </form>
+        </div>
+      </form>
+    </div>
   </div>
 </main>
+
 <footer class="footer">
   <div class="container">
     <div class="footer-content">
@@ -110,6 +204,7 @@
           <a href="#"><i class="bx bxl-tiktok"></i></a>
         </div>
       </div>
+
       <div class="footer-column">
         <h3 class="footer-title">Blog</h3>
         <ul class="footer-links">
@@ -119,6 +214,7 @@
           <li><a href="#">Cam kết & Định hướng bền vững</a></li>
         </ul>
       </div>
+
       <div class="footer-column">
         <h3 class="footer-title">Hỗ trợ</h3>
         <ul class="footer-links">
@@ -128,6 +224,7 @@
           <li><a href="#">Câu hỏi thường gặp</a></li>
         </ul>
       </div>
+
       <div class="footer-column">
         <h3 class="footer-title">Liên hệ</h3>
         <ul class="footer-links">
@@ -138,10 +235,25 @@
         </ul>
       </div>
     </div>
+
     <div class="footer-bottom">
       <p>@2025 Handmade. Tất cả quyền được bảo lưu.</p>
     </div>
   </div>
 </footer>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const btnAddAddress = document.getElementById("btnAddAddress");
+    const addressFormBox = document.getElementById("addressFormBox");
+
+    if (btnAddAddress && addressFormBox) {
+      btnAddAddress.addEventListener("click", function () {
+        addressFormBox.classList.add("show");
+        btnAddAddress.style.display = "none";
+      });
+    }
+  });
+</script>
 </body>
 </html>

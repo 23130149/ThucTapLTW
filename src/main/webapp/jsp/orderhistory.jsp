@@ -1,15 +1,14 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib prefix="util" uri="http://handmade/Util" %>
 
 <!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
   <title>Lịch sử đơn hàng - Handmade House</title>
-  <link rel="stylesheet"
-        href="${pageContext.request.contextPath}/css/account.css">
-  <link rel="stylesheet"
-        href="${pageContext.request.contextPath}/css/header_footer.css">
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/css/account.css">
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/css/header_footer.css">
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
@@ -28,14 +27,15 @@
       </form>
       <div class="icons">
         <a href="${pageContext.request.contextPath}/cart" class="icon-btn" id="cartBtn">
-          <i class='bx  bx-cart'></i>
+          <i class='bx bx-cart'></i>
         </a>
         <a href="${pageContext.request.contextPath}/Account" class="icon-btn" id="userBtn">
-          <i class='bx  bx-user'></i>
+          <i class='bx bx-user'></i>
         </a>
       </div>
     </div>
   </div>
+
   <div class="search-bar-section header-bottom-nav">
     <div class="container nav-only-container">
       <nav class="nav__links">
@@ -49,17 +49,91 @@
     </div>
   </div>
 </header>
+
 <main class="about-us-container">
   <h1>Lịch sử đơn hàng</h1>
-  <div class="recent-orders-box">
+
+  <div class="recent-orders-box order-history-box">
+    <h2>Đơn hàng của bạn</h2>
+
+    <c:choose>
+      <c:when test="${empty orderList}">
         <p>Bạn chưa có đơn hàng nào.</p>
+      </c:when>
+
+      <c:otherwise>
+        <table class="orders-table">
+          <thead>
+          <tr>
+            <th>Mã đơn</th>
+            <th>Ngày đặt</th>
+            <th>Tổng tiền</th>
+            <th>Trạng thái</th>
+            <th>Chi tiết</th>
+          </tr>
+          </thead>
+
+          <tbody>
+          <c:forEach var="order" items="${orderList}">
+            <tr>
+              <td>
+                <a class="order-code-link"
+                   href="${pageContext.request.contextPath}/OrderDetail?orderId=${order.orderId}">
+                    ${order.orderCode}
+                </a>
+              </td>
+              <td>${util:formatDateTime(order.createAt)}</td>
+              <td>${util:formatMoney(order.totalPrice)}</td>
+              <td>
+                <span class="order-status ${order.status}">
+                  ${util:orderStatusIcon(order.status)}
+                  ${util:orderStatusLabel(order.status)}
+                </span>
+              </td>
+              <td>
+                <a class="btn-order-detail"
+                   href="${pageContext.request.contextPath}/OrderDetail?orderId=${order.orderId}">
+                  Xem chi tiết
+                </a>
+              </td>
+            </tr>
+          </c:forEach>
+          </tbody>
+        </table>
+        <c:if test="${totalPages > 1}">
+          <div class="pagination">
+            <c:if test="${currentPage > 1}">
+              <a href="${pageContext.request.contextPath}/OrderHistory?page=${currentPage - 1}">
+                Trước
+              </a>
+            </c:if>
+
+            <c:forEach begin="1" end="${totalPages}" var="pageNumber">
+              <a href="${pageContext.request.contextPath}/OrderHistory?page=${pageNumber}"
+                 class="${pageNumber == currentPage ? 'active' : ''}">
+                  ${pageNumber}
+              </a>
+            </c:forEach>
+
+            <c:if test="${currentPage < totalPages}">
+              <a href="${pageContext.request.contextPath}/OrderHistory?page=${currentPage + 1}">
+                Sau
+              </a>
+            </c:if>
+          </div>
+        </c:if>
+
+      </c:otherwise>
+    </c:choose>
   </div>
+
   <a href="${pageContext.request.contextPath}/Account"
      class="btn-logout"
      style="background:#11998e">
     Quay lại tài khoản
   </a>
 </main>
+
 <footer class="footer">
   <div class="container">
     <div class="footer-content">
@@ -75,6 +149,7 @@
           <a href="#"><i class="bx bxl-tiktok"></i></a>
         </div>
       </div>
+
       <div class="footer-column">
         <h3 class="footer-title">Blog</h3>
         <ul class="footer-links">
@@ -84,6 +159,7 @@
           <li><a href="#">Định hướng bền vững</a></li>
         </ul>
       </div>
+
       <div class="footer-column">
         <h3 class="footer-title">Hỗ trợ</h3>
         <ul class="footer-links">
@@ -93,6 +169,7 @@
           <li><a href="#">FAQ</a></li>
         </ul>
       </div>
+
       <div class="footer-column">
         <h3 class="footer-title">Liên hệ</h3>
         <ul class="footer-links">
@@ -103,6 +180,7 @@
         </ul>
       </div>
     </div>
+
     <div class="footer-bottom">
       <p>© 2025 Handmade House. Tất cả quyền được bảo lưu.</p>
     </div>

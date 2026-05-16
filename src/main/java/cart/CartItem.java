@@ -43,4 +43,7 @@ public class CartItem  implements Serializable {
     public void setPrice(BigDecimal price) {
         this.price = price;
     }
+    public double getTotal() {
+        return price.multiply(BigDecimal.valueOf(quantity)).doubleValue();
+    }
 }
