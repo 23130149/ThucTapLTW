@@ -36,7 +36,7 @@ public class AdminProductController extends HttpServlet {
                 currentPage = 1;
         }
 
-        List<Product> products = pDao.getFileterdProducts(keyword, categoryId, status, priceRange, currentPage, pageSize);
+        List<Product> products = pDao.getFilteredProducts(keyword, categoryId, status, priceRange, currentPage, pageSize);
 
         int totalProducts = pDao.countFilteredProducts(keyword, categoryId, status, priceRange);
         int totalPages = (int) Math.ceil((double) totalProducts / pageSize);
