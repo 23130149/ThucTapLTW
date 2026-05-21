@@ -55,7 +55,7 @@ public class OrderDetailController extends HttpServlet {
         request.setAttribute("order", order);
         request.setAttribute("orderItems", items);
 
-        request.getRequestDispatcher("/OrderDetail.jsp")
+        request.getRequestDispatcher("/jsp/orderdetail.jsp")
                 .forward(request, response);
     }
 }

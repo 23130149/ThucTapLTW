@@ -22,7 +22,7 @@ public class AddressController extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = request.getSession(false);
-        User user = (User) session.getAttribute("user");
+        User user = session == null ? null : (User) session.getAttribute("user");
 
         if (user == null) {
             response.sendRedirect(request.getContextPath() + "/SignIn");
@@ -61,7 +61,7 @@ public class AddressController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
 
         HttpSession session = request.getSession(false);
-        User user = (User) session.getAttribute("user");
+        User user = session == null ? null : (User) session.getAttribute("user");
 
         if (user == null) {
             response.sendRedirect(request.getContextPath() + "/SignIn");
@@ -77,10 +77,20 @@ public class AddressController extends HttpServlet {
         UserAddress address = new UserAddress();
         address.setUserAddressId(addressId);
         address.setUserId(user.getUserId());
-        address.setCountry(request.getParameter("country"));
-        address.setProvince(request.getParameter("province"));
-        address.setDistrict(request.getParameter("district"));
-        address.setStreet(request.getParameter("street"));
+        String country = normalize(request.getParameter("country"));
+        String province = normalize(request.getParameter("province"));
+        String district = normalize(request.getParameter("district"));
+        String ward = normalize(request.getParameter("ward"));
+        String street = normalize(request.getParameter("street"));
+
+        if (!ward.isBlank() && !district.isBlank()) {
+            district = ward + ", " + district;
+        }
+
+        address.setCountry(country.isBlank() ? "Việt Nam" : country);
+        address.setProvince(province);
+        address.setDistrict(district);
+        address.setStreet(street);
 
         if (addressId == 0) {
             addressDao.insert(address);
@@ -89,5 +99,9 @@ public class AddressController extends HttpServlet {
         }
 
         response.sendRedirect(request.getContextPath() + "/Address");
+    }
+
+    private String normalize(String value) {
+        return value == null ? "" : value.trim().replaceAll("\\s+", " ");
     }
 }

@@ -29,13 +29,16 @@
             <div class="logo">
                 <a href="${pageContext.request.contextPath}/home">Handmade House</a>
             </div>
-            <form class="search-form" action="#" method="GET">
-                <input type="text" class="search-input" placeholder="Tìm kiếm bất cứ thứ gì..." aria-label="Tìm kiếm sản phẩm">
+            <form class="search-form" action="${pageContext.request.contextPath}/product" method="GET">
+                <input type="text" class="search-input" name="keyword" value="${keyword}" placeholder="Tìm kiếm bất cứ thứ gì..." aria-label="Tìm kiếm sản phẩm">
                 <button type="submit" class="search-btn">
                     <i class="bx bx-search-alt-2"></i>
                 </button>
             </form>
             <div class="icons" >
+                <a href="${pageContext.request.contextPath}/favorite" class="icon-btn favorite-header-icon" id="heartBtn" title="Sản phẩm yêu thích">
+                    <i class='bx bx-heart'></i>
+                </a>
                 <a href="${pageContext.request.contextPath}/cart" class="icon-btn cart-icon" id="cartBtn">
                     <i class='bx bx-cart'></i>
 
@@ -45,7 +48,7 @@
         </span>
                     </c:if>
                 </a>
-                <a href="${pageContext.request.contextPath}/account" class="icon-btn" id="userBtn">
+                <a href="${pageContext.request.contextPath}/Account" class="icon-btn" id="userBtn">
                     <i class='bx  bx-user'></i>
                 </a>
             </div>
@@ -57,8 +60,8 @@
                 <ul>
                     <li><a href="${pageContext.request.contextPath}/home">Trang chủ</a></li>
                     <li><a href="${pageContext.request.contextPath}/product">Sản phẩm</a></li>
-                    <li><a href="${pageContext.request.contextPath}/blog">Blog</a></li>
-                    <li><a href="${pageContext.request.contextPath}/contact">Liên hệ</a></li>
+                    <li><a href="${pageContext.request.contextPath}/jsp/blog.jsp">Blog</a></li>
+                    <li><a href="${pageContext.request.contextPath}/jsp/contact.jsp">Liên hệ</a></li>
                 </ul>
             </nav>
         </div>
@@ -79,7 +82,7 @@
             <div class="product-listing-area">
                 <div class="sort-stats-bar">
                     <div class="product-stats">
-                        Hiển thị 8/200 sản phẩm
+                        Hiển thị ${productList.size()} / ${productCount} sản phẩm
                     </div>
                     <div class="sort-options">
                         <div class="custom-select-wrapper">
@@ -96,7 +99,13 @@
                     <c:forEach items="${productList}" var="p">
                         <div class="product-item">
                             <div class="product-top">
-                                <a href="${pageContext.request.contextPath}/jsp/productDetail.jsp?id=${p.productId}"
+                                <form action="${pageContext.request.contextPath}/favorite-toggle" method="post" class="favorite-form">
+                                    <input type="hidden" name="productId" value="${p.productId}">
+                                    <button type="submit" class="favorite-toggle ${p.favorite ? 'active' : ''}" aria-label="Yêu thích ${p.productName}">
+                                        <i class="bx ${p.favorite ? 'bxs-heart' : 'bx-heart'}"></i>
+                                    </button>
+                                </form>
+                                <a href="${pageContext.request.contextPath}/product-detail?id=${p.productId}"
                                    class="product-thumb">
                                     <img src="${p.imageUrl}" alt="${p.productName}">
                                 </a>
@@ -106,19 +115,62 @@
                                 </a>
                             </div>
                             <div class="product-info">
-                                <a href="#" class="product-cat">Mã loại: ${p.categoryId}</a>
-                                <a href="#" class="product-name">${p.productName}</a>
-                                <div class="product-price">${p.productPrice}</div>
+                                <a href="${pageContext.request.contextPath}/product?categoryId=${p.categoryId}" class="product-cat">${p.categoryName}</a>
+                                <a href="${pageContext.request.contextPath}/product-detail?id=${p.productId}" class="product-name">${p.productName}</a>
+                                <div class="product-price"><fmt:formatNumber value="${p.productPrice}" type="number" groupingUsed="true"/> đ</div>
                             </div>
                         </div>
                     </c:forEach>
                 </div>
-                <div class="pagination">
-                    <span class="current-page">1</span>
-                    <a href="#">2</a>
-                    <a href="#">3</a>
-                    <a href="#"><i class="bx bx-chevron-right"></i></a>
-                </div>
+                <c:if test="${totalPages > 1}">
+                    <div class="pagination">
+                        <c:if test="${currentPage > 1}">
+                            <c:url var="prevPageUrl" value="/product">
+                                <c:param name="page" value="${currentPage - 1}"/>
+                                <c:if test="${not empty keyword}">
+                                    <c:param name="keyword" value="${keyword}"/>
+                                </c:if>
+                                <c:if test="${not empty selectedCategoryId}">
+                                    <c:param name="categoryId" value="${selectedCategoryId}"/>
+                                </c:if>
+                            </c:url>
+                            <a href="${prevPageUrl}"><i class="bx bx-chevron-left"></i></a>
+                        </c:if>
+
+                        <c:forEach begin="1" end="${totalPages}" var="i">
+                            <c:url var="pageUrl" value="/product">
+                                <c:param name="page" value="${i}"/>
+                                <c:if test="${not empty keyword}">
+                                    <c:param name="keyword" value="${keyword}"/>
+                                </c:if>
+                                <c:if test="${not empty selectedCategoryId}">
+                                    <c:param name="categoryId" value="${selectedCategoryId}"/>
+                                </c:if>
+                            </c:url>
+                            <c:choose>
+                                <c:when test="${i == currentPage}">
+                                    <span class="current-page">${i}</span>
+                                </c:when>
+                                <c:otherwise>
+                                    <a href="${pageUrl}">${i}</a>
+                                </c:otherwise>
+                            </c:choose>
+                        </c:forEach>
+
+                        <c:if test="${currentPage < totalPages}">
+                            <c:url var="nextPageUrl" value="/product">
+                                <c:param name="page" value="${currentPage + 1}"/>
+                                <c:if test="${not empty keyword}">
+                                    <c:param name="keyword" value="${keyword}"/>
+                                </c:if>
+                                <c:if test="${not empty selectedCategoryId}">
+                                    <c:param name="categoryId" value="${selectedCategoryId}"/>
+                                </c:if>
+                            </c:url>
+                            <a href="${nextPageUrl}"><i class="bx bx-chevron-right"></i></a>
+                        </c:if>
+                    </div>
+                </c:if>
             </div>
             <aside class="sidebar-filters">
                 <div class="filter-group category-filter">
@@ -126,7 +178,7 @@
                     <ul>
                         <c:forEach items = "${categoryList}" var="cat">
                         <li>
-                            <a href="${pageContext.request.contextPath}/product?categoryId=${cat.category_id}">
+                            <a href="${pageContext.request.contextPath}/product?categoryId=${cat.categoryId}">
                                 ${cat.name}
                             </a>
                         </li>
