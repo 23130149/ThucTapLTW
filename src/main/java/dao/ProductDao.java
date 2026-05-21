@@ -102,6 +102,15 @@ public class ProductDao extends BaseDao{
                         .one()
         );
         p.setProductId(productId);
+        if (p.getImageUrl() != null && !p.getImageUrl().trim().isEmpty()) {
+            String imgSql = "insert into product_images (product_id, image_url) values (:productId, :imageUrl)";
+            getJdbi().withHandle(handle ->
+                    handle.createUpdate(imgSql)
+                            .bind("productId", productId)
+                            .bind("imageUrl", p.getImageUrl())
+                            .execute()
+            );
+        }
     }
     public void updateProduct(Product p) {
         String sql = "update products set product_name = :name, product_price = :price, stock_quantity = :stock, category_id = :catId, product_description = :desc where product_id = :id";
@@ -115,6 +124,32 @@ public class ProductDao extends BaseDao{
                         .bind("desc", p.getProductDescription())
                         .execute()
         );
+        if (p.getImageUrl() != null && !p.getImageUrl().trim().isEmpty()) {
+            String checkSql = "select count(*) from product_images where product_id = :productId";
+            int count = getJdbi().withHandle(handle ->
+                    handle.createQuery(checkSql)
+                            .bind("productId", p.getProductId())
+                            .mapTo(Integer.class)
+                            .one()
+            );
+            if (count > 0) {
+                String imgSql = "update product_images set image_url = :imageUrl where product_id = :productId order by image_id asc limit 1";
+                getJdbi().withHandle(handle ->
+                        handle.createUpdate(imgSql)
+                                .bind("imageUrl", p.getImageUrl())
+                                .bind("productId", p.getProductId())
+                                .execute()
+                );
+            } else {
+                String imgSql = "insert into product_images (product_id, image_url) values (:productId, :imageUrl)";
+                getJdbi().withHandle(handle ->
+                        handle.createUpdate(imgSql)
+                                .bind("productId", p.getProductId())
+                                .bind("imageUrl", p.getImageUrl())
+                                .execute()
+                );
+            }
+        }
     }
     public void deleteProduct(int productId) {
         String sql = "delete from products where product_id = :id";
@@ -135,6 +170,73 @@ public class ProductDao extends BaseDao{
                         .orElse(0)
         );
     }
+    public List<Product> getFilteredProducts(String keyword, String categoryId, String status, String priceRange, int page, int pageSize) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT p.product_id AS productId, p.product_name AS productName, p.product_price AS productPrice, " +
+                        "p.stock_quantity AS stockQuantity, p.product_description AS productDescription, " +
+                        "p.category_id AS categoryId, c.name AS categoryName, " +
+                        "(SELECT pi.image_url FROM product_images pi WHERE pi.product_id = p.product_id ORDER BY pi.image_id ASC LIMIT 1) AS imageUrl " +
+                        "FROM products p JOIN categories c ON p.category_id = c.category_id WHERE 1=1"
+        );
 
+        if (keyword != null && !keyword.trim().isEmpty())
+            sql.append(" AND p.product_name LIKE '%").append(keyword.trim()).append("%'");
 
+        if (categoryId != null && !categoryId.trim().isEmpty())
+            sql.append(" AND p.category_id = ").append(categoryId.trim());
+
+        if ("instock".equals(status))
+            sql.append(" AND p.stock_quantity > 0");
+        else if ("outofstock".equals(status))
+            sql.append(" AND p.stock_quantity = 0");
+
+        if (priceRange != null) {
+            switch (priceRange) {
+                case "0-100000"    -> sql.append(" AND p.product_price BETWEEN 0 AND 100000");
+                case "100000-500000" -> sql.append(" AND p.product_price BETWEEN 100000 AND 500000");
+                case "500000+"     -> sql.append(" AND p.product_price > 500000");
+            }
+        }
+        int offset = (page - 1) * pageSize;
+        sql.append(" ORDER BY p.product_id ASC LIMIT ").append(pageSize).append(" OFFSET ").append(offset);
+
+        String finalSql = sql.toString();
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(finalSql)
+                        .mapToBean(Product.class)
+                        .list()
+        );
+    }
+
+    public int countFilteredProducts(String keyword, String categoryId, String status, String priceRange) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) FROM products p WHERE 1=1"
+        );
+
+        if (keyword != null && !keyword.trim().isEmpty())
+            sql.append(" AND p.product_name LIKE '%").append(keyword.trim()).append("%'");
+
+        if (categoryId != null && !categoryId.trim().isEmpty())
+            sql.append(" AND p.category_id = ").append(categoryId.trim());
+
+        if ("instock".equals(status))
+            sql.append(" AND p.stock_quantity > 0");
+        else if ("outofstock".equals(status))
+            sql.append(" AND p.stock_quantity = 0");
+
+        if (priceRange != null) {
+            switch (priceRange) {
+                case "0-100000"      -> sql.append(" AND p.product_price BETWEEN 0 AND 100000");
+                case "100000-500000" -> sql.append(" AND p.product_price BETWEEN 100000 AND 500000");
+                case "500000+"       -> sql.append(" AND p.product_price > 500000");
+            }
+        }
+
+        String finalSql = sql.toString();
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(finalSql)
+                        .mapTo(Integer.class)
+                        .one()
+        );
+    }
 }
