@@ -34,8 +34,40 @@ public class OrderHistoryController extends HttpServlet {
 
         User user = (User) session.getAttribute("user");
 
+        int page = 1;
+        int pageSize = 10;
+
+        try {
+            String pageParam = request.getParameter("page");
+            if (pageParam != null) {
+                page = Integer.parseInt(pageParam);
+            }
+        } catch (Exception ignored) {}
+
+        if (page < 1) {
+            page = 1;
+        }
+
+        int totalOrders = orderDao.countOrdersByUserId(user.getUserId());
+        int totalPages = (int) Math.ceil(totalOrders * 1.0 / pageSize);
+
+        if (totalPages == 0) {
+            totalPages = 1;
+        }
+
+        if (page > totalPages) {
+            page = totalPages;
+        }
+
+        int offset = (page - 1) * pageSize;
+
         List<Order> orderList =
-                orderDao.getOrdersByUserId(user.getUserId());
+                orderDao.getOrdersByUserIdPaged(user.getUserId(), pageSize, offset);
+
+        request.setAttribute("orderList", orderList != null ? orderList : new ArrayList<>());
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("totalOrders", totalOrders);
 
         request.setAttribute("orderList", orderList != null ? orderList : new ArrayList<>());
 

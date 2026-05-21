@@ -1,6 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%@ taglib prefix="util" uri="http://handmade/util" %>
+<%@ taglib prefix="util" uri="http://handmade/Util" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -8,17 +8,13 @@
     <meta charset="UTF-8">
     <title>Chi tiết đơn hàng - Handmade House</title>
 
-    <link rel="stylesheet"
-          href="${pageContext.request.contextPath}/css/account.css">
-    <link rel="stylesheet"
-          href="${pageContext.request.contextPath}/css/header_footer.css">
-
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/account.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/header_footer.css">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
-
 <header class="header">
     <div class="header-top-container">
         <div class="header-content">
@@ -33,14 +29,15 @@
             </form>
             <div class="icons">
                 <a href="${pageContext.request.contextPath}/cart" class="icon-btn" id="cartBtn">
-                    <i class='bx  bx-cart'></i>
+                    <i class='bx bx-cart'></i>
                 </a>
                 <a href="${pageContext.request.contextPath}/Account" class="icon-btn" id="userBtn">
-                    <i class='bx  bx-user'></i>
+                    <i class='bx bx-user'></i>
                 </a>
             </div>
         </div>
     </div>
+
     <div class="search-bar-section header-bottom-nav">
         <div class="container nav-only-container">
             <nav class="nav__links">
@@ -56,10 +53,9 @@
 </header>
 
 <main class="about-us-container">
-
     <h1>Chi tiết đơn hàng</h1>
 
-    <div class="recent-orders-box">
+    <div class="recent-orders-box order-detail-box">
         <h2>Thông tin đơn hàng</h2>
 
         <table class="orders-table">
@@ -74,8 +70,10 @@
             <tr>
                 <th>Trạng thái</th>
                 <td>
-                    ${util:orderStatusIcon(order.status)}
-                    ${util:orderStatusLabel(order.status)}
+                    <span class="order-status ${order.status}">
+                        ${util:orderStatusIcon(order.status)}
+                        ${util:orderStatusLabel(order.status)}
+                    </span>
                 </td>
             </tr>
             <tr>
@@ -84,14 +82,21 @@
             </tr>
             <tr>
                 <th>Địa chỉ nhận hàng</th>
+                <td>${order.shipAddress}</td>
+            </tr>
+            <tr>
+                <th>Ghi chú</th>
                 <td>
-                    ${order.shipAddress}
+                    <c:choose>
+                        <c:when test="${empty order.note}">Không có</c:when>
+                        <c:otherwise>${order.note}</c:otherwise>
+                    </c:choose>
                 </td>
             </tr>
         </table>
     </div>
 
-    <div class="recent-orders-box">
+    <div class="recent-orders-box order-detail-box">
         <h2>Sản phẩm trong đơn</h2>
 
         <table class="orders-table">
@@ -110,9 +115,7 @@
                     <td>${item.productName}</td>
                     <td>${util:formatMoney(item.unitPrice)}</td>
                     <td>${item.quantity}</td>
-                    <td>
-                            ${util:formatMoney(item.unitPrice.multiply(item.quantity))}
-                    </td>
+                    <td>${util:formatMoney(item.totalPrice)}</td>
                 </tr>
             </c:forEach>
             </tbody>
@@ -124,14 +127,11 @@
        style="background:#11998e">
         Quay lại lịch sử đơn hàng
     </a>
-
 </main>
 
 <footer class="footer">
     <div class="container">
-
         <div class="footer-content">
-
             <div class="footer-column">
                 <h3 class="footer-logo">Handmade House</h3>
                 <p class="footer-desc">
@@ -162,15 +162,12 @@
                     <li>📧 handmadehouse23@handmade.vn</li>
                 </ul>
             </div>
-
         </div>
 
         <div class="footer-bottom">
             <p>© 2025 Handmade House. All rights reserved.</p>
         </div>
-
     </div>
 </footer>
-
 </body>
 </html>

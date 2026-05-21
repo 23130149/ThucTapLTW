@@ -10,20 +10,19 @@ public class OrderDao extends BaseDao {
     public List<Order> getOrdersByUserId(int userId) {
 
         String sql = """
-    SELECT
-        Order_Id        AS orderId,
-        User_Id         AS userId,
-        User_Address_Id AS userAddressId,
-        Note            AS note,
-        Status          AS status,
-        Create_At       AS createAt,
-        Total_Price     AS totalPrice,
-        Order_Code      AS orderCode
-    FROM orders
-    WHERE User_Id = :userId
-      AND Status <> 'PROCESSING'
-    ORDER BY Create_At DESC
-""";
+        SELECT
+            Order_Id        AS orderId,
+            User_Id         AS userId,
+            User_Address_Id AS userAddressId,
+            Note            AS note,
+            Status          AS status,
+            Create_At       AS createAt,
+            Total_Price     AS totalPrice,
+            Order_Code      AS orderCode
+        FROM orders
+        WHERE User_Id = :userId
+        ORDER BY Create_At DESC
+    """;
 
         return getJdbi().withHandle(handle ->
                 handle.createQuery(sql)
@@ -32,7 +31,73 @@ public class OrderDao extends BaseDao {
                         .list()
         );
     }
+    public List<Order> getOrdersByUserIdLimit(int userId, int limit) {
+        String sql = """
+        SELECT
+            Order_Id        AS orderId,
+            User_Id         AS userId,
+            User_Address_Id AS userAddressId,
+            Note            AS note,
+            Status          AS status,
+            Create_At       AS createAt,
+            Total_Price     AS totalPrice,
+            Order_Code      AS orderCode
+        FROM orders
+        WHERE User_Id = :userId
+        ORDER BY Create_At DESC
+        LIMIT :limit
+    """;
 
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("userId", userId)
+                        .bind("limit", limit)
+                        .mapToBean(Order.class)
+                        .list()
+        );
+    }
+
+    public List<Order> getOrdersByUserIdPaged(int userId, int limit, int offset) {
+        String sql = """
+        SELECT
+            Order_Id        AS orderId,
+            User_Id         AS userId,
+            User_Address_Id AS userAddressId,
+            Note            AS note,
+            Status          AS status,
+            Create_At       AS createAt,
+            Total_Price     AS totalPrice,
+            Order_Code      AS orderCode
+        FROM orders
+        WHERE User_Id = :userId
+        ORDER BY Create_At DESC
+        LIMIT :limit OFFSET :offset
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("userId", userId)
+                        .bind("limit", limit)
+                        .bind("offset", offset)
+                        .mapToBean(Order.class)
+                        .list()
+        );
+    }
+
+    public int countOrdersByUserId(int userId) {
+        String sql = """
+        SELECT COUNT(*)
+        FROM orders
+        WHERE User_Id = :userId
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("userId", userId)
+                        .mapTo(Integer.class)
+                        .one()
+        );
+    }
 
     public void insert(Order order) {
 
