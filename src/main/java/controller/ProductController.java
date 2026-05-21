@@ -15,6 +15,15 @@ import java.util.Set;
 
 @WebServlet(name = "ProductController", value = "/product")
 public class ProductController extends HttpServlet {
+    private int parsePage(String rawPage) {
+        try {
+            int page = Integer.parseInt(rawPage);
+            return Math.max(page, 1);
+        } catch (Exception e) {
+            return 1;
+        }
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
@@ -26,12 +35,16 @@ public class ProductController extends HttpServlet {
         CategoryDao categoryDao = new CategoryDao();
         FavoriteDao favoriteDao = new FavoriteDao();
 
-        List<Product> products;
-        if ((keyword != null && !keyword.trim().isEmpty()) || (categoryId != null && !categoryId.trim().isEmpty())) {
-            products = productDao.getFilteredProducts(keyword, categoryId, null, null, 1, 500);
-        } else {
-            products = productDao.getListProduct();
+        int pageSize = 8;
+        int currentPage = parsePage(request.getParameter("page"));
+        int productCount = productDao.countFilteredProducts(keyword, categoryId, null, null);
+        int totalPages = Math.max(1, (int) Math.ceil((double) productCount / pageSize));
+
+        if (currentPage > totalPages) {
+            currentPage = totalPages;
         }
+
+        List<Product> products = productDao.getFilteredProducts(keyword, categoryId, null, null, currentPage, pageSize);
 
         HttpSession session = request.getSession(false);
         if (session != null && session.getAttribute("user") != null) {
@@ -44,7 +57,9 @@ public class ProductController extends HttpServlet {
         request.setAttribute("categoryList", categoryDao.getAllCategories());
         request.setAttribute("keyword", keyword);
         request.setAttribute("selectedCategoryId", categoryId);
-        request.setAttribute("productCount", products.size());
+        request.setAttribute("productCount", productCount);
+        request.setAttribute("currentPage", currentPage);
+        request.setAttribute("totalPages", totalPages);
 
         request.getRequestDispatcher("/jsp/product.jsp").forward(request, response);
     }

@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -30,9 +31,13 @@
         <a href="${pageContext.request.contextPath}/favorite" class="icon-btn favorite-header-icon" id="heartBtn" title="Sản phẩm yêu thích">
           <i class='bx bx-heart'></i>
         </a>
-        <a href="${pageContext.request.contextPath}/cart" class="icon-btn" id="cartBtn">
+        <a href="${pageContext.request.contextPath}/cart" class="icon-btn cart-icon" id="cartBtn">
           <i class='bx  bx-cart'></i>
-        </a>
+        
+                    <c:if test="${not empty sessionScope.cart and sessionScope.cart.totalQuantity > 0}">
+                        <span class="cart-badge">${sessionScope.cart.totalQuantity}</span>
+                    </c:if>
+                </a>
         <a href="${pageContext.request.contextPath}/Account" class="icon-btn" id="userBtn">
           <i class='bx  bx-user'></i>
         </a>
@@ -45,8 +50,8 @@
         <ul>
           <li><a href="${pageContext.request.contextPath}/home">Trang chủ</a></li>
           <li><a href="${pageContext.request.contextPath}/product">Sản phẩm</a></li>
-          <li><a href="${pageContext.request.contextPath}/blog.jsp">Blog</a></li>
-          <li><a href="${pageContext.request.contextPath}/Contact">Liên hệ</a></li>
+          <li><a href="${pageContext.request.contextPath}/jsp/blog.jsp">Blog</a></li>
+          <li><a href="${pageContext.request.contextPath}/jsp/contact.jsp">Liên hệ</a></li>
         </ul>
       </nav>
     </div>

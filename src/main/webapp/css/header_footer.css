@@ -325,7 +325,8 @@ button {
 .favorite-image-box,
 .product-top,
 .image-container,
-.main-image {
+.main-image,
+.main-image-box {
     position: relative;
 }
 
@@ -363,4 +364,17 @@ button {
 .main-image .favorite-toggle {
     top: 12px;
     right: 12px;
+}
+
+.cart-icon,
+.icons .cart-icon {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icons .cart-badge {
+    top: -9px;
+    right: -11px;
 }

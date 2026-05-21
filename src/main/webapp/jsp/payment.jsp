@@ -19,17 +19,20 @@
 
 <header class="site-header">
     <div class="header-top">
-        <a href="${pageContext.request.contextPath}/Home" class="logo">
+        <a href="${pageContext.request.contextPath}/home" class="logo">
             <i class='bx bx-heart'></i>
             <span>Handmade House</span>
         </a>
 
-        <form class="search-form" action="${pageContext.request.contextPath}/Products" method="get">
+        <form class="search-form" action="${pageContext.request.contextPath}/product" method="get">
             <i class='bx bx-search'></i>
             <input type="text" name="keyword" placeholder="Tìm kiếm sản phẩm handmade...">
         </form>
 
         <div class="header-actions">
+            <a href="${pageContext.request.contextPath}/favorite" class="cart-link favorite-header-icon" aria-label="Sản phẩm yêu thích">
+                <i class='bx bx-heart'></i>
+            </a>
             <a href="${pageContext.request.contextPath}/cart" class="cart-link" aria-label="Giỏ hàng">
                 <i class='bx bx-cart'></i>
                 <c:if test="${not empty sessionScope.cart and sessionScope.cart.totalQuantity > 0}">
@@ -45,9 +48,9 @@
 
     <nav class="header-nav">
         <a href="${pageContext.request.contextPath}/home" class="active">Trang chủ</a>
-        <a href="${pageContext.request.contextPath}/products">Sản phẩm</a>
-        <a href="${pageContext.request.contextPath}/blog">Blog</a>
-        <a href="${pageContext.request.contextPath}/Ccontact">Liên hệ</a>
+        <a href="${pageContext.request.contextPath}/product">Sản phẩm</a>
+        <a href="${pageContext.request.contextPath}/jsp/blog.jsp">Blog</a>
+        <a href="${pageContext.request.contextPath}/jsp/contact.jsp">Liên hệ</a>
     </nav>
 </header>
 

@@ -1,7 +1,7 @@
 package dao;
 
 import model.Product;
-
+import model.ProductImage;
 import org.jdbi.v3.core.statement.Query;
 
 import java.util.HashMap;
@@ -227,7 +227,6 @@ public class ProductDao extends BaseDao{
                 sql.append(" AND p.category_id = :categoryId");
                 params.put("categoryId", Integer.parseInt(categoryId.trim()));
             } catch (NumberFormatException ignored) {
-                // Bỏ qua categoryId sai để trang sản phẩm không bị lỗi SQL.
             }
         }
 
@@ -277,7 +276,6 @@ public class ProductDao extends BaseDao{
                 sql.append(" AND p.category_id = :categoryId");
                 params.put("categoryId", Integer.parseInt(categoryId.trim()));
             } catch (NumberFormatException ignored) {
-                // Bỏ qua categoryId sai để trang sản phẩm không bị lỗi SQL.
             }
         }
 
@@ -301,5 +299,22 @@ public class ProductDao extends BaseDao{
             return query.mapTo(Integer.class).one();
         });
     }
+    public List<ProductImage> getImagesByProductId(int productId) {
+        String sql = """
+        SELECT
+            Image_Id AS imageId,
+            Product_Id AS productId,
+            Image_Url AS imageUrl
+        FROM Product_Images
+        WHERE Product_Id = :productId
+        ORDER BY Image_Id ASC
+    """;
 
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("productId", productId)
+                        .mapToBean(ProductImage.class)
+                        .list()
+        );
+    }
 }

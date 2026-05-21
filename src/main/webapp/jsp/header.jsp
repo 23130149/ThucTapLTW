@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/Header_Footer/Styles.css">
+      href="${pageContext.request.contextPath}/css/header_footer.css">
 <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
@@ -46,8 +46,8 @@
         <ul>
           <li><a href="${pageContext.request.contextPath}/home">Trang chủ</a></li>
           <li><a href="${pageContext.request.contextPath}/product">Sản phẩm</a></li>
-          <li><a href="${pageContext.request.contextPath}/blog.jsp">Blog</a></li>
-          <li><a href="${pageContext.request.contextPath}/Contact">Liên hệ</a></li>
+          <li><a href="${pageContext.request.contextPath}/jsp/blog.jsp">Blog</a></li>
+          <li><a href="${pageContext.request.contextPath}/jsp/contact.jsp">Liên hệ</a></li>
         </ul>
       </nav>
     </div>
