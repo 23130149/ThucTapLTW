@@ -60,63 +60,136 @@
       <i class="bx bx-chevron-right"></i>
       <span>${product.categoryName}</span>
       <i class="bx bx-chevron-right"></i>
-      <span>${product.productName}</span
+      <span>${product.productName}</span>
     </div>
   </div>
 </div>
 <main class="product-detail-page">
-  <div class="container">
-    <div class="product-detail-content">
-      <div class="product-image">
-        <div class="main-image">
-          <img src="${product.imageUrl}" alt="${product.productName}">
-        </div>
+  <div class="product-detail-wrapper">
+
+    <div class="product-image">
+      <div class="main-image-box">
+        <c:choose>
+          <c:when test="${product.stockQuantity > 0}">
+            <div class="stock-badge">
+              Còn ${product.stockQuantity} sản phẩm
+            </div>
+          </c:when>
+
+          <c:otherwise>
+            <div class="sold-out-overlay">HẾT HÀNG</div>
+          </c:otherwise>
+        </c:choose>
+        <button type="button"
+                class="image-favorite-btn favorite-btn"
+                aria-label="Yêu thích">
+          <i class="bx bx-heart"></i>
+        </button>
+        <img id="mainImage"
+             src="${not empty productImages ? productImages[0].imageUrl : product.imageUrl}"
+             alt="${product.productName}"
+             class="main-product-image">
       </div>
-      <div class="product-info">
-        <h1 class="product-title">${product.productName}</h1>
-        <div class="product-rating">
-          <div class="stars">
-            <i class="bx bxs-star"></i>
-            <i class="bx bxs-star"></i>
-            <i class="bx bxs-star"></i>
-            <i class="bx bxs-star"></i>
-            <i class="bx bxs-star"></i>
-          </div>
-          <span class="rating-text">5.0 (86 đánh giá)</span>
+
+      <div class="thumbnail-list">
+        <c:forEach var="img" items="${productImages}" varStatus="status">
+          <img src="${img.imageUrl}"
+               data-src="${img.imageUrl}"
+               alt="${product.productName}"
+               class="thumbnail-item ${status.first ? 'active' : ''}">
+        </c:forEach>
+      </div>
+    </div>
+
+    <div class="product-info">
+      <h1 class="product-title">${product.productName}</h1>
+
+      <div class="product-rating">
+        <div class="stars">
+          <c:forEach begin="1" end="5" var="i">
+            <i class="bx ${avgRating >= i ? 'bxs-star' : 'bx-star'}"></i>
+          </c:forEach>
         </div>
-        <p class="price">${product.productPrice}</p>
-        <div class="product-des">
-          <h2>Mô tả sản phẩm</h2>
-          <p>${product.productDescription}</p>
-        </div>
-        <div class="purchase-box">
+
+        <span>${avgRating}/5 (${reviewCount} đánh giá)</span>
+      </div>
+
+      <p class="price">
+        <fmt:formatNumber value="${product.productPrice}" groupingUsed="true"/> đ
+      </p>
+
+      <div class="stock-info">
+        <c:choose>
+          <c:when test="${product.stockQuantity > 0}">
+            <span class="in-stock">Còn hàng</span>
+            <span class="stock-number">Số lượng còn lại: ${product.stockQuantity}</span>
+          </c:when>
+
+          <c:otherwise>
+            <span class="out-stock">Sản phẩm hiện đã hết hàng</span>
+          </c:otherwise>
+        </c:choose>
+      </div>
+
+      <div class="product-des">
+        <h2>Mô tả sản phẩm</h2>
+        <p>${product.productDescription}</p>
+      </div>
+
+      <form class="purchase-box" action="${pageContext.request.contextPath}/add-cart" method="get">
+        <input type="hidden" name="id" value="${product.productId}">
+
+        <div class="purchase-inline-row">
           <div class="quantity-input-box">
-            <input type="number" class="quantity-input" value="1" min="1" max="${product.stockQuantity}">
-            <div class="quantity-arrows">
-              <button type="button" class="arrow-up"><i class="bx bx-chevron-up"></i></button>
-              <button type="button" class="arrow-down"><i class="bx bx-chevron-down"></i></button>
-            </div>
+            <button type="button" class="qty-btn arrow-down">-</button>
+
+            <input type="number"
+                   name="q"
+                   class="quantity-input"
+                   value="1"
+                   min="1"
+                   max="${product.stockQuantity}">
+
+            <button type="button" class="qty-btn arrow-up">+</button>
           </div>
-          <div class="action-buttons">
-            <button class="btn btn-add-to-cart">
-              <i class="bx bx-cart"></i> Thêm vào giỏ hàng
-            </button>
-            <div class="extra-action">
-              <button class="btn btn-icon-action" aria-label="Yêu thích">
-                <i class="bx bx-heart"></i>
-              </button>
-            </div>
-          </div>
-          <button type="button" class="btn btn-buy-now">Mua ngay</button>
+
+          <button type="submit"
+                  class="btn btn-add-to-cart"
+          ${product.stockQuantity <= 0 ? 'disabled' : ''}>
+            <i class="bx bx-cart"></i>
+            Thêm vào giỏ hàng
+          </button>
+
+          <button type="submit"
+                  name="buyNow"
+                  value="1"
+                  class="btn btn-buy-now"
+          ${product.stockQuantity <= 0 ? 'disabled' : ''}>
+            Mua ngay
+          </button>
         </div>
-        <div class="product-meta">
-          <p><strong>Danh mục: </strong><a href="${pageContext.request.contextPath}/product?categoryId=${product.category_id}">${product.category_name}</a></p>
-          <div class="share-links">
-            <strong>Chia sẻ:</strong>
-            <a href="#"><i class="bx bxl-facebook"></i></a>
-            <a href="#"><i class="bx bxl-instagram"></i></a>
-            <a href="#"><i class="bx bxl-tiktok"></i></a>
+
+        <c:if test="${not empty sessionScope.cartMessage}">
+          <div class="cart-toast">
+              ${sessionScope.cartMessage}
           </div>
+          <c:remove var="cartMessage" scope="session"/>
+        </c:if>
+      </form>
+
+      <div class="product-meta">
+        <p>
+          <strong>Danh mục: </strong>
+          <a href="${pageContext.request.contextPath}/product?categoryId=${product.categoryId}">
+            ${product.categoryName}
+          </a>
+        </p>
+
+        <div class="share-links">
+          <strong>Chia sẻ:</strong>
+          <a href="#"><i class="bx bxl-facebook"></i></a>
+          <a href="#"><i class="bx bxl-instagram"></i></a>
+          <a href="#"><i class="bx bxl-tiktok"></i></a>
         </div>
       </div>
     </div>
@@ -212,5 +285,56 @@
     </div>
   </div>
 </footer>
+<script>
+  const mainImage = document.getElementById("mainImage");
+  const thumbnails = document.querySelectorAll(".thumbnail-item");
+
+  thumbnails.forEach(function (thumb) {
+    thumb.addEventListener("click", function () {
+      mainImage.src = this.dataset.src;
+
+      thumbnails.forEach(function (item) {
+        item.classList.remove("active");
+      });
+
+      this.classList.add("active");
+    });
+  });
+
+  const quantityInput = document.querySelector(".quantity-input");
+  const arrowUp = document.querySelector(".arrow-up");
+  const arrowDown = document.querySelector(".arrow-down");
+
+  if (quantityInput && arrowUp && arrowDown) {
+    arrowUp.addEventListener("click", function () {
+      const max = parseInt(quantityInput.max);
+      let value = parseInt(quantityInput.value);
+
+      if (value < max) {
+        quantityInput.value = value + 1;
+      }
+    });
+
+    arrowDown.addEventListener("click", function () {
+      let value = parseInt(quantityInput.value);
+
+      if (value > 1) {
+        quantityInput.value = value - 1;
+      }
+    });
+  }
+
+  const favoriteBtn = document.querySelector(".favorite-btn");
+
+  if (favoriteBtn) {
+    favoriteBtn.addEventListener("click", function () {
+      this.classList.toggle("active");
+
+      const icon = this.querySelector("i");
+      icon.classList.toggle("bx-heart");
+      icon.classList.toggle("bxs-heart");
+    });
+  }
+</script>
 </body>
 </html>

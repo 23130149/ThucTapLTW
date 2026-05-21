@@ -82,7 +82,7 @@
                     <c:forEach items="${productList}" var="p">
                         <div class="product-item">
                             <div class="product-top">
-                                <a href="${pageContext.request.contextPath}/jsp/productDetail.jsp?id=${p.productId}"
+                                <a href="${pageContext.request.contextPath}/jsp/product-detail?id=${p.productId}"
                                    class="product-thumb">
                                     <img src="${p.imageUrl}" alt="${p.productName}">
                                 </a>
