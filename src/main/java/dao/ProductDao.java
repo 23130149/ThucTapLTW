@@ -1,7 +1,6 @@
 package dao;
 
 import model.Product;
-import model.ProductImage;
 
 import java.util.List;
 
@@ -240,13 +239,5 @@ public class ProductDao extends BaseDao{
                         .one()
         );
     }
-    public List<ProductImage> getImagesByProductId(int productId) {
-        String sql = "select Image_Id as imageId, Product_Id as productId, Image_Url as imageUrl from product_images where Product_Id = :productId order by Image_Id asc";
-        return getJdbi().withHandle(handle ->
-                handle.createQuery(sql)
-                        .bind("productId", productId)
-                        .mapToBean(ProductImage.class)
-                        .list()
-        );
-    }
+
 }
