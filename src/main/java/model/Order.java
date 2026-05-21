@@ -105,6 +105,27 @@ public class Order {
                 NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
         return vn.format(totalPrice);
     }
+
+    public String getEstimatedDeliveryFormatted() {
+        if (createAt == null) return "Đang cập nhật";
+        return createAt.plusDays(3).format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+    }
+
+    public String getDeliveredAtFormatted() {
+        if (createAt == null) return "Đang cập nhật";
+        if ("COMPLETED".equals(status) || "RETURN_REQUESTED".equals(status) || "RETURNED".equals(status)) {
+            return createAt.plusDays(4).format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        }
+        return "Chưa giao";
+    }
+
+    public boolean isCancellable() {
+        return "PENDING".equals(status) || "PROCESSING".equals(status) || "CONFIRMED".equals(status);
+    }
+
+    public boolean isReturnable() {
+        return "COMPLETED".equals(status);
+    }
     public String getUserName() {
         return userName;
     }

@@ -16,22 +16,37 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+<c:if test="${not empty sessionScope.cartMessage}">
+  <div class="cart-toast">
+    <i class='bx bx-check-circle'></i>
+    <span>${sessionScope.cartMessage}</span>
+  </div>
+  <c:remove var="cartMessage" scope="session"/>
+</c:if>
 <header class="header">
   <div class="header-top-container">
     <div class="header-content">
       <div class="logo">
-        <a href="${pageContext.request.contextPath}/jsp/home.jsp">Handmade House</a>      </div>
-      <form class="search-form" action="#" method="GET">
-        <input type="text" class="search-input" placeholder="Tìm kiếm bất cứ thứ gì..." aria-label="Tìm kiếm sản phẩm">
+        <a href="${pageContext.request.contextPath}/home">Handmade House</a>
+      </div>
+      <form class="search-form" action="${pageContext.request.contextPath}/product" method="GET">
+        <input type="text" class="search-input" name="keyword" placeholder="Tìm kiếm bất cứ thứ gì..." aria-label="Tìm kiếm sản phẩm">
         <button type="submit" class="search-btn">
           <i class="bx bx-search-alt-2"></i>
         </button>
       </form>
       <div class="icons" >
-        <a href="${pageContext.request.contextPath}/cart.jsp" class="icon-btn" id="cartBtn">
-          <i class='bx  bx-cart'></i>
+        <a href="${pageContext.request.contextPath}/favorite" class="icon-btn favorite-header-icon" id="heartBtn" title="Sản phẩm yêu thích">
+          <i class='bx bx-heart'></i>
         </a>
-        <a href="${pageContext.request.contextPath}/account.jsp" class="icon-btn" id="userBtn">
+        <a href="${pageContext.request.contextPath}/cart" class="icon-btn cart-icon" id="cartBtn">
+          <i class='bx  bx-cart'></i>
+        
+                    <c:if test="${not empty sessionScope.cart and sessionScope.cart.totalQuantity > 0}">
+                        <span class="cart-badge">${sessionScope.cart.totalQuantity}</span>
+                    </c:if>
+                </a>
+        <a href="${pageContext.request.contextPath}/Account" class="icon-btn" id="userBtn">
           <i class='bx  bx-user'></i>
         </a>
       </div>
@@ -43,8 +58,8 @@
         <ul>
           <li><a href="${pageContext.request.contextPath}/home">Trang chủ</a></li>
           <li><a href="${pageContext.request.contextPath}/product">Sản phẩm</a></li>
-          <li><a href="${pageContext.request.contextPath}/blog.jsp">Blog</a></li>
-          <li><a href="${pageContext.request.contextPath}/contact.jsp">Liên hệ</a></li>
+          <li><a href="${pageContext.request.contextPath}/jsp/blog.jsp">Blog</a></li>
+          <li><a href="${pageContext.request.contextPath}/jsp/contact.jsp">Liên hệ</a></li>
         </ul>
       </nav>
     </div>
@@ -54,11 +69,9 @@
   <div class="page-title-container">
     <h2 class="page-main-title">Chi tiết sản phẩm</h2>
     <div class="breadcrumb">
-      <a href="${pageContext.request.contextPath}/jsp/home.jsp">Trang chủ</a>
-      <a href="#"><i class="bx bx-chevron-right"></i></a>
-      <span>Chi tiết sản phẩm</span>
+      <a href="${pageContext.request.contextPath}/home">Trang chủ</a>
       <i class="bx bx-chevron-right"></i>
-      <span>${product.categoryName}</span>
+      <a href="${pageContext.request.contextPath}/product?categoryId=${product.categoryId}">${product.categoryName}</a>
       <i class="bx bx-chevron-right"></i>
       <span>${product.productName}</span>
     </div>
@@ -80,11 +93,14 @@
             <div class="sold-out-overlay">HẾT HÀNG</div>
           </c:otherwise>
         </c:choose>
-        <button type="button"
-                class="image-favorite-btn favorite-btn"
-                aria-label="Yêu thích">
-          <i class="bx bx-heart"></i>
-        </button>
+        <form action="${pageContext.request.contextPath}/favorite-toggle" method="post" class="favorite-form">
+          <input type="hidden" name="productId" value="${product.productId}">
+          <button type="submit"
+                  class="image-favorite-btn ${product.favorite ? 'active' : ''}"
+                  aria-label="Yêu thích ${product.productName}">
+            <i class="bx ${product.favorite ? 'bxs-heart' : 'bx-heart'}"></i>
+          </button>
+        </form>
         <img id="mainImage"
              src="${not empty productImages ? productImages[0].imageUrl : product.imageUrl}"
              alt="${product.productName}"
@@ -101,7 +117,7 @@
       </div>
     </div>
 
-    <div class="product-info">
+    <div class="product-info-detail">
       <h1 class="product-title">${product.productName}</h1>
 
       <div class="product-rating">
@@ -136,7 +152,7 @@
         <p>${product.productDescription}</p>
       </div>
 
-      <form class="purchase-box" action="${pageContext.request.contextPath}/add-cart" method="get">
+      <form class="purchase-box" action="${pageContext.request.contextPath}/Add-Cart" method="get">
         <input type="hidden" name="id" value="${product.productId}">
 
         <div class="purchase-inline-row">
@@ -144,7 +160,7 @@
             <button type="button" class="qty-btn arrow-down">-</button>
 
             <input type="number"
-                   name="q"
+                   name="quantity"
                    class="quantity-input"
                    value="1"
                    min="1"
@@ -169,12 +185,6 @@
           </button>
         </div>
 
-        <c:if test="${not empty sessionScope.cartMessage}">
-          <div class="cart-toast">
-              ${sessionScope.cartMessage}
-          </div>
-          <c:remove var="cartMessage" scope="session"/>
-        </c:if>
       </form>
 
       <div class="product-meta">
@@ -200,20 +210,22 @@
         <p>Chưa có đánh giá nào.</p>
       </c:if>
       <c:forEach var="r" items="${reviews}">
-      <div class="review-item">
-        <div class="review-header">
-          <span class="user-avatar"> ${fn:substring(r.userName,0,1)}</span>
-          <div class="user-info">
-          <p class="user-name">${r.userName}</p>
-            <div class="review-rating">
-              <c:forEach begin="1" end="5" var="i">
-                <i class="bx ${i <= r.rating ? 'bxs-star' : 'bx-star'}"></i>
-              </c:forEach>
-              <span class="review-date">${r.createAt}</span>
+        <div class="review-item">
+          <div class="review-header">
+            <span class="user-avatar">${fn:substring(r.userName,0,1)}</span>
+            <div class="user-info">
+              <p class="user-name">${r.userName}</p>
+              <div class="review-rating">
+                <c:forEach begin="1" end="5" var="i">
+                  <i class="bx ${i <= r.rating ? 'bxs-star' : 'bx-star'}"></i>
+                </c:forEach>
+                <span class="review-date">${r.createAt}</span>
+              </div>
             </div>
           </div>
-        <p class="review-text">${r.comment}</p>
-    </c:forEach>
+          <p class="review-text">${r.comment}</p>
+        </div>
+      </c:forEach>
     </div>
     <section class="related-products">
       <h2 id="related-title">Sản phẩm liên quan</h2>
@@ -221,6 +233,12 @@
         <c:forEach var="rp" items="${relatedProducts}">
           <div class="product-item">
             <div class="product-top">
+              <form action="${pageContext.request.contextPath}/favorite-toggle" method="post" class="favorite-form">
+                <input type="hidden" name="productId" value="${rp.productId}">
+                <button type="submit" class="favorite-toggle ${rp.favorite ? 'active' : ''}" aria-label="Yêu thích ${rp.productName}">
+                  <i class="bx ${rp.favorite ? 'bxs-heart' : 'bx-heart'}"></i>
+                </button>
+              </form>
               <a href="${pageContext.request.contextPath}/product-detail?id=${rp.productId}" class="product-thumb">
                 <img src="${rp.imageUrl}"
                      alt="${rp.productName}">
@@ -235,7 +253,6 @@
         </c:forEach>
       </div>
     </section>
-  </div>
 </main>
 <footer class="footer">
   <div class="container">
@@ -321,18 +338,6 @@
       if (value > 1) {
         quantityInput.value = value - 1;
       }
-    });
-  }
-
-  const favoriteBtn = document.querySelector(".favorite-btn");
-
-  if (favoriteBtn) {
-    favoriteBtn.addEventListener("click", function () {
-      this.classList.toggle("active");
-
-      const icon = this.querySelector("i");
-      icon.classList.toggle("bx-heart");
-      icon.classList.toggle("bxs-heart");
     });
   }
 </script>

@@ -8,11 +8,11 @@ public class OrderItem {
     private int orderItemId;
     private int orderId;
     private int productId;
-
     private String productName;
     private BigDecimal unitPrice;
     private int quantity;
     private BigDecimal totalPrice;
+    private String imageUrl;
 
     public String getUnitPriceFormatted() {
         return FormatUtil.formatMoney(unitPrice);
@@ -76,6 +76,12 @@ public class OrderItem {
 
     public void setTotalPrice(BigDecimal totalPrice) {
         this.totalPrice = totalPrice;
+    }
+    public String getImageUrl() {
+        return imageUrl;
+    }
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }
 

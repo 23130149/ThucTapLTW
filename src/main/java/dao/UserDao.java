@@ -86,11 +86,33 @@ public class UserDao extends BaseDao {
         );
     }
 
+    public boolean emailExistsExceptUser(String email, int userId) {
+        if (email == null || email.isBlank()) {
+            return false;
+        }
+
+        String sql = """
+            SELECT COUNT(*)
+            FROM user
+            WHERE Email = :email
+              AND User_Id <> :userId
+        """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("email", email.trim())
+                        .bind("userId", userId)
+                        .mapTo(Integer.class)
+                        .one() > 0
+        );
+    }
+
     public void updateProfile(User user) {
         String sql = """
             UPDATE user
             SET
                 User_Name = :userName,
+                Email = :email,
                 Phone = :phone,
                 Date_Of_Birth = :dateOfBirth,
                 Gender = :gender,

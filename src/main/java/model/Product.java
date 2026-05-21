@@ -11,6 +11,7 @@ public class Product {
     private String imageUrl;
     private Integer sold;
     private double revenue;
+    private boolean favorite;
 
     public Product(Integer productId, Integer categoryId, String productName, String categoryName, Integer productPrice, Integer stockQuantity, Integer sold, String productDescription, String imageUrl, double revenue) {
         this.productId = productId;
@@ -41,6 +42,7 @@ public class Product {
                 ", imageUrl='" + imageUrl + '\'' +
                 ", sold='" + sold + '\'' +
                 ", revenue='" + revenue + '\'' +
+                ", favorite=" + favorite +
                 '}';
     }
 
@@ -114,6 +116,14 @@ public class Product {
 
     public void setSold(Integer sold) {
         this.sold = sold;
+    }
+
+    public boolean isFavorite() {
+        return favorite;
+    }
+
+    public void setFavorite(boolean favorite) {
+        this.favorite = favorite;
     }
 
     public double getRevenue() {
