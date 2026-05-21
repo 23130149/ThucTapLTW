@@ -239,5 +239,4 @@ public class ProductDao extends BaseDao{
                         .one()
         );
     }
-
 }
