@@ -26,6 +26,9 @@
         </button>
       </form>
       <div class="icons">
+        <a href="${pageContext.request.contextPath}/favorite" class="icon-btn favorite-header-icon" id="heartBtn" title="Sản phẩm yêu thích">
+          <i class='bx bx-heart'></i>
+        </a>
         <a href="${pageContext.request.contextPath}/cart" class="icon-btn" id="cartBtn">
           <i class='bx bx-cart'></i>
         </a>
@@ -50,26 +53,63 @@
   </div>
 </header>
 
-<main class="about-us-container">
+<main class="about-us-container order-history-page">
   <h1>Lịch sử đơn hàng</h1>
 
+  <c:if test="${not empty sessionScope.orderMessage}">
+    <div class="form-alert form-alert-success">${sessionScope.orderMessage}</div>
+    <c:remove var="orderMessage" scope="session" />
+  </c:if>
+
   <div class="recent-orders-box order-history-box">
-    <h2>Đơn hàng của bạn</h2>
+    <div class="section-title-row account-orders-title">
+      <div>
+        <h2>Đơn hàng của bạn</h2>
+        <p>Theo dõi đơn hàng theo từng trạng thái, không còn cuộn dài mỏi tay.</p>
+      </div>
+    </div>
+
+    <div class="order-status-tabs">
+      <a class="tab-btn ${activeStatus == 'all' ? 'active' : ''}"
+         href="${pageContext.request.contextPath}/OrderHistory?status=all">
+        Tất cả <span>${statusCounts.all}</span>
+      </a>
+      <a class="tab-btn ${activeStatus == 'processing' ? 'active' : ''}"
+         href="${pageContext.request.contextPath}/OrderHistory?status=processing">
+        Đang xử lý <span>${statusCounts.processing}</span>
+      </a>
+      <a class="tab-btn ${activeStatus == 'shipping' ? 'active' : ''}"
+         href="${pageContext.request.contextPath}/OrderHistory?status=shipping">
+        Đang giao <span>${statusCounts.shipping}</span>
+      </a>
+      <a class="tab-btn ${activeStatus == 'completed' ? 'active' : ''}"
+         href="${pageContext.request.contextPath}/OrderHistory?status=completed">
+        Đã giao <span>${statusCounts.completed}</span>
+      </a>
+      <a class="tab-btn ${activeStatus == 'cancelled' ? 'active' : ''}"
+         href="${pageContext.request.contextPath}/OrderHistory?status=cancelled">
+        Đã huỷ <span>${statusCounts.cancelled}</span>
+      </a>
+      <a class="tab-btn ${activeStatus == 'returned' ? 'active' : ''}"
+         href="${pageContext.request.contextPath}/OrderHistory?status=returned">
+        Trả hàng <span>${statusCounts.returned}</span>
+      </a>
+    </div>
 
     <c:choose>
       <c:when test="${empty orderList}">
-        <p>Bạn chưa có đơn hàng nào.</p>
+        <p class="empty-account-state">Không có đơn hàng trong mục này.</p>
       </c:when>
 
       <c:otherwise>
-        <table class="orders-table">
+        <table class="orders-table order-history-table">
           <thead>
           <tr>
             <th>Mã đơn</th>
             <th>Ngày đặt</th>
             <th>Tổng tiền</th>
             <th>Trạng thái</th>
-            <th>Chi tiết</th>
+            <th>Thao tác</th>
           </tr>
           </thead>
 
@@ -90,46 +130,75 @@
                   ${util:orderStatusLabel(order.status)}
                 </span>
               </td>
-              <td>
+              <td class="order-actions-cell">
                 <a class="btn-order-detail"
                    href="${pageContext.request.contextPath}/OrderDetail?orderId=${order.orderId}">
                   Xem chi tiết
                 </a>
+
+                <c:if test="${order.cancellable}">
+                  <details class="order-inline-action">
+                    <summary>Hủy đơn</summary>
+                    <form action="${pageContext.request.contextPath}/OrderHistory" method="post">
+                      <input type="hidden" name="orderId" value="${order.orderId}">
+                      <input type="hidden" name="action" value="cancel">
+                      <textarea name="reason" rows="2" required placeholder="Nhập lý do hủy đơn..."></textarea>
+                      <button type="submit" class="btn-mini-danger"
+                              onclick="return confirm('Xác nhận hủy đơn hàng này?')">
+                        Xác nhận hủy
+                      </button>
+                    </form>
+                  </details>
+                </c:if>
+
+                <c:if test="${order.returnable}">
+                  <details class="order-inline-action">
+                    <summary>Trả hàng</summary>
+                    <form action="${pageContext.request.contextPath}/OrderHistory" method="post" enctype="multipart/form-data">
+                      <input type="hidden" name="orderId" value="${order.orderId}">
+                      <input type="hidden" name="action" value="return">
+                      <textarea name="reason" rows="2" required placeholder="Nhập lý do trả hàng..."></textarea>
+                      <input type="file" name="returnImage" accept="image/*">
+                      <button type="submit" class="btn-mini-secondary">
+                        Gửi yêu cầu
+                      </button>
+                    </form>
+                  </details>
+                </c:if>
               </td>
             </tr>
           </c:forEach>
           </tbody>
         </table>
+
         <c:if test="${totalPages > 1}">
           <div class="pagination">
             <c:if test="${currentPage > 1}">
-              <a href="${pageContext.request.contextPath}/OrderHistory?page=${currentPage - 1}">
+              <a href="${pageContext.request.contextPath}/OrderHistory?status=${activeStatus}&page=${currentPage - 1}">
                 Trước
               </a>
             </c:if>
 
             <c:forEach begin="1" end="${totalPages}" var="pageNumber">
-              <a href="${pageContext.request.contextPath}/OrderHistory?page=${pageNumber}"
+              <a href="${pageContext.request.contextPath}/OrderHistory?status=${activeStatus}&page=${pageNumber}"
                  class="${pageNumber == currentPage ? 'active' : ''}">
                   ${pageNumber}
               </a>
             </c:forEach>
 
             <c:if test="${currentPage < totalPages}">
-              <a href="${pageContext.request.contextPath}/OrderHistory?page=${currentPage + 1}">
+              <a href="${pageContext.request.contextPath}/OrderHistory?status=${activeStatus}&page=${currentPage + 1}">
                 Sau
               </a>
             </c:if>
           </div>
         </c:if>
-
       </c:otherwise>
     </c:choose>
   </div>
 
-  <a href="${pageContext.request.contextPath}/Account"
-     class="btn-logout"
-     style="background:#11998e">
+  <a href="${pageContext.request.contextPath}/Account" class="btn-account-secondary order-back-btn">
+    <i class='bx bx-arrow-back'></i>
     Quay lại tài khoản
   </a>
 </main>
@@ -140,24 +209,13 @@
       <div class="footer-column">
         <h3 class="footer-logo">Handmade House</h3>
         <p class="footer-desc">
-          Chào mừng đến với Handmade House, ngôi nhà nhỏ của những tâm hồn
-          yêu nghệ thuật và thủ công.
+          Chào mừng đến với Handmade House, ngôi nhà nhỏ của những tâm hồn yêu nghệ thuật và thủ công.
         </p>
         <div class="social-links">
           <a href="#"><i class="bx bxl-facebook"></i></a>
           <a href="#"><i class="bx bxl-instagram"></i></a>
           <a href="#"><i class="bx bxl-tiktok"></i></a>
         </div>
-      </div>
-
-      <div class="footer-column">
-        <h3 class="footer-title">Blog</h3>
-        <ul class="footer-links">
-          <li><a href="#">Câu chuyện thương hiệu</a></li>
-          <li><a href="#">Giá trị & Triết lý</a></li>
-          <li><a href="#">Quy trình sản xuất</a></li>
-          <li><a href="#">Định hướng bền vững</a></li>
-        </ul>
       </div>
 
       <div class="footer-column">
@@ -176,7 +234,6 @@
           <li>📍 Linh Trung, Thủ Đức, TP.HCM</li>
           <li>📞 0944 912 685</li>
           <li>📧 handmadehouse23@handmade.vn</li>
-          <li>🕐 8:00 - 17:00 (T2 - CN)</li>
         </ul>
       </div>
     </div>

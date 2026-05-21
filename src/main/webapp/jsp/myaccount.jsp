@@ -31,6 +31,9 @@
         </button>
       </form>
       <div class="icons">
+        <a href="${pageContext.request.contextPath}/favorite" class="icon-btn favorite-header-icon" id="heartBtn" title="Sản phẩm yêu thích">
+          <i class='bx bx-heart'></i>
+        </a>
         <a href="${pageContext.request.contextPath}/cart" class="icon-btn" id="cartBtn">
           <i class='bx  bx-cart'></i>
         </a>
@@ -113,6 +116,17 @@
       </span>
       <i class='bx bx-chevron-right'></i>
     </a>
+
+    <c:if test="${sessionScope.user.role == 'ADMIN'}">
+      <a href="${pageContext.request.contextPath}/admin/dashboard" class="account-menu-card admin-switch-card">
+        <span class="account-menu-icon"><i class='bx bx-shield-quarter'></i></span>
+        <span>
+          <strong>Trang quản trị</strong>
+          <small>Chuyển sang giao diện admin</small>
+        </span>
+        <i class='bx bx-chevron-right'></i>
+      </a>
+    </c:if>
   </div>
 
   <div class="recent-orders-box account-recent-orders">

@@ -292,3 +292,57 @@ button {
     font-size: 13px;
     padding-top: 10px;
 }
+
+/* Favourite / wishlist */
+.icons .favorite-header-icon:hover,
+.icons .favorite-header-icon.active {
+    color: #ff5e8a;
+}
+
+.favorite-form {
+    margin: 0;
+    line-height: 0;
+}
+
+.favorite-image-box,
+.product-top,
+.image-container,
+.main-image {
+    position: relative;
+}
+
+.favorite-toggle {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.92);
+    color: #ff5e8a;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1;
+    z-index: 30;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.16);
+    transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.favorite-toggle:hover {
+    transform: scale(1.08);
+    background: #fff;
+}
+
+.favorite-toggle.active {
+    background: #ff5e8a;
+    color: #fff;
+}
+
+.main-image .favorite-toggle {
+    top: 12px;
+    right: 12px;
+}

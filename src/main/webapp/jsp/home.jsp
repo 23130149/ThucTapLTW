@@ -30,6 +30,9 @@
         </button>
       </form>
       <div class="icons">
+        <a href="${pageContext.request.contextPath}/favorite" class="icon-btn favorite-header-icon" id="heartBtn" title="Sản phẩm yêu thích">
+          <i class='bx bx-heart'></i>
+        </a>
         <a href="${pageContext.request.contextPath}/cart" class="icon-btn" id="cartBtn">
           <i class='bx  bx-cart'></i>
         </a>
@@ -131,6 +134,12 @@
       <c:forEach items="${productList}" var="p">
         <div class="product-item">
           <div class="product-top">
+            <form action="${pageContext.request.contextPath}/favorite-toggle" method="post" class="favorite-form">
+              <input type="hidden" name="productId" value="${p.productId}">
+              <button type="submit" class="favorite-toggle ${p.favorite ? 'active' : ''}" aria-label="Yêu thích ${p.productName}">
+                <i class="bx ${p.favorite ? 'bxs-heart' : 'bx-heart'}"></i>
+              </button>
+            </form>
             <a href="${pageContext.request.contextPath}/product-detail?id=${p.productId}"  class="product-thumb">
               <c:choose>
                 <c:when test="${not empty p.imageUrl}">
@@ -142,7 +151,7 @@
                 </c:otherwise>
               </c:choose>
             </a>
-            <div class="add-to-cart-btn"><a href="${pageContext.request.contextPath}/add-cart?id=${p.productId}&q=1"><i class="bx bx-shopping-bag"></i>Thêm vào giỏ</a></div>
+            <div class="add-to-cart-btn"><a href="${pageContext.request.contextPath}/Add-Cart?id=${p.productId}&quantity=1"><i class="bx bx-shopping-bag"></i>Thêm vào giỏ</a></div>
           </div>
           <div class="product-info">
             <a href="${pageContext.request.contextPath}/product?categoryId=${p.categoryId}" class="product-cat">${p.categoryName}</a>

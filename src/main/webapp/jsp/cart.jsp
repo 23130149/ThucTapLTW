@@ -31,6 +31,9 @@
         </form>
 
         <div class="icons">
+            <a href="${pageContext.request.contextPath}/favorite" class="icon-btn favorite-header-icon" id="heartBtn" title="Sản phẩm yêu thích">
+              <i class='bx bx-heart'></i>
+            </a>
             <a href="${pageContext.request.contextPath}/cart" class="icon-btn"><i class='bx bx-cart'></i></a>
             <a href="${pageContext.request.contextPath}/Account" class="icon-btn"><i class='bx bx-user'></i></a>
         </div>

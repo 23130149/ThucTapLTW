@@ -34,6 +34,9 @@
 
             <div class="icons">
 
+                <a href="${pageContext.request.contextPath}/favorite" class="icon-btn favorite-header-icon" id="heartBtn" title="Sản phẩm yêu thích">
+                  <i class='bx bx-heart'></i>
+                </a>
                 <a href="${pageContext.request.contextPath}/Cart" class="icon-btn">
                     <i class='bx bx-cart'></i>
                 </a>
@@ -61,6 +64,11 @@
 
 <main class="about-us-container profile-dashboard">
     <h1>Thông tin cá nhân</h1>
+
+    <c:if test="${not empty sessionScope.profileMessage}">
+        <div class="form-alert form-alert-success">${sessionScope.profileMessage}</div>
+        <c:remove var="profileMessage" scope="session" />
+    </c:if>
 
     <div class="account-hero">
         <div class="account-avatar">

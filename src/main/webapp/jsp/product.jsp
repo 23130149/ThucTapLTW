@@ -22,13 +22,16 @@
             <div class="logo">
                 <a href="${pageContext.request.contextPath}/home">Handmade House</a>
             </div>
-            <form class="search-form" action="#" method="GET">
-                <input type="text" class="search-input" placeholder="Tìm kiếm bất cứ thứ gì..." aria-label="Tìm kiếm sản phẩm">
+            <form class="search-form" action="${pageContext.request.contextPath}/product" method="GET">
+                <input type="text" class="search-input" name="keyword" value="${keyword}" placeholder="Tìm kiếm bất cứ thứ gì..." aria-label="Tìm kiếm sản phẩm">
                 <button type="submit" class="search-btn">
                     <i class="bx bx-search-alt-2"></i>
                 </button>
             </form>
             <div class="icons" >
+                <a href="${pageContext.request.contextPath}/favorite" class="icon-btn favorite-header-icon" id="heartBtn" title="Sản phẩm yêu thích">
+                  <i class='bx bx-heart'></i>
+                </a>
                 <a  href="${pageContext.request.contextPath}/cart" class="icon-btn" id="cartBtn">
                     <i class='bx  bx-cart'></i>
                 </a>
@@ -65,7 +68,7 @@
             <div class="product-listing-area">
                 <div class="sort-stats-bar">
                     <div class="product-stats">
-                        Hiển thị 8/200 sản phẩm
+                        Hiển thị ${productCount} sản phẩm
                     </div>
                     <div class="sort-options">
                         <div class="custom-select-wrapper">
@@ -82,7 +85,13 @@
                     <c:forEach items="${productList}" var="p">
                         <div class="product-item">
                             <div class="product-top">
-                                <a href="${pageContext.request.contextPath}/jsp/productDetail.jsp?id=${p.productId}"
+                                <form action="${pageContext.request.contextPath}/favorite-toggle" method="post" class="favorite-form">
+                                    <input type="hidden" name="productId" value="${p.productId}">
+                                    <button type="submit" class="favorite-toggle ${p.favorite ? 'active' : ''}" aria-label="Yêu thích ${p.productName}">
+                                        <i class="bx ${p.favorite ? 'bxs-heart' : 'bx-heart'}"></i>
+                                    </button>
+                                </form>
+                                <a href="${pageContext.request.contextPath}/product-detail?id=${p.productId}"
                                    class="product-thumb">
                                     <img src="${p.imageUrl}" alt="${p.productName}">
                                 </a>
@@ -92,9 +101,9 @@
                                 </a>
                             </div>
                             <div class="product-info">
-                                <a href="#" class="product-cat">Mã loại: ${p.categoryId}</a>
-                                <a href="#" class="product-name">${p.productName}</a>
-                                <div class="product-price">${p.productPrice}</div>
+                                <a href="${pageContext.request.contextPath}/product?categoryId=${p.categoryId}" class="product-cat">${p.categoryName}</a>
+                                <a href="${pageContext.request.contextPath}/product-detail?id=${p.productId}" class="product-name">${p.productName}</a>
+                                <div class="product-price"><fmt:formatNumber value="${p.productPrice}" type="number" groupingUsed="true"/> đ</div>
                             </div>
                         </div>
                     </c:forEach>
@@ -112,7 +121,7 @@
                     <ul>
                         <c:forEach items = "${categoryList}" var="cat">
                         <li>
-                            <a href="${pageContext.request.contextPath}/product?categoryId=${cat.category_id}">
+                            <a href="${pageContext.request.contextPath}/product?categoryId=${cat.categoryId}">
                                 ${cat.name}
                             </a>
                         </li>
