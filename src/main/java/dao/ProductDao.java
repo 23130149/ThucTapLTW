@@ -239,17 +239,5 @@ public class ProductDao extends BaseDao{
                         .one()
         );
     }
-    public int getStockById(int productId) {
-        String sql = "select stock_quantity from products where product_id = :id";
-
-        return getJdbi().withHandle(handle ->
-                handle.createQuery(sql)
-                        .bind("id", productId)
-                        .mapTo(Integer.class)
-                        .findOne()
-                        .orElse(0)
-        );
-    }
-
 
 }

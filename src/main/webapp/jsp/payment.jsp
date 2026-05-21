@@ -1,0 +1,355 @@
+
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán - Handmade House</title>
+
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/payment.css">
+</head>
+<body>
+
+<header class="site-header">
+    <div class="header-top">
+        <a href="${pageContext.request.contextPath}/Home" class="logo">
+            <i class='bx bx-heart'></i>
+            <span>Handmade House</span>
+        </a>
+
+        <form class="search-form" action="${pageContext.request.contextPath}/Products" method="get">
+            <i class='bx bx-search'></i>
+            <input type="text" name="keyword" placeholder="Tìm kiếm sản phẩm handmade...">
+        </form>
+
+        <div class="header-actions">
+            <a href="${pageContext.request.contextPath}/cart" class="cart-link" aria-label="Giỏ hàng">
+                <i class='bx bx-cart'></i>
+                <c:if test="${not empty sessionScope.cart and sessionScope.cart.totalQuantity > 0}">
+                    <span class="cart-badge">${sessionScope.cart.totalQuantity}</span>
+                </c:if>
+            </a>
+            <a href="${pageContext.request.contextPath}/Account" class="account-btn">
+                <i class='bx bx-user'></i>
+                <span>Tài khoản</span>
+            </a>
+        </div>
+    </div>
+
+    <nav class="header-nav">
+        <a href="${pageContext.request.contextPath}/home" class="active">Trang chủ</a>
+        <a href="${pageContext.request.contextPath}/products">Sản phẩm</a>
+        <a href="${pageContext.request.contextPath}/blog">Blog</a>
+        <a href="${pageContext.request.contextPath}/Ccontact">Liên hệ</a>
+    </nav>
+</header>
+
+<main class="page">
+    <div class="breadcrumb">
+        <a href="${pageContext.request.contextPath}/home">Trang chủ</a>
+        <i class='bx bx-chevron-right'></i>
+        <a href="${pageContext.request.contextPath}/cart">Giỏ hàng</a>
+        <i class='bx bx-chevron-right'></i>
+        <strong>Thanh toán</strong>
+    </div>
+
+    <h1 class="page-title">Thanh toán</h1>
+
+    <form action="${pageContext.request.contextPath}/payment" method="post" id="checkoutForm">
+        <div class="checkout-layout">
+            <div class="left-column">
+                <section class="card">
+                    <div class="card-header">
+                        <i class='bx bx-map'></i>
+                        <span>Thông tin giao hàng</span>
+                    </div>
+
+                    <div class="card-body">
+                        <c:choose>
+                            <c:when test="${empty addresses}">
+                                <div class="address-empty">
+                                    Bạn chưa có địa chỉ nhận hàng. Vui lòng thêm địa chỉ trước khi đặt hàng.
+                                </div>
+                                <a href="${pageContext.request.contextPath}/Address" class="manage-address">
+                                    <i class='bx bx-plus-circle'></i>
+                                    Thêm địa chỉ
+                                </a>
+                            </c:when>
+                            <c:otherwise>
+                                <div class="address-list">
+                                    <c:forEach items="${addresses}" var="addr" varStatus="status">
+                                        <label class="address-card">
+                                            <input type="radio"
+                                                   name="addressId"
+                                                   value="${addr.userAddressId}"
+                                                   data-full-address="${addr.street}, ${addr.district}, ${addr.province}, ${addr.country}"
+                                                   data-distance="${addr.distanceKm}"
+                                                ${status.first || addr.userAddressId == address.userAddressId ? "checked" : ""}>
+
+                                            <div class="address-content">
+                                                <div class="address-name">Địa chỉ nhận hàng ${status.index + 1}</div>
+                                                <div class="address-detail">
+                                                        ${addr.street}, ${addr.district}, ${addr.province}, ${addr.country}
+                                                </div>
+                                            </div>
+                                            <span class="address-check"></span>
+                                            <span class="selected-border"></span>
+                                        </label>
+                                    </c:forEach>
+                                </div>
+
+                                <a href="${pageContext.request.contextPath}/Address" class="manage-address">
+                                    <i class='bx bx-edit'></i>
+                                    Quản lý địa chỉ
+                                </a>
+                            </c:otherwise>
+                        </c:choose>
+
+                        <div class="form-grid" style="margin-top: 24px;">
+                            <div class="field">
+                                <label>Họ và tên <span class="required">*</span></label>
+                                <input type="text" name="receiverName" placeholder="Nguyễn Thị Lan" required>
+                            </div>
+
+                            <div class="field">
+                                <label>Số điện thoại <span class="required">*</span></label>
+                                <input type="tel" name="receiverPhone" placeholder="0912 345 678" required>
+                            </div>
+
+                            <div class="field full">
+                                <label>Email</label>
+                                <input type="email" name="receiverEmail" placeholder="email@example.com">
+                            </div>
+
+                            <div class="field full">
+                                <label>Ghi chú đơn hàng</label>
+                                <textarea name="orderNote" placeholder="Ví dụ: giao giờ hành chính, gọi trước khi giao..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <div class="card-header">
+                        <i class='bx bx-credit-card'></i>
+                        <span>Phương thức thanh toán</span>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="payment-methods">
+                            <label class="method-option">
+                                <input type="radio" name="paymentMethod" value="COD" checked>
+                                <span class="method-icon"><i class='bx bx-package'></i></span>
+                                <span>
+                                    <span class="method-title">Thanh toán khi nhận hàng</span>
+                                    <span class="method-desc">Thanh toán bằng tiền mặt khi nhận được hàng tại địa chỉ giao hàng</span>
+                                </span>
+                                <span class="method-radio"></span>
+                            </label>
+
+                            <label class="method-option">
+                                <input type="radio" name="paymentMethod" value="BANK_TRANSFER">
+                                <span class="method-icon"><i class='bx bx-card'></i></span>
+                                <span>
+                                    <span class="method-title">Chuyển khoản ngân hàng</span>
+                                    <span class="method-desc">Chuyển khoản trực tiếp vào tài khoản ngân hàng của Handmade House</span>
+                                </span>
+                                <span class="method-radio"></span>
+                            </label>
+
+                            <label class="method-option">
+                                <input type="radio" name="paymentMethod" value="E_WALLET">
+                                <span class="method-icon"><i class='bx bx-mobile-alt'></i></span>
+                                <span>
+                                    <span class="method-title">Ví điện tử</span>
+                                    <span class="method-desc">Thanh toán qua MoMo, ZaloPay hoặc VNPay</span>
+                                </span>
+                                <span class="method-radio"></span>
+                            </label>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <aside class="right-column">
+                <section class="card summary-card">
+                    <div class="card-header">
+                        <i class='bx bx-cube'></i>
+                        <span>Tóm tắt đơn hàng</span>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="order-items">
+                            <c:forEach items="${cartItems}" var="item">
+                                <div class="order-item">
+                                    <img src="${item.product.imageUrl}" alt="${item.product.productName}">
+                                    <div>
+                                        <div class="order-name">${item.product.productName}</div>
+                                        <div class="order-qty">Số lượng: ${item.quantity}</div>
+                                    </div>
+                                    <div class="order-price">
+                                        <fmt:formatNumber value="${item.quantity * item.price}" type="number"/>₫
+                                    </div>
+                                </div>
+                            </c:forEach>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <div class="summary-row">
+                            <span>Tạm tính</span>
+                            <strong id="subtotalText">
+                                <fmt:formatNumber value="${totalPrice}" type="number"/>₫
+                            </strong>
+                        </div>
+
+                        <div class="summary-row">
+                            <span>Phí giao hàng</span>
+                            <strong id="shippingFeeText">
+                                <fmt:formatNumber value="${empty shippingFee ? 0 : shippingFee}" type="number"/>₫
+                            </strong>
+                        </div>
+
+                        <div class="distance-note" id="distanceNote">
+                            <i class='bx bx-map-pin'></i>
+                            Phí giao hàng được tính tự động theo khoảng cách từ cửa hàng đến địa chỉ nhận hàng.
+                        </div>
+
+                        <div class="grand-total">
+                            <span>Tổng thanh toán</span>
+                            <span class="amount" id="grandTotalText">
+                                <fmt:formatNumber value="${empty grandTotal ? totalPrice : grandTotal}" type="number"/>₫
+                            </span>
+                        </div>
+
+                        <input type="hidden" name="shippingFee" id="shippingFeeInput" value="${empty shippingFee ? 0 : shippingFee}">
+                        <input type="hidden" name="distanceKm" id="distanceKmInput" value="">
+
+                        <button type="submit" class="checkout-btn">Đặt hàng ngay</button>
+
+                        <div class="safe-text">
+                            <i class='bx bx-lock-alt'></i>
+                            Thông tin của bạn được bảo mật an toàn
+                        </div>
+
+                        <div class="trust-row">
+                            <span>Bảo mật SSL</span>
+                            <span>Kiểm tra đơn hàng</span>
+                            <span>Hỗ trợ đổi trả</span>
+                        </div>
+                    </div>
+                </section>
+            </aside>
+        </div>
+    </form>
+</main>
+
+<footer class="footer">
+    © 2025 Handmade House. All rights reserved.
+</footer>
+
+<script>
+    const contextPath = '${pageContext.request.contextPath}';
+    const subtotal = Number('${empty totalPrice ? 0 : totalPrice}');
+
+    const shippingFeeText = document.getElementById('shippingFeeText');
+    const grandTotalText = document.getElementById('grandTotalText');
+    const shippingFeeInput = document.getElementById('shippingFeeInput');
+    const distanceKmInput = document.getElementById('distanceKmInput');
+    const distanceNote = document.getElementById('distanceNote');
+    const checkoutForm = document.getElementById('checkoutForm');
+
+    function formatVnd(value) {
+        return new Intl.NumberFormat('vi-VN').format(Math.max(0, Math.round(value))) + '₫';
+    }
+
+    function updateShippingUI(shippingFee, distanceKm, sourceText) {
+        const grandTotal = subtotal + Number(shippingFee || 0);
+
+        shippingFeeText.textContent = formatVnd(shippingFee);
+        grandTotalText.textContent = formatVnd(grandTotal);
+        shippingFeeInput.value = Math.round(Number(shippingFee || 0));
+        distanceKmInput.value = distanceKm ? Number(distanceKm).toFixed(2) : '';
+
+        if (distanceKm) {
+            distanceNote.innerHTML = "<i class='bx bx-map-pin'></i> Khoảng cách ước tính: <strong>" +
+                Number(distanceKm).toFixed(1) + " km</strong>. " + sourceText;
+        } else {
+            distanceNote.innerHTML = "<i class='bx bx-map-pin'></i> " + sourceText;
+        }
+    }
+
+    // Công thức dự phòng khi chưa làm API:
+    // 0-5km: 20.000đ, trên 5km cộng 4.000đ/km, tối thiểu 20.000đ.
+    function calculateFallbackFee(distanceKm) {
+        const distance = Number(distanceKm || 0);
+        if (distance <= 0) return Number('${empty shippingFee ? 30000 : shippingFee}');
+        if (distance <= 5) return 20000;
+        return 20000 + Math.ceil(distance - 5) * 4000;
+    }
+
+    async function loadShippingFeeByAddress(addressInput) {
+        if (!addressInput) {
+            updateShippingUI(0, null, 'Vui lòng chọn địa chỉ nhận hàng để tính phí giao hàng.');
+            return;
+        }
+
+        const addressId = addressInput.value;
+        const fallbackDistance = addressInput.dataset.distance;
+
+        distanceNote.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Đang tính phí giao hàng theo khoảng cách...";
+
+        try {
+            // Backend nên gọi Google Distance Matrix API, GHN API hoặc API vận chuyển tại servlet này.
+            // Response JSON đề xuất: { "distanceKm": 8.5, "shippingFee": 34000 }
+            const res = await fetch(contextPath + '/api/shipping-fee?addressId=' + encodeURIComponent(addressId), {
+                headers: { 'Accept': 'application/json' }
+            });
+
+            if (!res.ok) throw new Error('Shipping API is not ready');
+
+            const data = await res.json();
+            updateShippingUI(data.shippingFee, data.distanceKm, 'Phí được tính từ API khoảng cách/vận chuyển.');
+        } catch (error) {
+            const fee = calculateFallbackFee(fallbackDistance);
+            updateShippingUI(fee, fallbackDistance, 'Đang dùng công thức tạm thời vì API tính phí chưa được kết nối.');
+        }
+    }
+
+    document.querySelectorAll("input[name='addressId']").forEach(function (input) {
+        input.addEventListener('change', function () {
+            loadShippingFeeByAddress(input);
+        });
+    });
+
+    checkoutForm.addEventListener('submit', function (e) {
+        const checkedAddress = document.querySelector("input[name='addressId']:checked");
+
+        if (!checkedAddress) {
+            e.preventDefault();
+            alert('Vui lòng chọn địa chỉ nhận hàng');
+            return;
+        }
+
+        const checkedPayment = document.querySelector("input[name='paymentMethod']:checked");
+        if (!checkedPayment) {
+            e.preventDefault();
+            alert('Vui lòng chọn phương thức thanh toán');
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const checkedAddress = document.querySelector("input[name='addressId']:checked");
+        loadShippingFeeByAddress(checkedAddress);
+    });
+</script>
+
+</body>
+</html>

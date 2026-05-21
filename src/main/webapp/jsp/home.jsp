@@ -30,9 +30,15 @@
         </button>
       </form>
       <div class="icons">
-        <a href="${pageContext.request.contextPath}/cart" class="icon-btn" id="cartBtn">
-          <i class='bx  bx-cart'></i>
-        </a>
+          <a href="${pageContext.request.contextPath}/cart" class="icon-btn cart-icon">
+              <i class='bx bx-cart'></i>
+
+              <c:if test="${not empty sessionScope.cart and sessionScope.cart.totalQuantity > 0}">
+        <span class="cart-badge">
+                ${sessionScope.cart.totalQuantity}
+        </span>
+              </c:if>
+          </a>
         <a href="${pageContext.request.contextPath}/Account" class="icon-btn" id="userBtn">
           <i class='bx  bx-user'></i>
         </a>
