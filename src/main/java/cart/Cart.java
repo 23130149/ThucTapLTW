@@ -4,7 +4,9 @@ import model.Product;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Cart implements Serializable {
@@ -50,4 +52,8 @@ public class Cart implements Serializable {
     public CartItem getItem(int ProductId){
        return data.get(ProductId);
     }
+    public List<CartItem> getList() {
+        return new ArrayList<>(data.values());
+    }
+
 }
