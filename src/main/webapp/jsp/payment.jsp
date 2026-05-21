@@ -90,7 +90,6 @@
                                                    name="addressId"
                                                    value="${addr.userAddressId}"
                                                    data-full-address="${addr.street}, ${addr.district}, ${addr.province}, ${addr.country}"
-                                                   data-distance="${addr.distanceKm}"
                                                 ${status.first || addr.userAddressId == address.userAddressId ? "checked" : ""}>
 
                                             <div class="address-content">
@@ -286,8 +285,6 @@
         }
     }
 
-    // Công thức dự phòng khi chưa làm API:
-    // 0-5km: 20.000đ, trên 5km cộng 4.000đ/km, tối thiểu 20.000đ.
     function calculateFallbackFee(distanceKm) {
         const distance = Number(distanceKm || 0);
         if (distance <= 0) return Number('${empty shippingFee ? 30000 : shippingFee}');

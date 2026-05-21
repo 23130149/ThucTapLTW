@@ -63,7 +63,7 @@ public class Payment extends HttpServlet {
         request.setAttribute("shippingFee", shippingFee);
         request.setAttribute("grandTotal", grandTotal);
 
-        request.getRequestDispatcher("/payment.jsp").forward(request, response);
+        request.getRequestDispatcher("/jsp/payment.jsp").forward(request, response);
     }
 
     @Override
