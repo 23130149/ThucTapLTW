@@ -16,24 +16,34 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+<c:if test="${not empty sessionScope.cartMessage}">
+    <div class="cart-toast">
+        <i class='bx bx-check-circle'></i>
+        <span>${sessionScope.cartMessage}</span>
+    </div>
+    <c:remove var="cartMessage" scope="session"/>
+</c:if>
 <header class="header">
     <div class="header-top-container">
         <div class="header-content">
             <div class="logo">
                 <a href="${pageContext.request.contextPath}/home">Handmade House</a>
             </div>
-            <form class="search-form" action="${pageContext.request.contextPath}/product" method="GET">
-                <input type="text" class="search-input" name="keyword" value="${keyword}" placeholder="Tìm kiếm bất cứ thứ gì..." aria-label="Tìm kiếm sản phẩm">
+            <form class="search-form" action="#" method="GET">
+                <input type="text" class="search-input" placeholder="Tìm kiếm bất cứ thứ gì..." aria-label="Tìm kiếm sản phẩm">
                 <button type="submit" class="search-btn">
                     <i class="bx bx-search-alt-2"></i>
                 </button>
             </form>
             <div class="icons" >
-                <a href="${pageContext.request.contextPath}/favorite" class="icon-btn favorite-header-icon" id="heartBtn" title="Sản phẩm yêu thích">
-                  <i class='bx bx-heart'></i>
-                </a>
-                <a  href="${pageContext.request.contextPath}/cart" class="icon-btn" id="cartBtn">
-                    <i class='bx  bx-cart'></i>
+                <a href="${pageContext.request.contextPath}/cart" class="icon-btn cart-icon" id="cartBtn">
+                    <i class='bx bx-cart'></i>
+
+                    <c:if test="${not empty sessionScope.cart and sessionScope.cart.totalQuantity > 0}">
+        <span class="cart-badge">
+                ${sessionScope.cart.totalQuantity}
+        </span>
+                    </c:if>
                 </a>
                 <a href="${pageContext.request.contextPath}/account" class="icon-btn" id="userBtn">
                     <i class='bx  bx-user'></i>
@@ -54,6 +64,7 @@
         </div>
     </div>
 </header>
+
 <main class="main-content">
     <div class="container">
         <div class="page-meta">
@@ -68,7 +79,7 @@
             <div class="product-listing-area">
                 <div class="sort-stats-bar">
                     <div class="product-stats">
-                        Hiển thị ${productCount} sản phẩm
+                        Hiển thị 8/200 sản phẩm
                     </div>
                     <div class="sort-options">
                         <div class="custom-select-wrapper">
@@ -85,13 +96,7 @@
                     <c:forEach items="${productList}" var="p">
                         <div class="product-item">
                             <div class="product-top">
-                                <form action="${pageContext.request.contextPath}/favorite-toggle" method="post" class="favorite-form">
-                                    <input type="hidden" name="productId" value="${p.productId}">
-                                    <button type="submit" class="favorite-toggle ${p.favorite ? 'active' : ''}" aria-label="Yêu thích ${p.productName}">
-                                        <i class="bx ${p.favorite ? 'bxs-heart' : 'bx-heart'}"></i>
-                                    </button>
-                                </form>
-                                <a href="${pageContext.request.contextPath}/product-detail?id=${p.productId}"
+                                <a href="${pageContext.request.contextPath}/jsp/product-detail?id=${p.productId}"
                                    class="product-thumb">
                                     <img src="${p.imageUrl}" alt="${p.productName}">
                                 </a>
@@ -101,9 +106,9 @@
                                 </a>
                             </div>
                             <div class="product-info">
-                                <a href="${pageContext.request.contextPath}/product?categoryId=${p.categoryId}" class="product-cat">${p.categoryName}</a>
-                                <a href="${pageContext.request.contextPath}/product-detail?id=${p.productId}" class="product-name">${p.productName}</a>
-                                <div class="product-price"><fmt:formatNumber value="${p.productPrice}" type="number" groupingUsed="true"/> đ</div>
+                                <a href="#" class="product-cat">Mã loại: ${p.categoryId}</a>
+                                <a href="#" class="product-name">${p.productName}</a>
+                                <div class="product-price">${p.productPrice}</div>
                             </div>
                         </div>
                     </c:forEach>
@@ -121,7 +126,7 @@
                     <ul>
                         <c:forEach items = "${categoryList}" var="cat">
                         <li>
-                            <a href="${pageContext.request.contextPath}/product?categoryId=${cat.categoryId}">
+                            <a href="${pageContext.request.contextPath}/product?categoryId=${cat.category_id}">
                                 ${cat.name}
                             </a>
                         </li>

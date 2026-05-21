@@ -161,7 +161,25 @@ button {
     gap: 40px;
     padding: 0;
 }
+.cart-icon {
+    position: relative;
+}
 
+.cart-badge {
+    position: absolute;
+    top: -8px;
+    right: -10px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: #e53935;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 18px;
+    text-align: center;
+}
 .nav__links a {
     font-size: 14px;
     font-weight: 600;

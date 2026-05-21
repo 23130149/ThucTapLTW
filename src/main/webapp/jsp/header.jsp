@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <link rel="stylesheet"
       href="${pageContext.request.contextPath}/Header_Footer/Styles.css">
@@ -26,8 +27,12 @@
         </a>
         <a href="${pageContext.request.contextPath}/cart" class="icon-btn">
           <i class='bx bx-cart'></i>
-        </a>
-
+            <c:if test="${not empty sessionScope.cart and sessionScope.cart.totalQuantity > 0}">
+        <span class="cart-badge">
+                ${sessionScope.cart.totalQuantity}
+        </span>
+            </c:if>
+            </a>
         <a href="${pageContext.request.contextPath}/Account" class="icon-btn">
           <i class='bx bx-user'></i>
         </a>
