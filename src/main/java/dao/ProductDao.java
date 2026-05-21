@@ -1,8 +1,12 @@
 package dao;
 
 import model.Product;
+import model.ProductImage;
+import org.jdbi.v3.core.statement.Query;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ProductDao extends BaseDao{
   public List<Product> getFeaturedProducts() {
@@ -88,6 +92,38 @@ public class ProductDao extends BaseDao{
                         .orElse(null)
         );
     }
+    public List<Product> getRelatedProducts(int categoryId, int currentProductId, int limit) {
+        String sql = """
+                SELECT
+                    p.Product_Id AS productId,
+                    p.Category_Id AS categoryId,
+                    p.Product_Name AS productName,
+                    c.Name AS categoryName,
+                    p.Product_Price AS productPrice,
+                    p.Stock_Quantity AS stockQuantity,
+                    p.Product_Description AS productDescription,
+                    (SELECT pi.Image_Url
+                     FROM product_images pi
+                     WHERE pi.Product_Id = p.Product_Id
+                     ORDER BY pi.Image_Id ASC
+                     LIMIT 1) AS imageUrl
+                FROM products p
+                JOIN categories c ON p.Category_Id = c.Category_Id
+                WHERE p.Category_Id = :categoryId AND p.Product_Id <> :currentProductId
+                ORDER BY p.Product_Id DESC
+                LIMIT :limit
+                """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("categoryId", categoryId)
+                        .bind("currentProductId", currentProductId)
+                        .bind("limit", limit)
+                        .mapToBean(Product.class)
+                        .list()
+        );
+    }
+
     public void insertProduct(Product p) {
         String sql = "insert into products (product_name, product_price, stock_quantity, category_id, product_description) values (:name, :price, :stock, :catId, :desc)";
         int productId = getJdbi().withHandle(handle ->
@@ -179,33 +215,48 @@ public class ProductDao extends BaseDao{
                         "FROM products p JOIN categories c ON p.category_id = c.category_id WHERE 1=1"
         );
 
-        if (keyword != null && !keyword.trim().isEmpty())
-            sql.append(" AND p.product_name LIKE '%").append(keyword.trim()).append("%'");
+        Map<String, Object> params = new HashMap<>();
 
-        if (categoryId != null && !categoryId.trim().isEmpty())
-            sql.append(" AND p.category_id = ").append(categoryId.trim());
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND p.product_name LIKE :keyword");
+            params.put("keyword", "%" + keyword.trim() + "%");
+        }
 
-        if ("instock".equals(status))
+        if (categoryId != null && !categoryId.trim().isEmpty()) {
+            try {
+                sql.append(" AND p.category_id = :categoryId");
+                params.put("categoryId", Integer.parseInt(categoryId.trim()));
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        if ("instock".equals(status)) {
             sql.append(" AND p.stock_quantity > 0");
-        else if ("outofstock".equals(status))
+        } else if ("outofstock".equals(status)) {
             sql.append(" AND p.stock_quantity = 0");
+        }
 
         if (priceRange != null) {
             switch (priceRange) {
-                case "0-100000"    -> sql.append(" AND p.product_price BETWEEN 0 AND 100000");
+                case "0-100000" -> sql.append(" AND p.product_price BETWEEN 0 AND 100000");
                 case "100000-500000" -> sql.append(" AND p.product_price BETWEEN 100000 AND 500000");
-                case "500000+"     -> sql.append(" AND p.product_price > 500000");
+                case "500000+" -> sql.append(" AND p.product_price > 500000");
             }
         }
-        int offset = (page - 1) * pageSize;
-        sql.append(" ORDER BY p.product_id ASC LIMIT ").append(pageSize).append(" OFFSET ").append(offset);
 
-        String finalSql = sql.toString();
-        return getJdbi().withHandle(handle ->
-                handle.createQuery(finalSql)
-                        .mapToBean(Product.class)
-                        .list()
-        );
+        int safePage = Math.max(page, 1);
+        int safePageSize = Math.max(pageSize, 1);
+        int offset = (safePage - 1) * safePageSize;
+
+        sql.append(" ORDER BY p.product_id ASC LIMIT :pageSize OFFSET :offset");
+        params.put("pageSize", safePageSize);
+        params.put("offset", offset);
+
+        return getJdbi().withHandle(handle -> {
+            Query query = handle.createQuery(sql.toString());
+            params.forEach(query::bind);
+            return query.mapToBean(Product.class).list();
+        });
     }
 
     public int countFilteredProducts(String keyword, String categoryId, String status, String priceRange) {
@@ -213,30 +264,57 @@ public class ProductDao extends BaseDao{
                 "SELECT COUNT(*) FROM products p WHERE 1=1"
         );
 
-        if (keyword != null && !keyword.trim().isEmpty())
-            sql.append(" AND p.product_name LIKE '%").append(keyword.trim()).append("%'");
+        Map<String, Object> params = new HashMap<>();
 
-        if (categoryId != null && !categoryId.trim().isEmpty())
-            sql.append(" AND p.category_id = ").append(categoryId.trim());
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND p.product_name LIKE :keyword");
+            params.put("keyword", "%" + keyword.trim() + "%");
+        }
 
-        if ("instock".equals(status))
-            sql.append(" AND p.stock_quantity > 0");
-        else if ("outofstock".equals(status))
-            sql.append(" AND p.stock_quantity = 0");
-
-        if (priceRange != null) {
-            switch (priceRange) {
-                case "0-100000"      -> sql.append(" AND p.product_price BETWEEN 0 AND 100000");
-                case "100000-500000" -> sql.append(" AND p.product_price BETWEEN 100000 AND 500000");
-                case "500000+"       -> sql.append(" AND p.product_price > 500000");
+        if (categoryId != null && !categoryId.trim().isEmpty()) {
+            try {
+                sql.append(" AND p.category_id = :categoryId");
+                params.put("categoryId", Integer.parseInt(categoryId.trim()));
+            } catch (NumberFormatException ignored) {
             }
         }
 
-        String finalSql = sql.toString();
+        if ("instock".equals(status)) {
+            sql.append(" AND p.stock_quantity > 0");
+        } else if ("outofstock".equals(status)) {
+            sql.append(" AND p.stock_quantity = 0");
+        }
+
+        if (priceRange != null) {
+            switch (priceRange) {
+                case "0-100000" -> sql.append(" AND p.product_price BETWEEN 0 AND 100000");
+                case "100000-500000" -> sql.append(" AND p.product_price BETWEEN 100000 AND 500000");
+                case "500000+" -> sql.append(" AND p.product_price > 500000");
+            }
+        }
+
+        return getJdbi().withHandle(handle -> {
+            Query query = handle.createQuery(sql.toString());
+            params.forEach(query::bind);
+            return query.mapTo(Integer.class).one();
+        });
+    }
+    public List<ProductImage> getImagesByProductId(int productId) {
+        String sql = """
+        SELECT
+            Image_Id AS imageId,
+            Product_Id AS productId,
+            Image_Url AS imageUrl
+        FROM Product_Images
+        WHERE Product_Id = :productId
+        ORDER BY Image_Id ASC
+    """;
+
         return getJdbi().withHandle(handle ->
-                handle.createQuery(finalSql)
-                        .mapTo(Integer.class)
-                        .one()
+                handle.createQuery(sql)
+                        .bind("productId", productId)
+                        .mapToBean(ProductImage.class)
+                        .list()
         );
     }
 }

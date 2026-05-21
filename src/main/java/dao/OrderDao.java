@@ -277,6 +277,189 @@ public class OrderDao extends BaseDao {
                         .execute()
         );}
 
+    public List<Order> getOrdersByUserIdAndStatusesPaged(int userId, List<String> statuses, int limit, int offset) {
+        String baseSelect = """
+        SELECT
+            Order_Id        AS orderId,
+            User_Id         AS userId,
+            User_Address_Id AS userAddressId,
+            Ship_Address    AS shipAddress,
+            Note            AS note,
+            Status          AS status,
+            Create_At       AS createAt,
+            Total_Price     AS totalPrice,
+            Order_Code      AS orderCode
+        FROM orders
+        WHERE User_Id = :userId
+        """;
+
+        if (statuses == null || statuses.isEmpty()) {
+            String sql = baseSelect + " ORDER BY Create_At DESC LIMIT :limit OFFSET :offset";
+            return getJdbi().withHandle(handle ->
+                    handle.createQuery(sql)
+                            .bind("userId", userId)
+                            .bind("limit", limit)
+                            .bind("offset", offset)
+                            .mapToBean(Order.class)
+                            .list()
+            );
+        }
+
+        String sql = baseSelect + " AND Status IN (<statuses>) ORDER BY Create_At DESC LIMIT :limit OFFSET :offset";
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("userId", userId)
+                        .bindList("statuses", statuses)
+                        .bind("limit", limit)
+                        .bind("offset", offset)
+                        .mapToBean(Order.class)
+                        .list()
+        );
+    }
+
+    public int countOrdersByUserIdAndStatuses(int userId, List<String> statuses) {
+        if (statuses == null || statuses.isEmpty()) {
+            return countOrdersByUserId(userId);
+        }
+
+        String sql = """
+        SELECT COUNT(*)
+        FROM orders
+        WHERE User_Id = :userId
+          AND Status IN (<statuses>)
+        """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("userId", userId)
+                        .bindList("statuses", statuses)
+                        .mapTo(Integer.class)
+                        .one()
+        );
+    }
+
+    public Map<String, Integer> countOrderStatusGroupsByUser(int userId) {
+        String sql = """
+        SELECT
+            SUM(CASE WHEN Status IN ('PENDING', 'PROCESSING', 'CONFIRMED') THEN 1 ELSE 0 END) AS processingCount,
+            SUM(CASE WHEN Status = 'SHIPPED' THEN 1 ELSE 0 END) AS shippingCount,
+            SUM(CASE WHEN Status = 'COMPLETED' THEN 1 ELSE 0 END) AS completedCount,
+            SUM(CASE WHEN Status = 'CANCELLED' THEN 1 ELSE 0 END) AS cancelledCount,
+            SUM(CASE WHEN Status IN ('RETURN_REQUESTED', 'RETURNED', 'RETURN_REJECTED') THEN 1 ELSE 0 END) AS returnedCount,
+            COUNT(*) AS allCount
+        FROM orders
+        WHERE User_Id = :userId
+        """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("userId", userId)
+                        .map((rs, ctx) -> {
+                            Map<String, Integer> counts = new HashMap<>();
+                            counts.put("all", rs.getInt("allCount"));
+                            counts.put("processing", rs.getInt("processingCount"));
+                            counts.put("shipping", rs.getInt("shippingCount"));
+                            counts.put("completed", rs.getInt("completedCount"));
+                            counts.put("cancelled", rs.getInt("cancelledCount"));
+                            counts.put("returned", rs.getInt("returnedCount"));
+                            return counts;
+                        })
+                        .one()
+        );
+    }
+
+    public boolean cancelOrderByUser(int orderId, int userId, String reason) {
+        String safeReason = reason == null ? "" : reason.trim();
+        if (safeReason.isBlank()) {
+            return false;
+        }
+
+        return getJdbi().inTransaction(handle -> {
+            String currentStatus = handle.createQuery("""
+                    SELECT Status
+                    FROM orders
+                    WHERE Order_Id = :orderId
+                      AND User_Id = :userId
+                    FOR UPDATE
+                    """)
+                    .bind("orderId", orderId)
+                    .bind("userId", userId)
+                    .mapTo(String.class)
+                    .findOne()
+                    .orElse(null);
+
+            if (currentStatus == null
+                    || "CANCELLED".equals(currentStatus)
+                    || "COMPLETED".equals(currentStatus)
+                    || "RETURN_REQUESTED".equals(currentStatus)
+                    || "RETURNED".equals(currentStatus)) {
+                return false;
+            }
+
+            handle.createUpdate("""
+                    UPDATE products p
+                    JOIN order_items oi ON p.Product_Id = oi.Product_Id
+                    SET p.Stock_Quantity = p.Stock_Quantity + oi.Quantity
+                    WHERE oi.Order_Id = :orderId
+                    """)
+                    .bind("orderId", orderId)
+                    .execute();
+
+            int updated = handle.createUpdate("""
+                    UPDATE orders
+                    SET Status = 'CANCELLED',
+                        Note = CONCAT(
+                            COALESCE(Note, ''),
+                            CASE WHEN Note IS NULL OR Note = '' THEN '' ELSE '\n' END,
+                            :reasonLine
+                        )
+                    WHERE Order_Id = :orderId
+                      AND User_Id = :userId
+                    """)
+                    .bind("reasonLine", "Lý do hủy đơn: " + safeReason)
+                    .bind("orderId", orderId)
+                    .bind("userId", userId)
+                    .execute();
+
+            return updated > 0;
+        });
+    }
+
+    public boolean requestReturnByUser(int orderId, int userId, String reason, String imagePath) {
+        String safeReason = reason == null ? "" : reason.trim();
+        String safeImagePath = imagePath == null ? "" : imagePath.trim();
+        if (safeReason.isBlank()) {
+            return false;
+        }
+
+        String detailLine = "Yêu cầu trả hàng: " + safeReason;
+        if (!safeImagePath.isBlank()) {
+            detailLine += " | Ảnh minh chứng: " + safeImagePath;
+        }
+        final String reasonLine = detailLine;
+
+        String sql = """
+            UPDATE orders
+            SET Status = 'RETURN_REQUESTED',
+                Note = CONCAT(
+                    COALESCE(Note, ''),
+                    CASE WHEN Note IS NULL OR Note = '' THEN '' ELSE '\n' END,
+                    :reasonLine
+                )
+            WHERE Order_Id = :orderId
+              AND User_Id = :userId
+              AND Status = 'COMPLETED'
+        """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createUpdate(sql)
+                        .bind("reasonLine", reasonLine)
+                        .bind("orderId", orderId)
+                        .bind("userId", userId)
+                        .execute() > 0
+        );
+    }
+
 
     public List<Order> getAllOrders() {
         String sql = """

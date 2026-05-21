@@ -32,9 +32,16 @@
       </form>
 
       <div class="icons">
-        <a href="${pageContext.request.contextPath}/cart" class="icon-btn" id="cartBtn">
-          <i class='bx bx-cart'></i>
+        <a href="${pageContext.request.contextPath}/favorite" class="icon-btn favorite-header-icon" id="heartBtn" title="Sản phẩm yêu thích">
+          <i class='bx bx-heart'></i>
         </a>
+        <a href="${pageContext.request.contextPath}/cart" class="icon-btn cart-icon" id="cartBtn">
+          <i class='bx bx-cart'></i>
+        
+                    <c:if test="${not empty sessionScope.cart and sessionScope.cart.totalQuantity > 0}">
+                        <span class="cart-badge">${sessionScope.cart.totalQuantity}</span>
+                    </c:if>
+                </a>
         <a href="${pageContext.request.contextPath}/Account" class="icon-btn" id="userBtn">
           <i class='bx bx-user'></i>
         </a>
@@ -48,8 +55,8 @@
         <ul>
           <li><a href="${pageContext.request.contextPath}/home">Trang chủ</a></li>
           <li><a href="${pageContext.request.contextPath}/product">Sản phẩm</a></li>
-          <li><a href="${pageContext.request.contextPath}/blog.jsp">Blog</a></li>
-          <li><a href="${pageContext.request.contextPath}/contact.jsp">Liên hệ</a></li>
+          <li><a href="${pageContext.request.contextPath}/jsp/blog.jsp">Blog</a></li>
+          <li><a href="${pageContext.request.contextPath}/jsp/contact.jsp">Liên hệ</a></li>
         </ul>
       </nav>
     </div>
@@ -160,22 +167,33 @@
         <div class="form-grid">
           <div class="form-group">
             <label>Quốc gia</label>
-            <input type="text" name="country" value="${address.country}" required>
+            <input type="text" name="country" value="${empty address.country ? 'Việt Nam' : address.country}" required>
           </div>
 
           <div class="form-group">
             <label>Tỉnh/Thành phố</label>
-            <input type="text" name="province" value="${address.province}" required>
+            <select name="province" id="provinceSelect" data-current="${address.province}" required>
+              <option value="">Chọn Tỉnh/Thành phố</option>
+            </select>
           </div>
 
           <div class="form-group">
             <label>Quận/Huyện</label>
-            <input type="text" name="district" value="${address.district}" required>
+            <select name="district" id="districtSelect" data-current="${address.district}" required disabled>
+              <option value="">Chọn Quận/Huyện</option>
+            </select>
           </div>
 
           <div class="form-group">
+            <label>Phường/Xã</label>
+            <select name="ward" id="wardSelect" required disabled>
+              <option value="">Chọn Phường/Xã</option>
+            </select>
+          </div>
+
+          <div class="form-group form-group-full">
             <label>Đường/Số nhà</label>
-            <input type="text" name="street" value="${address.street}" required>
+            <input type="text" name="street" value="${address.street}" placeholder="Ví dụ: 12 Linh Trung" required>
           </div>
         </div>
 
@@ -252,6 +270,84 @@
         addressFormBox.classList.add("show");
         btnAddAddress.style.display = "none";
       });
+    }
+
+    const addressData = {
+      "TP. Hồ Chí Minh": {
+        "Thủ Đức": ["Linh Trung", "Linh Tây", "Linh Chiểu", "Hiệp Bình Chánh"],
+        "Quận 1": ["Bến Nghé", "Bến Thành", "Nguyễn Thái Bình"],
+        "Quận 7": ["Tân Phong", "Tân Phú", "Phú Mỹ"],
+        "Bình Thạnh": ["Phường 1", "Phường 2", "Phường 25"]
+      },
+      "Đồng Nai": {
+        "Biên Hòa": ["Tân Phong", "Trảng Dài", "Long Bình", "Tam Hiệp"],
+        "Long Thành": ["Long Thành", "An Phước", "Phước Thái"],
+        "Nhơn Trạch": ["Phú Hội", "Long Tân", "Phước Thiền"]
+      },
+      "Bình Dương": {
+        "Thủ Dầu Một": ["Phú Cường", "Hiệp Thành", "Phú Hòa"],
+        "Dĩ An": ["Dĩ An", "An Bình", "Tân Đông Hiệp"],
+        "Thuận An": ["Lái Thiêu", "Bình Hòa", "An Phú"]
+      },
+      "Hà Nội": {
+        "Ba Đình": ["Phúc Xá", "Trúc Bạch", "Đội Cấn"],
+        "Cầu Giấy": ["Dịch Vọng", "Quan Hoa", "Yên Hòa"],
+        "Đống Đa": ["Cát Linh", "Văn Chương", "Láng Hạ"]
+      },
+      "Đà Nẵng": {
+        "Hải Châu": ["Hải Châu I", "Hải Châu II", "Thạch Thang"],
+        "Thanh Khê": ["Tam Thuận", "Xuân Hà", "Chính Gián"],
+        "Sơn Trà": ["An Hải Bắc", "An Hải Đông", "Phước Mỹ"]
+      },
+      "Cần Thơ": {
+        "Ninh Kiều": ["Cái Khế", "An Hòa", "Tân An"],
+        "Bình Thủy": ["Bình Thủy", "Trà An", "Long Hòa"],
+        "Cái Răng": ["Lê Bình", "Hưng Phú", "Ba Láng"]
+      }
+    };
+
+    const provinceSelect = document.getElementById("provinceSelect");
+    const districtSelect = document.getElementById("districtSelect");
+    const wardSelect = document.getElementById("wardSelect");
+
+    function fillSelect(select, items, placeholder) {
+      select.innerHTML = `<option value="">${placeholder}</option>`;
+      items.forEach(item => {
+        const option = document.createElement("option");
+        option.value = item;
+        option.textContent = item;
+        select.appendChild(option);
+      });
+    }
+
+    function fillDistricts() {
+      const province = provinceSelect.value;
+      const districts = province ? Object.keys(addressData[province] || {}) : [];
+      fillSelect(districtSelect, districts, "Chọn Quận/Huyện");
+      fillSelect(wardSelect, [], "Chọn Phường/Xã");
+      districtSelect.disabled = districts.length === 0;
+      wardSelect.disabled = true;
+    }
+
+    function fillWards() {
+      const province = provinceSelect.value;
+      const district = districtSelect.value;
+      const wards = province && district ? (addressData[province][district] || []) : [];
+      fillSelect(wardSelect, wards, "Chọn Phường/Xã");
+      wardSelect.disabled = wards.length === 0;
+    }
+
+    if (provinceSelect && districtSelect && wardSelect) {
+      fillSelect(provinceSelect, Object.keys(addressData), "Chọn Tỉnh/Thành phố");
+
+      const currentProvince = provinceSelect.dataset.current;
+      if (currentProvince && addressData[currentProvince]) {
+        provinceSelect.value = currentProvince;
+        fillDistricts();
+      }
+
+      provinceSelect.addEventListener("change", fillDistricts);
+      districtSelect.addEventListener("change", fillWards);
     }
   });
 </script>

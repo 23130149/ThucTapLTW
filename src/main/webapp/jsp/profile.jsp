@@ -18,11 +18,11 @@
         <div class="header-content">
 
             <div class="logo">
-                <a href="${pageContext.request.contextPath}/Home">Handmade House</a>
+                <a href="${pageContext.request.contextPath}/home">Handmade House</a>
             </div>
 
             <form class="search-form"
-                  action="${pageContext.request.contextPath}/Search"
+                  action="${pageContext.request.contextPath}/product"
                   method="GET">
                 <input type="text" class="search-input"
                        name="keyword"
@@ -34,8 +34,15 @@
 
             <div class="icons">
 
-                <a href="${pageContext.request.contextPath}/Cart" class="icon-btn">
+                <a href="${pageContext.request.contextPath}/favorite" class="icon-btn favorite-header-icon" id="heartBtn" title="Sản phẩm yêu thích">
+                  <i class='bx bx-heart'></i>
+                </a>
+                <a href="${pageContext.request.contextPath}/cart" class="icon-btn cart-icon">
                     <i class='bx bx-cart'></i>
+                
+                    <c:if test="${not empty sessionScope.cart and sessionScope.cart.totalQuantity > 0}">
+                        <span class="cart-badge">${sessionScope.cart.totalQuantity}</span>
+                    </c:if>
                 </a>
                 <a href="${pageContext.request.contextPath}/Account" class="icon-btn">
                     <i class='bx bx-user'></i>
@@ -49,10 +56,10 @@
         <div class="container nav-only-container">
             <nav class="nav__links">
                 <ul>
-                    <li><a href="${pageContext.request.contextPath}/Home">Trang chủ</a></li>
-                    <li><a href="${pageContext.request.contextPath}/Products">Sản phẩm</a></li>
-                    <li><a href="${pageContext.request.contextPath}/Blog">Blog</a></li>
-                    <li><a href="${pageContext.request.contextPath}/Contact">Liên hệ</a></li>
+                    <li><a href="${pageContext.request.contextPath}/home">Trang chủ</a></li>
+                    <li><a href="${pageContext.request.contextPath}/product">Sản phẩm</a></li>
+                    <li><a href="${pageContext.request.contextPath}/jsp/blog.jsp">Blog</a></li>
+                    <li><a href="${pageContext.request.contextPath}/jsp/contact.jsp">Liên hệ</a></li>
                 </ul>
             </nav>
         </div>
@@ -61,6 +68,11 @@
 
 <main class="about-us-container profile-dashboard">
     <h1>Thông tin cá nhân</h1>
+
+    <c:if test="${not empty sessionScope.profileMessage}">
+        <div class="form-alert form-alert-success">${sessionScope.profileMessage}</div>
+        <c:remove var="profileMessage" scope="session" />
+    </c:if>
 
     <div class="account-hero">
         <div class="account-avatar">

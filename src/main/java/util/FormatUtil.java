@@ -30,6 +30,9 @@ public class    FormatUtil {
             case "SHIPPED": return "Đang giao";
             case "COMPLETED": return "Hoàn thành";
             case "CANCELLED": return "Đã huỷ";
+            case "RETURN_REQUESTED": return "Đang yêu cầu trả hàng";
+            case "RETURNED": return "Đã trả hàng";
+            case "RETURN_REJECTED": return "Từ chối trả hàng";
             default: return status;
         }
     }
@@ -38,8 +41,11 @@ public class    FormatUtil {
         if (status == null) return "";
         switch (status) {
             case "COMPLETED": return "✔";
-            case "SHIPPED": return "⏳";
+            case "SHIPPED": return "🚚";
             case "CANCELLED": return "✖";
+            case "RETURN_REQUESTED": return "↩";
+            case "RETURNED": return "↩";
+            case "RETURN_REJECTED": return "!";
             default: return "⏳";
         }
     }
