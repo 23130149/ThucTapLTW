@@ -89,30 +89,44 @@
                                 </a>
                             </c:when>
                             <c:otherwise>
-                                <div class="address-list">
-                                    <c:forEach items="${addresses}" var="addr" varStatus="status">
-                                        <label class="address-card">
-                                            <input type="radio"
-                                                   name="addressId"
-                                                   value="${addr.userAddressId}"
-                                                   data-full-address="${addr.street}, ${addr.district}, ${addr.province}, ${addr.country}"
-                                                ${status.first || addr.userAddressId == address.userAddressId ? "checked" : ""}>
+                                <div class="address-dropdown" id="addressDropdown">
+                                    <button type="button" class="selected-address-btn" id="addressDropdownToggle">
+                                        <span class="selected-address-icon"><i class='bx bx-map-pin'></i></span>
+                                        <span class="selected-address-text">
+                                            <span class="selected-address-title" id="selectedAddressTitle">Địa chỉ nhận hàng</span>
+                                            <span class="selected-address-detail" id="selectedAddressDetail">
+                                                ${address.street}, ${address.district}, ${address.province}, ${address.country}
+                                            </span>
+                                        </span>
+                                        <i class='bx bx-chevron-down dropdown-arrow'></i>
+                                    </button>
 
-                                            <div class="address-content">
-                                                <div class="address-name">Địa chỉ nhận hàng ${status.index + 1}</div>
-                                                <div class="address-detail">
+                                    <div class="address-dropdown-menu" id="addressDropdownMenu">
+                                        <c:forEach items="${addresses}" var="addr" varStatus="status">
+                                            <label class="address-option">
+                                                <input type="radio"
+                                                       name="addressId"
+                                                       value="${addr.userAddressId}"
+                                                       data-title="Địa chỉ nhận hàng ${status.index + 1}"
+                                                       data-full-address="${addr.street}, ${addr.district}, ${addr.province}, ${addr.country}"
+                                                    ${status.first || addr.userAddressId == address.userAddressId ? "checked" : ""}>
+
+                                                <span class="address-custom-radio"></span>
+
+                                                <div class="address-content">
+                                                    <div class="address-name">Địa chỉ nhận hàng ${status.index + 1}</div>
+                                                    <div class="address-detail">
                                                         ${addr.street}, ${addr.district}, ${addr.province}, ${addr.country}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <span class="address-check"></span>
-                                            <span class="selected-border"></span>
-                                        </label>
-                                    </c:forEach>
+                                            </label>
+                                        </c:forEach>
+                                    </div>
                                 </div>
 
                                 <a href="${pageContext.request.contextPath}/Address" class="manage-address">
-                                    <i class='bx bx-edit'></i>
-                                    Quản lý địa chỉ
+                                    <i class='bx bx-plus-circle'></i>
+                                    Thêm địa chỉ
                                 </a>
                             </c:otherwise>
                         </c:choose>
@@ -120,17 +134,17 @@
                         <div class="form-grid" style="margin-top: 24px;">
                             <div class="field">
                                 <label>Họ và tên <span class="required">*</span></label>
-                                <input type="text" name="receiverName" placeholder="Nguyễn Thị Lan" required>
+                                <input type="text" name="receiverName" value="${empty sessionScope.user.userName ? '' : sessionScope.user.userName}" placeholder="Nhập họ và tên" required>
                             </div>
 
                             <div class="field">
                                 <label>Số điện thoại <span class="required">*</span></label>
-                                <input type="tel" name="receiverPhone" placeholder="0912 345 678" required>
+                                <input type="tel" name="receiverPhone" value="${empty sessionScope.user.phone ? '' : sessionScope.user.phone}" placeholder="Nhập số điện thoại" required>
                             </div>
 
                             <div class="field full">
                                 <label>Email</label>
-                                <input type="email" name="receiverEmail" placeholder="email@example.com">
+                                <input type="email" name="receiverEmail" value="${empty sessionScope.user.email ? '' : sessionScope.user.email}" placeholder="Nhập email nếu có">
                             </div>
 
                             <div class="field full">
@@ -325,8 +339,36 @@
         }
     }
 
+    const addressDropdown = document.getElementById('addressDropdown');
+    const addressDropdownToggle = document.getElementById('addressDropdownToggle');
+    const selectedAddressTitle = document.getElementById('selectedAddressTitle');
+    const selectedAddressDetail = document.getElementById('selectedAddressDetail');
+
+    function updateSelectedAddress(input) {
+        if (!input || !selectedAddressTitle || !selectedAddressDetail) return;
+
+        selectedAddressTitle.textContent = input.dataset.title || 'Địa chỉ nhận hàng';
+        selectedAddressDetail.textContent = input.dataset.fullAddress || '';
+    }
+
+    if (addressDropdownToggle && addressDropdown) {
+        addressDropdownToggle.addEventListener('click', function () {
+            addressDropdown.classList.toggle('open');
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!addressDropdown.contains(event.target)) {
+                addressDropdown.classList.remove('open');
+            }
+        });
+    }
+
     document.querySelectorAll("input[name='addressId']").forEach(function (input) {
         input.addEventListener('change', function () {
+            updateSelectedAddress(input);
+            if (addressDropdown) {
+                addressDropdown.classList.remove('open');
+            }
             loadShippingFeeByAddress(input);
         });
     });
@@ -349,6 +391,7 @@
 
     document.addEventListener('DOMContentLoaded', function () {
         const checkedAddress = document.querySelector("input[name='addressId']:checked");
+        updateSelectedAddress(checkedAddress);
         loadShippingFeeByAddress(checkedAddress);
     });
 </script>
