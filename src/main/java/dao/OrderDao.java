@@ -2,7 +2,9 @@ package dao;
 
 import model.Order;
 import model.Product;
-
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.*;
 
 public class OrderDao extends BaseDao {
@@ -547,8 +549,15 @@ public class OrderDao extends BaseDao {
             DATE(Create_At) AS orderDate,
             COALESCE(SUM(Total_Price), 0) AS revenue
         FROM orders
-        WHERE Create_At >= DATE_SUB(CURDATE(), INTERVAL :days DAY)
-          AND Status IN ('COMPLETED', 'SHIPPED')
+        WHERE Create_At >= DATE_SUB(
+            (
+                SELECT MAX(Create_At)
+                FROM orders
+                WHERE Status IN ('COMPLETED', 'SHIPPED')
+            ),
+            INTERVAL :days DAY
+        )
+        AND Status IN ('COMPLETED', 'SHIPPED')
         GROUP BY DATE(Create_At)
         ORDER BY orderDate ASC
     """;

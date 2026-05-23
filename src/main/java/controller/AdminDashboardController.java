@@ -43,7 +43,7 @@
 
         for (Map<String, Object> item : revenueChart) {
             double value = (double) item.get("value");
-            item.put("percent", max == 0 ? 5 : Math.max((value / max) * 100, 5));
+            item.put("percent", max == 0 ? 5 : Math.max((value / max) * 100, 18));
         }
 
         List<Product> topProducts = pDao.getTopProducts(5);
