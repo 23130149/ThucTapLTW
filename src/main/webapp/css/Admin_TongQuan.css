@@ -265,3 +265,135 @@ a {
 .status-pending { background: #fff4e5; color: #ffa117; }
 .status-completed { background: #e7f9ed; color: #27ae60; }
 .status-shipping { background: #e3f2fd; color: #2196f3; }
+.notification-wrapper {
+    position: relative;
+}
+
+.notification-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #555;
+    position: relative;
+    transition: 0.25s;
+}
+
+.notification-btn:hover {
+    background: #f1f3f6;
+    color: #11998e;
+}
+
+.notification-count {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 20px;
+    background: #ff4757;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notification-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 46px;
+    width: 320px;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.12);
+    padding: 14px;
+    z-index: 2000;
+}
+
+.notification-wrapper:hover .notification-dropdown {
+    display: block;
+}
+
+.notification-dropdown h4 {
+    margin-bottom: 10px;
+    font-size: 15px;
+}
+
+.notification-item {
+    display: block;
+    padding: 10px;
+    border-radius: 10px;
+    border-bottom: 1px solid #f1f1f1;
+    transition: 0.2s;
+}
+
+.notification-item:hover {
+    background: #f4f6fa;
+}
+
+.notification-type {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    color: white;
+    background: #11998e;
+    padding: 2px 7px;
+    border-radius: 20px;
+    margin-bottom: 5px;
+}
+
+.notification-item p {
+    font-size: 13px;
+    color: #333;
+}
+
+.empty-notification {
+    font-size: 13px;
+    color: #888;
+    padding: 10px 0;
+}
+
+.profile-admin {
+    padding: 6px 10px;
+    border-radius: 14px;
+    transition: 0.25s;
+}
+
+.profile-admin:hover {
+    background: #f1f3f6;
+}
+
+.view-all-link {
+    font-size: 14px;
+    color: #11998e;
+    font-weight: 600;
+}
+
+.detail-link {
+    color: #11998e;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.detail-link:hover {
+    text-decoration: underline;
+}
+
+.empty-table {
+    text-align: center;
+    color: #888;
+    padding: 25px;
+}
+
+.status-confirmed {
+    background: #eef2ff;
+    color: #4f46e5;
+}
