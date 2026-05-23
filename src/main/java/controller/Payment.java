@@ -1,6 +1,7 @@
 package controller;
 
 import cart.Cart;
+import cart.CartItem;
 import dao.OrderDao;
 import dao.OrderItemDao;
 import dao.UserAddressDao;
@@ -14,7 +15,10 @@ import model.UserAddress;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @WebServlet(name = "Payment", value = "/payment")
 public class Payment extends HttpServlet {
@@ -40,6 +44,20 @@ public class Payment extends HttpServlet {
             return;
         }
 
+        List<CartItem> selectedItems = getSelectedCartItems(cart, request.getParameterValues("productIds"));
+
+        if (selectedItems.isEmpty()) {
+            selectedItems = getSelectedCartItemsFromSession(cart, session);
+        }
+
+        if (selectedItems.isEmpty()) {
+            session.setAttribute("cartError", "Vui lòng chọn ít nhất một sản phẩm để thanh toán.");
+            response.sendRedirect(request.getContextPath() + "/cart");
+            return;
+        }
+
+        session.setAttribute("checkoutProductIds", getSelectedProductIdSet(selectedItems));
+
         List<UserAddress> addresses = addressDao.findByUserId(user.getUserId());
 
         UserAddress defaultAddress = null;
@@ -47,7 +65,7 @@ public class Payment extends HttpServlet {
             defaultAddress = addresses.get(0);
         }
 
-        BigDecimal totalPrice = BigDecimal.valueOf(cart.getTotalPrice());
+        BigDecimal totalPrice = calculateTotalPrice(selectedItems);
         BigDecimal shippingFee = BigDecimal.ZERO;
 
         if (defaultAddress != null) {
@@ -58,7 +76,7 @@ public class Payment extends HttpServlet {
 
         request.setAttribute("addresses", addresses);
         request.setAttribute("address", defaultAddress);
-        request.setAttribute("cartItems", cart.getList());
+        request.setAttribute("cartItems", selectedItems);
         request.setAttribute("totalPrice", totalPrice);
         request.setAttribute("shippingFee", shippingFee);
         request.setAttribute("grandTotal", grandTotal);
@@ -83,6 +101,18 @@ public class Payment extends HttpServlet {
         Cart cart = (Cart) session.getAttribute("cart");
 
         if (cart == null || cart.getList() == null || cart.getList().isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/cart");
+            return;
+        }
+
+        List<CartItem> selectedItems = getSelectedCartItems(cart, request.getParameterValues("productIds"));
+
+        if (selectedItems.isEmpty()) {
+            selectedItems = getSelectedCartItemsFromSession(cart, session);
+        }
+
+        if (selectedItems.isEmpty()) {
+            session.setAttribute("cartError", "Vui lòng chọn sản phẩm cần thanh toán.");
             response.sendRedirect(request.getContextPath() + "/cart");
             return;
         }
@@ -113,7 +143,7 @@ public class Payment extends HttpServlet {
             return;
         }
 
-        BigDecimal totalPrice = BigDecimal.valueOf(cart.getTotalPrice());
+        BigDecimal totalPrice = calculateTotalPrice(selectedItems);
         BigDecimal shippingFee = calculateShippingFee(addr);
         BigDecimal grandTotal = totalPrice.add(shippingFee);
 
@@ -122,13 +152,10 @@ public class Payment extends HttpServlet {
         Order order = new Order();
         order.setUserId(user.getUserId());
         order.setUserAddressId(addressId);
-        order.setNote(request.getParameter("note"));
+        order.setNote(getOrderNote(request));
         order.setStatus("PENDING");
         order.setOrderCode("DH" + System.currentTimeMillis());
-
-
         order.setTotalPrice(grandTotal);
-
         order.setShipAddress(shipAddress);
 
         OrderDao orderDao = new OrderDao();
@@ -142,12 +169,114 @@ public class Payment extends HttpServlet {
 
         OrderItemDao orderItemDao = new OrderItemDao();
 
-        cart.getList().forEach(item -> orderItemDao.insert(orderId, item));
+        for (CartItem item : selectedItems) {
+            orderItemDao.insert(orderId, item);
+            cart.deleteProduct(item.getProduct().getProductId());
+        }
 
-        session.removeAttribute("cart");
+        session.removeAttribute("checkoutProductIds");
+
+        if (cart.getList().isEmpty()) {
+            session.removeAttribute("cart");
+        } else {
+            session.setAttribute("cart", cart);
+        }
+
         session.setAttribute("orderSuccess", "Đặt hàng thành công!");
 
         response.sendRedirect(request.getContextPath() + "/OrderHistory");
+    }
+
+    private List<CartItem> getSelectedCartItems(Cart cart, String[] productIdParams) {
+        List<CartItem> selectedItems = new ArrayList<>();
+
+        if (cart == null || productIdParams == null || productIdParams.length == 0) {
+            return selectedItems;
+        }
+
+        Set<Integer> selectedIds = new HashSet<>();
+
+        for (String productIdRaw : productIdParams) {
+            if (productIdRaw == null || productIdRaw.trim().isEmpty()) {
+                continue;
+            }
+
+            try {
+                int productId = Integer.parseInt(productIdRaw.trim());
+                if (productId > 0) {
+                    selectedIds.add(productId);
+                }
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        for (Integer productId : selectedIds) {
+            CartItem item = cart.getItem(productId);
+            if (item != null) {
+                selectedItems.add(item);
+            }
+        }
+
+        return selectedItems;
+    }
+
+    private List<CartItem> getSelectedCartItemsFromSession(Cart cart, HttpSession session) {
+        Object value = session.getAttribute("checkoutProductIds");
+
+        if (!(value instanceof Set<?>)) {
+            return new ArrayList<>();
+        }
+
+        Set<Integer> productIds = new HashSet<>();
+
+        for (Object item : (Set<?>) value) {
+            if (item instanceof Integer) {
+                productIds.add((Integer) item);
+            }
+        }
+
+        List<CartItem> selectedItems = new ArrayList<>();
+
+        for (Integer productId : productIds) {
+            CartItem cartItem = cart.getItem(productId);
+            if (cartItem != null) {
+                selectedItems.add(cartItem);
+            }
+        }
+
+        return selectedItems;
+    }
+
+    private Set<Integer> getSelectedProductIdSet(List<CartItem> selectedItems) {
+        Set<Integer> selectedIds = new HashSet<>();
+
+        for (CartItem item : selectedItems) {
+            selectedIds.add(item.getProduct().getProductId());
+        }
+
+        return selectedIds;
+    }
+
+    private BigDecimal calculateTotalPrice(List<CartItem> items) {
+        BigDecimal total = BigDecimal.ZERO;
+
+        for (CartItem item : items) {
+            BigDecimal price = item.getPrice() == null ? BigDecimal.ZERO : item.getPrice();
+            total = total.add(price.multiply(BigDecimal.valueOf(item.getQuantity())));
+        }
+
+        return total;
+    }
+
+    private String getOrderNote(HttpServletRequest request) {
+        String orderNote = request.getParameter("orderNote");
+
+        if (orderNote != null && !orderNote.trim().isEmpty()) {
+            return orderNote.trim();
+        }
+
+        String note = request.getParameter("note");
+        return note == null ? null : note.trim();
     }
 
     private String buildShipAddress(UserAddress addr) {
@@ -165,10 +294,7 @@ public class Payment extends HttpServlet {
 
     private BigDecimal calculateShippingFee(UserAddress address) {
         String shipAddress = buildShipAddress(address);
-
-
         double distanceKm = estimateDistanceKm(shipAddress);
-
         return calculateFeeByDistance(distanceKm);
     }
 
@@ -191,7 +317,6 @@ public class Payment extends HttpServlet {
     }
 
     private double estimateDistanceKm(String shipAddress) {
-
         String address = shipAddress.toLowerCase();
 
         if (address.contains("thủ đức") || address.contains("quận 1") || address.contains("quận 3")) {

@@ -358,3 +358,28 @@ body {
 .checkout-button:hover {
     background: linear-gradient(#11998e, #38ef7d);
 }
+
+
+/* Checkbox chọn sản phẩm trong giỏ hàng */
+.item-checkbox,
+.check-all input {
+    cursor: pointer;
+    accent-color: #11998e;
+}
+
+.cart-item.unchecked {
+    opacity: 0.55;
+    transition: opacity 0.2s ease;
+}
+
+.cart-message.error {
+    background: #fff0f0;
+    color: #d93025;
+    border-color: #ffc9c9;
+}
+
+.cart-message.success {
+    background: #e8f8ee;
+    color: #1f7a3f;
+    border-color: #b9e4c9;
+}

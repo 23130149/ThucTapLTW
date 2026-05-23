@@ -66,6 +66,9 @@
     <h1 class="page-title">Thanh toán</h1>
 
     <form action="${pageContext.request.contextPath}/payment" method="post" id="checkoutForm">
+        <c:forEach items="${cartItems}" var="checkoutItem">
+            <input type="hidden" name="productIds" value="${checkoutItem.product.productId}">
+        </c:forEach>
         <div class="checkout-layout">
             <div class="left-column">
                 <section class="card">
@@ -307,8 +310,7 @@
         distanceNote.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Đang tính phí giao hàng theo khoảng cách...";
 
         try {
-            // Backend nên gọi Google Distance Matrix API, GHN API hoặc API vận chuyển tại servlet này.
-            // Response JSON đề xuất: { "distanceKm": 8.5, "shippingFee": 34000 }
+
             const res = await fetch(contextPath + '/api/shipping-fee?addressId=' + encodeURIComponent(addressId), {
                 headers: { 'Accept': 'application/json' }
             });
@@ -351,5 +353,10 @@
     });
 </script>
 
+
+<script>
+  window.APP_CONTEXT = '${pageContext.request.contextPath}';
+</script>
+<script src="${pageContext.request.contextPath}/js/search-suggest.js"></script>
 </body>
 </html>
