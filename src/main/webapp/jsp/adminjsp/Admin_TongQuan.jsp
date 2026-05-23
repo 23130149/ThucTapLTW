@@ -125,14 +125,26 @@
             </select>
         </div>
         <div class="bar-chart-container">
-            <c:forEach items="${revenueChart}" var="item">
-                <div class="bar-chart" style="height:${item.percent}%">
-                    <div class="revenue-label">
-                        <fmt:formatNumber value="${item.value}" groupingUsed="true"/>đ
-                    </div>
-                    <p>${item.label}</p>
-                </div>
-            </c:forEach>
+            <c:choose>
+                <c:when test="${empty revenueChart}">
+                    <p class="empty-notification">Chưa có dữ liệu doanh thu</p>
+                </c:when>
+
+                <c:otherwise>
+                    <c:forEach items="${revenueChart}" var="item">
+                        <div class="bar-item">
+                            <div class="bar-value">
+                                <fmt:formatNumber value="${item.value}" groupingUsed="true"/>đ
+                            </div>
+                            <div class="bar-column">
+                                <div class="bar-fill" style="height:${item.percent}%;"></div>
+                            </div>
+
+                            <div class="bar-date">${item.label}</div>
+                        </div>
+                    </c:forEach>
+                </c:otherwise>
+            </c:choose>
         </div>
     </div>
     <div class="chart-card">
@@ -144,9 +156,37 @@
                     <div class="product-rank rank-${st.count}">
                         #${st.count}
                     </div>
-                    <img src="${pageContext.request.contextPath}/${p.imageUrl}"
-                         class="product-img"
-                         onerror="this.src='${pageContext.request.contextPath}/images/default.png'">
+                    <c:choose>
+                        <c:when test="${not empty p.imageUrl}">
+                            <c:choose>
+                                <c:when test="${fn:startsWith(p.imageUrl, 'http')}">
+                                    <img src="${p.imageUrl}"
+                                         class="product-img"
+                                         alt="${p.productName}"
+                                         onerror="this.src='${pageContext.request.contextPath}/images/default.png'">
+                                </c:when>
+                                <c:when test="${fn:startsWith(p.imageUrl, '/')}">
+                                    <img src="${pageContext.request.contextPath}${p.imageUrl}"
+                                         class="product-img"
+                                         alt="${p.productName}"
+                                         onerror="this.src='${pageContext.request.contextPath}/images/default.png'">
+                                </c:when>
+
+                                <c:otherwise>
+                                    <img src="${pageContext.request.contextPath}/${p.imageUrl}"
+                                         class="product-img"
+                                         alt="${p.productName}"
+                                         onerror="this.src='${pageContext.request.contextPath}/images/default.png'">
+                                </c:otherwise>
+                            </c:choose>
+                        </c:when>
+
+                        <c:otherwise>
+                            <img src="${pageContext.request.contextPath}/images/default.png"
+                                 class="product-img"
+                                 alt="${p.productName}">
+                        </c:otherwise>
+                    </c:choose>
                     <div class="product-info">
                         <div class="product-name">${p.productName}</div>
                         <div class="product-sales">${p.sold} đã bán</div>
@@ -160,9 +200,13 @@
     </div>
     </div>
     <div class="table-card">
-        <div class="card-header">
+        <div class="table-title-row">
             <h3>Đơn hàng mới nhất</h3>
-            <a href="${pageContext.request.contextPath}/admin/orders" class="view-all-link">Xem tất cả</a>
+
+            <a href="${pageContext.request.contextPath}/admin/orders" class="view-all-link">
+                <i class="bx bx-list-ul"></i>
+                <span>Xem tất cả</span>
+            </a>
         </div>
 
         <div class="order-table-container">
@@ -185,10 +229,12 @@
                             <td colspan="6" class="empty-table">Chưa có đơn hàng nào</td>
                         </tr>
                     </c:when>
+
                     <c:otherwise>
                         <c:forEach items="${latestOrders}" var="o">
                             <tr>
                                 <td>${o.orderCode}</td>
+
                                 <td>
                                     <c:choose>
                                         <c:when test="${not empty o.userName}">
@@ -197,9 +243,11 @@
                                         <c:otherwise>Khách hàng</c:otherwise>
                                     </c:choose>
                                 </td>
+
                                 <td>
                                     <fmt:formatNumber value="${o.totalPrice}" groupingUsed="true"/>đ
                                 </td>
+
                                 <td>
                                 <span class="status
                                     ${o.status == 'PENDING' ? 'status-pending' :
@@ -209,7 +257,9 @@
                                         ${o.status}
                                 </span>
                                 </td>
+
                                 <td>${o.createAtFormatted}</td>
+
                                 <td>
                                     <a class="detail-link"
                                        href="${pageContext.request.contextPath}/admin/orders?detailId=${o.orderId}">
