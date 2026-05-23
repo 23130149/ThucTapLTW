@@ -14,7 +14,7 @@
     import java.util.List;
     import java.util.Map;
 
-    @WebServlet(name = "AdminDashboardController")
+    @WebServlet(name = "AdminDashboardController", value = "/admin/dashboard")
     public class AdminDashboardController extends HttpServlet {
         @Override
         protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -32,22 +32,19 @@
         int totalUsers = uDao.countUsers();
 
         List<Map<String, Object>> revenueChart = oDao.getRevenueChart(range);
-            double max = 0;
-            for (Map<String, Object> item : revenueChart) {
-                double value = (double) item.get("value");
-                if (value > max) max = value;
-            }
+        double max = 0;
 
-            if (max == 0) {
-                for (Map<String, Object> item : revenueChart) {
-                    item.put("percent", 5);
-                }
-            } else {
-                for (Map<String, Object> item : revenueChart) {
-                    double value = (double) item.get("value");
-                    item.put("percent", (value / max) * 100);
-                }
+        for (Map<String, Object> item : revenueChart) {
+            double value = (double) item.get("value");
+            if (value > max) {
+                max = value;
             }
+        }
+
+        for (Map<String, Object> item : revenueChart) {
+            double value = (double) item.get("value");
+            item.put("percent", max == 0 ? 5 : Math.max((value / max) * 100, 5));
+        }
 
         List<Product> topProducts = pDao.getTopProducts(5);
         if (topProducts == null) topProducts = new ArrayList<>();
@@ -64,6 +61,9 @@
             request.setAttribute("revenueChart", revenueChart);
             request.setAttribute("topProducts", topProducts);
             request.setAttribute("latestOrders", latestOrders);
+            request.setAttribute("notificationCount", oDao.countAdminNotifications());
+            request.setAttribute("latestNotifications", oDao.getLatestAdminNotifications(5));
+
             request.getRequestDispatcher("/jsp/adminjsp/Admin_TongQuan.jsp").forward(request, response);
     }
 
