@@ -57,21 +57,32 @@ public class ProductDao extends BaseDao {
 
     public List<Product> getTopProducts(int limit) {
         String sql = """
-            SELECT
-                p.product_id AS productId,
-                p.product_name AS productName,
-                p.product_price AS productPrice,
-                SUM(oi.quantity) AS sold,
-                SUM(oi.quantity * p.product_price) AS revenue
-            FROM products p
-            JOIN order_items oi ON p.product_id = oi.product_id
-            JOIN orders o ON oi.order_id = o.order_id
-            WHERE o.Status IN ('COMPLETED', 'SHIPPED')
-            GROUP BY p.product_id, p.product_name, p.product_price
-            ORDER BY sold DESC
-            LIMIT :limit
-        """;
-
+        SELECT 
+            p.Product_Id AS productId,
+            p.Product_Name AS productName,
+            p.Product_Price AS productPrice,
+            p.Stock_Quantity AS stockQuantity,
+            COALESCE(SUM(oi.Quantity), 0) AS sold,
+            COALESCE(SUM(oi.Quantity * oi.Unit_Price), 0) AS revenue,
+            (
+                SELECT pi.Image_Url
+                FROM product_images pi
+                WHERE pi.Product_Id = p.Product_Id
+                ORDER BY pi.Image_Id ASC
+                LIMIT 1
+            ) AS imageUrl
+        FROM products p
+        JOIN order_items oi ON p.Product_Id = oi.Product_Id
+        JOIN orders o ON oi.Order_Id = o.Order_Id
+        WHERE o.Status IN ('COMPLETED', 'SHIPPED')
+        GROUP BY 
+            p.Product_Id,
+            p.Product_Name,
+            p.Product_Price,
+            p.Stock_Quantity
+        ORDER BY sold DESC
+        LIMIT :limit
+    """;
         return getJdbi().withHandle(handle ->
                 handle.createQuery(sql)
                         .bind("limit", limit)
