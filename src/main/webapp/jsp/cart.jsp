@@ -147,5 +147,10 @@
 
 
 </section>
+
+<script>
+  window.APP_CONTEXT = '${pageContext.request.contextPath}';
+</script>
+<script src="${pageContext.request.contextPath}/js/search-suggest.js"></script>
 </body>
 </html>
