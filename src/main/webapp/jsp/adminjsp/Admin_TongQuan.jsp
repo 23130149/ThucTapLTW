@@ -43,23 +43,51 @@
             <button><i class="bx bx-search"></i></button>
         </div>
         <div class="user-info">
-            <span class="notification-badge">
-                <i class="bx bx-bell"></i>
-            </span>
-            <div class="profile-admin">
+            <div class="notification-wrapper">
+                <a href="${pageContext.request.contextPath}/admin/notifications" class="notification-btn">
+                    <i class="bx bx-bell"></i>
+                    <c:if test="${notificationCount > 0}">
+                        <span class="notification-count">${notificationCount}</span>
+                    </c:if>
+                </a>
+                <div class="notification-dropdown">
+                    <h4>Thông báo Admin</h4>
+                    <c:choose>
+                        <c:when test="${empty latestNotifications}">
+                            <p class="empty-notification">Không có thông báo mới</p>
+                        </c:when>
+                        <c:otherwise>
+                            <c:forEach items="${latestNotifications}" var="n">
+                                <a href="${pageContext.request.contextPath}${n.url}" class="notification-item">
+                                    <span class="notification-type">${n.type}</span>
+                                    <p>${n.message}</p>
+                                </a>
+                            </c:forEach>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
+            </div>
+            <a href="${pageContext.request.contextPath}/admin/setting" class="profile-admin">
                 <span class="admin-avatar">
                     <c:choose>
                         <c:when test="${not empty sessionScope.user.userName}">
-                            ${fn:substring(sessionScope.user.userName,0,1)}
+                            ${fn:substring(sessionScope.user.userName, 0, 1)}
                         </c:when>
                         <c:otherwise>A</c:otherwise>
                     </c:choose>
                 </span>
                 <div>
-                    <p class="user-name">${sessionScope.user.userName}</p>
+                    <p class="user-name">
+                        <c:choose>
+                            <c:when test="${not empty sessionScope.user.userName}">
+                                ${sessionScope.user.userName}
+                            </c:when>
+                            <c:otherwise>Admin</c:otherwise>
+                        </c:choose>
+                    </p>
                     <small class="user-role">Quản trị viên</small>
                 </div>
-            </div>
+            </a>
         </div>
     </header>
     <div class="stats-grid">
@@ -132,43 +160,76 @@
     </div>
     </div>
     <div class="table-card">
-        <h3>Đơn hàng mới</h3>
+        <div class="card-header">
+            <h3>Đơn hàng mới nhất</h3>
+            <a href="${pageContext.request.contextPath}/admin/orders" class="view-all-link">Xem tất cả</a>
+        </div>
+
         <div class="order-table-container">
             <table class="data-table">
                 <thead>
                 <tr>
-                    <th>Mã</th>
-                    <th>Khách</th>
-                    <th>Sản phẩm</th>
-                    <th>SL</th>
-                    <th>Tổng</th>
+                    <th>Mã đơn</th>
+                    <th>Khách hàng</th>
+                    <th>Tổng tiền</th>
                     <th>Trạng thái</th>
+                    <th>Ngày đặt</th>
+                    <th>Thao tác</th>
                 </tr>
                 </thead>
+
                 <tbody>
-                <c:forEach items="${latestOrders}" var="o">
-                    <tr>
-                        <td>${o.orderCode}</td>
-                        <td>${o.userName != null ? o.userName : 'Unknown'}</td>
-                        <td>${o.productName}</td>
-                        <td>${o.quantity}</td>
-                        <td>
-                            <fmt:formatNumber value="${o.totalPrice}" groupingUsed="true"/>đ
-                        </td>
-                        <td>
-                            <span class="status
-                                ${o.status == 'PENDING' ? 'status-pending' :
-                                  o.status == 'COMPLETED' ? 'status-completed' :
-                                  o.status == 'SHIPPING' ? 'status-shipping' : ''}">
-                                    ${o.status}
-                            </span>
-                        </td>
-                    </tr>
-                </c:forEach>
+                <c:choose>
+                    <c:when test="${empty latestOrders}">
+                        <tr>
+                            <td colspan="6" class="empty-table">Chưa có đơn hàng nào</td>
+                        </tr>
+                    </c:when>
+                    <c:otherwise>
+                        <c:forEach items="${latestOrders}" var="o">
+                            <tr>
+                                <td>${o.orderCode}</td>
+                                <td>
+                                    <c:choose>
+                                        <c:when test="${not empty o.userName}">
+                                            ${o.userName}
+                                        </c:when>
+                                        <c:otherwise>Khách hàng</c:otherwise>
+                                    </c:choose>
+                                </td>
+                                <td>
+                                    <fmt:formatNumber value="${o.totalPrice}" groupingUsed="true"/>đ
+                                </td>
+                                <td>
+                                <span class="status
+                                    ${o.status == 'PENDING' ? 'status-pending' :
+                                      o.status == 'COMPLETED' ? 'status-completed' :
+                                      o.status == 'SHIPPED' ? 'status-shipping' :
+                                      o.status == 'CONFIRMED' ? 'status-confirmed' : ''}">
+                                        ${o.status}
+                                </span>
+                                </td>
+                                <td>${o.createAtFormatted}</td>
+                                <td>
+                                    <a class="detail-link"
+                                       href="${pageContext.request.contextPath}/admin/orders?detailId=${o.orderId}">
+                                        <i class="bx bx-show-alt"></i>
+                                        Chi tiết
+                                    </a>
+                                </td>
+                            </tr>
+                        </c:forEach>
+                    </c:otherwise>
+                </c:choose>
                 </tbody>
             </table>
         </div>
     </div>
 </main>
+<script>
+    function changeRange(range) {
+        window.location.href = '${pageContext.request.contextPath}/admin/dashboard?range=' + range;
+    }
+</script>
 </body>
 </html>

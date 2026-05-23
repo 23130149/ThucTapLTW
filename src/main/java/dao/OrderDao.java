@@ -161,30 +161,6 @@ public class OrderDao extends BaseDao {
                         .one()
         );
     }
-    public List<Order> getLatestOrders(int limit) {
-        String sql = "select  o.Order_Id as orderId,o.User_Id as userId, o.User_Address_Id as userAddressId,  o.Create_At as createAt, o.Status as status, o.Order_Code as orderCode, o.Note as note, o.Total_Price as totalPrice, u.user_name as userName, p.Product_Name  as productName, oi.Quantity as quantity from orders o  join user u ON o.user_id = u.user_id join order_items oi ON o.order_id = oi.order_id join products p ON oi.product_id = p.product_id order by o.Create_At desc limit :limit";
-        return getJdbi().withHandle(handle ->
-                handle.createQuery(sql)
-                        .bind("limit", limit)
-                        .mapToBean(Order.class)
-                        .list()
-        );
-    }
-    public double getTotalRevenue() {
-        String sql = """
-            SELECT COALESCE(SUM(o.Total_Price), 0)
-            FROM orders o
-            WHERE YEAR(o.Create_At) = YEAR(CURDATE())
-              AND MONTH(o.Create_At) = MONTH(CURDATE())
-              AND o.Status IN ('COMPLETED', 'SHIPPED')
-        """;
-
-        return getJdbi().withHandle(handle ->
-                handle.createQuery(sql)
-                        .mapTo(Double.class)
-                        .one()
-        );
-    }
     public int insertAndReturnId(Order order) {
 
         String sql = """
@@ -523,33 +499,156 @@ public class OrderDao extends BaseDao {
                         .one()
         );
     }
-    public List<Map<String, Object>> getRevenueChart(String range) {
+    public List<Order> getLatestOrders(int limit) {
+        String sql = """
+        SELECT
+            o.Order_Id AS orderId,
+            o.User_Id AS userId,
+            o.User_Address_Id AS userAddressId,
+            o.Create_At AS createAt,
+            o.Status AS status,
+            o.Order_Code AS orderCode,
+            o.Note AS note,
+            o.Total_Price AS totalPrice,
+            u.User_Name AS userName
+        FROM orders o
+        LEFT JOIN user u ON o.User_Id = u.User_Id
+        ORDER BY o.Create_At DESC
+        LIMIT :limit
+    """;
 
-        List<Map<String, Object>> list = new ArrayList<>();
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("limit", limit)
+                        .mapToBean(Order.class)
+                        .list()
+        );
+    }
+
+    public double getTotalRevenue() {
+        String sql = """
+        SELECT COALESCE(SUM(Total_Price), 0)
+        FROM orders
+        WHERE Status IN ('COMPLETED', 'SHIPPED')
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .mapTo(Double.class)
+                        .one()
+        );
+    }
+
+    public List<Map<String, Object>> getRevenueChart(String range) {
         int days = "30".equals(range) ? 30 : 7;
 
         String sql = """
-        SELECT DATE(o.Create_At) AS order_date,
-               COALESCE(SUM(o.Total_Price), 0) AS revenue
-        FROM orders o
-        WHERE o.Create_At >= DATE_SUB(CURDATE(), INTERVAL :days DAY)
-          AND o.Status IN ('COMPLETED', 'SHIPPED')
-        GROUP BY DATE(o.Create_At)
-        ORDER BY order_date ASC
+        SELECT 
+            DATE(Create_At) AS orderDate,
+            COALESCE(SUM(Total_Price), 0) AS revenue
+        FROM orders
+        WHERE Create_At >= DATE_SUB(CURDATE(), INTERVAL :days DAY)
+          AND Status IN ('COMPLETED', 'SHIPPED')
+        GROUP BY DATE(Create_At)
+        ORDER BY orderDate ASC
     """;
+
         return getJdbi().withHandle(handle ->
                 handle.createQuery(sql)
                         .bind("days", days)
                         .map((rs, ctx) -> {
-                            Map<String, Object> map = new HashMap<>();
-                            String label = rs.getDate("order_date")
-                                    .toLocalDate()
-                                    .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM"));
-                            double value = rs.getDouble("revenue");
-                            map.put("label", label);
-                            map.put("value", value);
-                            return map;
+                            Map<String, Object> item = new HashMap<>();
+                            item.put("label", rs.getDate("orderDate").toString());
+                            item.put("value", rs.getDouble("revenue"));
+                            return item;
                         })
+                        .list()
+        );
+    }
+
+    public int countAdminNotifications() {
+        String sql = """
+        SELECT
+            (
+                SELECT COUNT(*)
+                FROM orders
+                WHERE Status IN ('PENDING', 'CONFIRMED')
+            )
+            +
+            (
+                SELECT COUNT(*)
+                FROM reviews
+                WHERE Status = 'PENDING'
+            )
+            +
+            (
+                SELECT COUNT(*)
+                FROM contact
+            )
+            +
+            (
+                SELECT COUNT(*)
+                FROM products
+                WHERE Stock_Quantity <= 0
+            ) AS total
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .mapTo(Integer.class)
+                        .one()
+        );
+    }
+
+    public List<Map<String, Object>> getLatestAdminNotifications(int limit) {
+        String sql = """
+        SELECT *
+        FROM (
+            SELECT 
+                'ORDER' AS type,
+                CONCAT('Đơn hàng ', Order_Code, ' đang chờ xử lý') AS message,
+                Create_At AS createdAt,
+                CONCAT('/admin/orders?detailId=', Order_Id) AS url
+            FROM orders
+            WHERE Status IN ('PENDING', 'CONFIRMED')
+
+            UNION ALL
+
+            SELECT 
+                'REVIEW' AS type,
+                'Có đánh giá mới đang chờ duyệt' AS message,
+                Create_At AS createdAt,
+                '/admin/reviews' AS url
+            FROM reviews
+            WHERE Status = 'PENDING'
+
+            UNION ALL
+
+            SELECT 
+                'CONTACT' AS type,
+                CONCAT('Liên hệ mới: ', Subject) AS message,
+                Create_At AS createdAt,
+                '/admin/contacts' AS url
+            FROM contact
+
+            UNION ALL
+
+            SELECT 
+                'STOCK' AS type,
+                CONCAT('Sản phẩm ', Product_Name, ' đã hết hàng') AS message,
+                NOW() AS createdAt,
+                '/admin/products' AS url
+            FROM products
+            WHERE Stock_Quantity <= 0
+        ) n
+        ORDER BY createdAt DESC
+        LIMIT :limit
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("limit", limit)
+                        .mapToMap()
                         .list()
         );
     }
