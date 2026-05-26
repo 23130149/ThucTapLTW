@@ -38,23 +38,51 @@
     <header class="header">
         <h2>Quản lý danh mục</h2>
         <div class="user-info">
-            <span class="notification-badge">
-                <i class="bx bx-bell"></i>
-            </span>
-            <div class="profile-admin">
+            <div class="notification-wrapper">
+                <a href="${pageContext.request.contextPath}/admin/notifications" class="notification-btn">
+                    <i class="bx bx-bell"></i>
+                    <c:if test="${notificationCount > 0}">
+                        <span class="notification-count">${notificationCount}</span>
+                    </c:if>
+                </a>
+                <div class="notification-dropdown">
+                    <h4>Thông báo Admin</h4>
+                    <c:choose>
+                        <c:when test="${empty latestNotifications}">
+                            <p class="empty-notification">Không có thông báo mới</p>
+                        </c:when>
+                        <c:otherwise>
+                            <c:forEach items="${latestNotifications}" var="n">
+                                <a href="${pageContext.request.contextPath}${n.url}" class="notification-item">
+                                    <span class="notification-type">${n.type}</span>
+                                    <p>${n.message}</p>
+                                </a>
+                            </c:forEach>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
+            </div>
+            <a href="${pageContext.request.contextPath}/admin/setting" class="profile-admin">
                 <span class="admin-avatar">
                     <c:choose>
                         <c:when test="${not empty sessionScope.user.userName}">
-                            ${fn:substring(sessionScope.user.userName,0,1)}
+                            ${fn:substring(sessionScope.user.userName, 0, 1)}
                         </c:when>
                         <c:otherwise>A</c:otherwise>
                     </c:choose>
                 </span>
                 <div>
-                    <p class="user-name">${sessionScope.user.userName}</p>
+                    <p class="user-name">
+                        <c:choose>
+                            <c:when test="${not empty sessionScope.user.userName}">
+                                ${sessionScope.user.userName}
+                            </c:when>
+                            <c:otherwise>Admin</c:otherwise>
+                        </c:choose>
+                    </p>
                     <small class="user-role">Quản trị viên</small>
                 </div>
-            </div>
+            </a>
         </div>
     </header>
     <div class="category-summary-grid">
@@ -75,12 +103,15 @@
         </div>
     </div>
     <div class="customer-search-filter-row">
-        <div class="search-customer-box">
+        <form class="search-customer-box" method="get" action="${pageContext.request.contextPath}/admin/category">
             <i class="bx bx-search"></i>
-            <input type="text" placeholder="Tìm kiếm danh mục...">
-        </div>
-        <button class="add-category-btn"><i class="bx bx-plus"></i>Thêm danh mục</button>
+            <input type="text" name="keyword" value="${keyword}" placeholder="Tìm kiếm danh mục...">
+        </form>
+        <button type="button" class="add-category-btn" onclick="openAddCategoryModal()">
+            <i class="bx bx-plus"></i>Thêm danh mục
+        </button>
     </div>
+
     <div class="order-table-container">
         <table class="data-table">
             <thead>
@@ -90,20 +121,140 @@
                 <th>Thao tác</th>
             </tr>
             </thead>
+
             <tbody>
-            <c:forEach var="c" items="${categories}">
-                <tr>
-                    <td>${c.name}</td>
-                    <td>${c.productCount}</td>
-                    <td>
-                        <i class="bx bx-edit action-icon"></i>
-                        <i class="bx bx-trash action-icon"></i>
-                    </td>
-                </tr>
-            </c:forEach>
+            <c:choose>
+                <c:when test="${empty categories}">
+                    <tr>
+                        <td colspan="3" class="empty-table">Không có danh mục nào</td>
+                    </tr>
+                </c:when>
+
+                <c:otherwise>
+                    <c:forEach var="category" items="${categories}">
+                        <tr>
+                            <td>${category.name}</td>
+                            <td>${category.productCount}</td>
+                            <td>
+                                <button type="button"
+                                        class="action-btn edit-category-btn"
+                                        data-id="${category.categoryId}"
+                                        data-name="${category.name}"
+                                        data-image="${category.imageUrl}">
+                                    <i class="bx bx-edit action-icon"></i>
+                                </button>
+                                <a href="${pageContext.request.contextPath}/admin/category?action=delete&id=${category.categoryId}"
+                                   onclick="return confirm('Bạn có chắc muốn xóa danh mục này không?')">
+                                    <i class="bx bx-trash action-icon"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    </c:forEach>
+                </c:otherwise>
+            </c:choose>
             </tbody>
         </table>
     </div>
 </main>
+<div class="modal-overlay" id="addCategoryModal">
+    <div class="category-modal">
+        <div class="modal-header">
+            <h3>Thêm danh mục</h3>
+            <button type="button" class="close-modal-btn" onclick="closeAddCategoryModal()">
+                <i class="bx bx-x"></i>
+            </button>
+        </div>
+
+        <form method="post" action="${pageContext.request.contextPath}/admin/category">
+            <input type="hidden" name="action" value="add">
+
+            <div class="form-group">
+                <label>Tên danh mục</label>
+                <input type="text" name="name" placeholder="Nhập tên danh mục..." required>
+            </div>
+
+            <div class="form-group">
+                <label>Ảnh danh mục</label>
+                <input type="text" name="imageUrl" placeholder="Nhập đường dẫn ảnh...">
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="cancel-btn" onclick="closeAddCategoryModal()">Hủy</button>
+                <button type="submit" class="save-btn">Lưu danh mục</button>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="modal-overlay" id="editCategoryModal">
+    <div class="category-modal">
+        <div class="modal-header">
+            <h3>Chỉnh sửa danh mục</h3>
+            <button type="button" class="close-modal-btn" onclick="closeEditCategoryModal()">
+                <i class="bx bx-x"></i>
+            </button>
+        </div>
+
+        <form method="post" action="${pageContext.request.contextPath}/admin/category">
+            <input type="hidden" name="action" value="edit">
+            <input type="hidden" name="categoryId" id="editCategoryId">
+            <div class="form-group">
+                <label>Tên danh mục</label>
+                <input type="text" name="name" id="editCategoryName" placeholder="Nhập tên danh mục..." required>
+            </div>
+
+            <div class="form-group">
+                <label>Ảnh danh mục</label>
+                <input type="text" name="imageUrl" id="editCategoryImageUrl" placeholder="Nhập đường dẫn ảnh...">
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="cancel-btn" onclick="closeEditCategoryModal()">Hủy</button>
+                <button type="submit" class="save-btn">Lưu thay đổi</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openAddCategoryModal() {
+        document.getElementById("addCategoryModal").classList.add("show");
+    }
+
+    function closeAddCategoryModal() {
+        document.getElementById("addCategoryModal").classList.remove("show");
+    }
+
+    function openEditCategoryModal(id, name, imageUrl) {
+        document.getElementById("editCategoryId").value = id;
+        document.getElementById("editCategoryName").value = name;
+        document.getElementById("editCategoryImageUrl").value = imageUrl || "";
+        document.getElementById("editCategoryModal").classList.add("show");
+    }
+
+    function closeEditCategoryModal() {
+        document.getElementById("editCategoryModal").classList.remove("show");
+    }
+
+    document.querySelectorAll(".edit-category-btn").forEach(function (button) {
+        button.addEventListener("click", function () {
+            openEditCategoryModal(
+                this.dataset.id,
+                this.dataset.name,
+                this.dataset.image
+            );
+        });
+    });
+
+    document.getElementById("addCategoryModal").addEventListener("click", function (event) {
+        if (event.target === this) {
+            closeAddCategoryModal();
+        }
+    });
+
+    document.getElementById("editCategoryModal").addEventListener("click", function (event) {
+        if (event.target === this) {
+            closeEditCategoryModal();
+        }
+    });
+</script>
 </body>
 </html>
