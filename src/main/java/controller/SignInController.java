@@ -1,5 +1,7 @@
 package controller;
 
+import cart.Cart;
+import dao.CartDao;
 import dao.UserDao;
 import model.User;
 import jakarta.servlet.ServletException;
@@ -13,15 +15,22 @@ import java.io.IOException;
 public class SignInController extends HttpServlet {
 
     private UserDao userDao;
+    private CartDao cartDao;
 
     @Override
     public void init() {
         userDao = new UserDao();
+        cartDao = new CartDao();
     }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        String redirect = request.getParameter("redirect");
+        if (redirect != null && !redirect.trim().isEmpty()) {
+            request.getSession().setAttribute("redirectAfterLogin", sanitizeRedirect(redirect));
+        }
 
         request.getRequestDispatcher("/jsp/signin.jsp").forward(request, response);
     }
@@ -46,12 +55,41 @@ public class SignInController extends HttpServlet {
         }
 
         HttpSession session = request.getSession();
+
+        Cart sessionCart = (Cart) session.getAttribute("cart");
+        cartDao.mergeSessionCartToDb(user.getUserId(), sessionCart);
+        session.setAttribute("cart", cartDao.getCartByUserId(user.getUserId()));
         session.setAttribute("user", user);
 
         if ("ADMIN".equalsIgnoreCase(user.getRole())) {
             response.sendRedirect(request.getContextPath() + "/admin/dashboard");
         } else {
-            response.sendRedirect(request.getContextPath() + "/Account");
+            String redirectAfterLogin = sanitizeRedirect((String) session.getAttribute("redirectAfterLogin"));
+            session.removeAttribute("redirectAfterLogin");
+
+            if (redirectAfterLogin != null && !redirectAfterLogin.isBlank()) {
+                response.sendRedirect(request.getContextPath() + "/" + redirectAfterLogin);
+            } else {
+                response.sendRedirect(request.getContextPath() + "/Account");
+            }
         }
+    }
+
+    private String sanitizeRedirect(String redirect) {
+        if (redirect == null) {
+            return null;
+        }
+
+        String value = redirect.trim();
+
+        if (value.startsWith("http://") || value.startsWith("https://") || value.startsWith("//")) {
+            return null;
+        }
+
+        while (value.startsWith("/")) {
+            value = value.substring(1);
+        }
+
+        return value.isBlank() ? null : value;
     }
 }
