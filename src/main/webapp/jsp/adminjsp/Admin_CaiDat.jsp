@@ -86,6 +86,7 @@
             </div>
 
             <form action="${pageContext.request.contextPath}/admin/setting" method="post">
+                <input type="hidden" name="action" value="updateStore">
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="storeName">Tên cửa hàng</label>
@@ -188,6 +189,141 @@
             <div class="settings-card-header">
                 <div>
                     <h3>
+                        <i class="bx bx-shield-quarter"></i>
+                        Phân quyền quản trị
+                    </h3>
+                    <p>Thiết lập quyền truy cập các chức năng trong trang quản trị.</p>
+                </div>
+            </div>
+
+            <form action="${pageContext.request.contextPath}/admin/setting" method="post">
+                <input type="hidden" name="action" value="updatePermission">
+
+                <div class="permission-table">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Chức năng</th>
+                            <th>Quản trị viên</th>
+                            <th>Nhân viên</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr>
+                            <td>
+                                <div class="permission-name">
+                                    <i class="bx bx-chart"></i>
+                                    <span>Tổng quan</span>
+                                </div>
+                            </td>
+                            <td><input type="checkbox" checked disabled></td>
+                            <td><input type="checkbox" name="staffDashboard" checked></td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <div class="permission-name">
+                                    <i class="bx bx-category"></i>
+                                    <span>Danh mục</span>
+                                </div>
+                            </td>
+                            <td><input type="checkbox" checked disabled></td>
+                            <td><input type="checkbox" name="staffCategory"></td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <div class="permission-name">
+                                    <i class="bx bx-package"></i>
+                                    <span>Sản phẩm</span>
+                                </div>
+                            </td>
+                            <td><input type="checkbox" checked disabled></td>
+                            <td><input type="checkbox" name="staffProduct" checked></td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <div class="permission-name">
+                                    <i class="bx bx-receipt"></i>
+                                    <span>Đơn hàng</span>
+                                </div>
+                            </td>
+                            <td><input type="checkbox" checked disabled></td>
+                            <td><input type="checkbox" name="staffOrder" checked></td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <div class="permission-name">
+                                    <i class="bx bx-group"></i>
+                                    <span>Khách hàng</span>
+                                </div>
+                            </td>
+                            <td><input type="checkbox" checked disabled></td>
+                            <td><input type="checkbox" name="staffCustomer" checked></td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <div class="permission-name">
+                                    <i class="bx bx-star"></i>
+                                    <span>Đánh giá</span>
+                                </div>
+                            </td>
+                            <td><input type="checkbox" checked disabled></td>
+                            <td><input type="checkbox" name="staffReview" checked></td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <div class="permission-name">
+                                    <i class="bx bx-envelope"></i>
+                                    <span>Liên hệ</span>
+                                </div>
+                            </td>
+                            <td><input type="checkbox" checked disabled></td>
+                            <td><input type="checkbox" name="staffContact" checked></td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <div class="permission-name">
+                                    <i class="bx bx-image"></i>
+                                    <span>Banner</span>
+                                </div>
+                            </td>
+                            <td><input type="checkbox" checked disabled></td>
+                            <td><input type="checkbox" name="staffBanner"></td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <div class="permission-name">
+                                    <i class="bx bx-cog"></i>
+                                    <span>Cài đặt</span>
+                                </div>
+                            </td>
+                            <td><input type="checkbox" checked disabled></td>
+                            <td><input type="checkbox" name="staffSetting"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card-footer">
+                    <button type="submit" class="btn-save">
+                        <i class="bx bx-save"></i>
+                        Lưu phân quyền
+                    </button>
+                </div>
+            </form>
+        </section>
+        <section class="settings-card">
+            <div class="settings-card-header">
+                <div>
+                    <h3>
                         <i class="bx bx-lock-alt"></i>
                         Bảo mật tài khoản
                     </h3>
@@ -196,6 +332,7 @@
             </div>
 
             <form action="${pageContext.request.contextPath}/admin/setting" method="post">
+                <input type="hidden" name="action" value="changePassword">
                 <div class="form-grid">
                     <div class="form-group full-width">
                         <label for="currentPassword">Mật khẩu hiện tại</label>
@@ -214,7 +351,7 @@
                 </div>
 
                 <div class="card-footer">
-                    <button type="button" class="btn-password">
+                    <button type="submit" class="btn-password">
                         <i class="bx bx-lock-alt"></i>
                         Đổi mật khẩu
                     </button>
