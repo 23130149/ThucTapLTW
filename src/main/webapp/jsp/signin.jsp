@@ -17,6 +17,13 @@
 <body>
 <div class="wrapper">
 
+  <% if (session.getAttribute("loginMessage") != null) { %>
+  <p class="error-message">
+    <%= session.getAttribute("loginMessage") %>
+  </p>
+  <% session.removeAttribute("loginMessage"); %>
+  <% } %>
+
   <% if (request.getAttribute("error") != null) { %>
   <p class="error-message">
     <%= request.getAttribute("error") %>

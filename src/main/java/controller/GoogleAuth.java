@@ -1,5 +1,6 @@
 package controller;
 
+import dao.CartDao;
 import dao.UserDao;
 import model.User;
 
@@ -13,9 +14,11 @@ import java.io.IOException;
 public class GoogleAuth extends HttpServlet {
 
     private UserDao userDao;
+    private CartDao cartDao;
     @Override
     public void init() {
         userDao = new UserDao();
+        cartDao = new CartDao();
     }
 
     @Override
@@ -47,12 +50,26 @@ public class GoogleAuth extends HttpServlet {
             user = userDao.findByEmail(email);
         }
         HttpSession session = request.getSession();
+        session.setAttribute("cart", cartDao.getCartByUserId(user.getUserId()));
         session.setAttribute("user", user);
 
         if ("ADMIN".equalsIgnoreCase(user.getRole())) {
             response.sendRedirect(request.getContextPath() + "/jsp/adminjsp/Admin_Tongquan.jsp");
         } else {
-            response.sendRedirect(request.getContextPath() + "/Account");
+            String redirectAfterLogin = (String) session.getAttribute("redirectAfterLogin");
+            session.removeAttribute("redirectAfterLogin");
+
+            if (redirectAfterLogin != null && !redirectAfterLogin.isBlank()
+                    && !redirectAfterLogin.startsWith("http://")
+                    && !redirectAfterLogin.startsWith("https://")
+                    && !redirectAfterLogin.startsWith("//")) {
+                while (redirectAfterLogin.startsWith("/")) {
+                    redirectAfterLogin = redirectAfterLogin.substring(1);
+                }
+                response.sendRedirect(request.getContextPath() + "/" + redirectAfterLogin);
+            } else {
+                response.sendRedirect(request.getContextPath() + "/Account");
+            }
         }
     }
 
