@@ -1,20 +1,34 @@
 package controller.cart;
 
 import cart.Cart;
+import dao.CartDao;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 import model.Product;
+import model.User;
 import service.ProductService;
 
 import java.io.IOException;
 
 @WebServlet(name = "AddCart", value = "/Add-Cart")
 public class AddCart extends HttpServlet {
+    private final CartDao cartDao = new CartDao();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        HttpSession session = request.getSession(false);
+        User user = session == null ? null : (User) session.getAttribute("user");
+
+        if (user == null) {
+            session = request.getSession(true);
+            session.setAttribute("loginMessage", "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.");
+            session.setAttribute("redirectAfterLogin", "cart");
+            response.sendRedirect(request.getContextPath() + "/SignIn");
+            return;
+        }
 
         String idRaw = request.getParameter("id");
         String qRaw = request.getParameter("quantity");
@@ -56,21 +70,15 @@ public class AddCart extends HttpServlet {
             return;
         }
 
-        HttpSession session = request.getSession();
-
-        Cart cart = (Cart) session.getAttribute("cart");
-
-        if (cart == null) {
-            cart = new Cart();
-        }
-
-        cart.addProduct(p, quantity);
+        cartDao.addProduct(user.getUserId(), id, quantity);
+        Cart cart = cartDao.getCartByUserId(user.getUserId());
 
         session.setAttribute("cart", cart);
         session.setAttribute("cartMessage", "Đã thêm sản phẩm vào giỏ hàng");
 
         if ("1".equals(request.getParameter("buyNow"))) {
-            response.sendRedirect(request.getContextPath() + "/payment");
+            session.setAttribute("checkoutProductIds", java.util.Set.of(id));
+            response.sendRedirect(request.getContextPath() + "/payment?productIds=" + id);
             return;
         }
 
