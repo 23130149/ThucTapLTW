@@ -127,6 +127,17 @@ public class ProductDao extends BaseDao {
         );
     }
 
+    public Product getProductById(int id) {
+        String sql = "select p.product_id AS productId, p.category_id AS categoryId, p.product_name AS productName, c.name AS categoryName, p.product_price AS productPrice, p.stock_quantity AS stockQuantity, p.product_description AS productDescription, (select pi.image_url from product_images pi where pi.product_id = p.product_id order by pi.image_id ASC limit 1) as imageUrl from products p join categories c on p.category_id = c.category_id where p.product_id = :id";
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("id", id)
+                        .mapToBean(Product.class)
+                        .findOne()
+                        .orElse(null)
+        );
+    }
+
     public List<Product> getRelatedProducts(int categoryId, int currentProductId, int limit) {
         String sql = """
                 SELECT
@@ -246,15 +257,23 @@ public class ProductDao extends BaseDao {
     }
 
     public List<Product> getFilteredProducts(String keyword, String categoryId, String status, String priceRange, int page, int pageSize) {
-        return getFilteredProducts(keyword, categoryId, status, priceRange, null, null, null, page, pageSize);
+        List<Integer> categoryIds = new ArrayList<>();
+        String cleaned = clean(categoryId);
+        if (cleaned != null) {
+            try {
+                categoryIds.add(Integer.parseInt(cleaned));
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return getFilteredProducts(keyword, categoryIds, status, priceRange, null, page, pageSize);
     }
 
-    public List<Product> getFilteredProducts(String keyword, String categoryId, String status, String priceRange,
-                                             String material, String usage, String sort, int page, int pageSize) {
+    public List<Product> getFilteredProducts(String keyword, List<Integer> categoryIds, String status, String priceRange,
+                                             String sort, int page, int pageSize) {
         StringBuilder sql = new StringBuilder(PRODUCT_SELECT);
         Map<String, Object> params = new HashMap<>();
 
-        appendFilters(sql, params, keyword, categoryId, status, priceRange, material, usage);
+        appendFilters(sql, params, keyword, categoryIds, status, priceRange);
         appendSort(sql, sort);
 
         int safePage = Math.max(page, 1);
@@ -268,16 +287,24 @@ public class ProductDao extends BaseDao {
         return getJdbi().withHandle(handle -> {
             Query query = handle.createQuery(sql.toString());
             params.forEach(query::bind);
+            bindCategoryIds(query, categoryIds);
             return query.mapToBean(Product.class).list();
         });
     }
 
     public int countFilteredProducts(String keyword, String categoryId, String status, String priceRange) {
-        return countFilteredProducts(keyword, categoryId, status, priceRange, null, null);
+        List<Integer> categoryIds = new ArrayList<>();
+        String cleaned = clean(categoryId);
+        if (cleaned != null) {
+            try {
+                categoryIds.add(Integer.parseInt(cleaned));
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return countFilteredProducts(keyword, categoryIds, status, priceRange);
     }
 
-    public int countFilteredProducts(String keyword, String categoryId, String status, String priceRange,
-                                     String material, String usage) {
+    public int countFilteredProducts(String keyword, List<Integer> categoryIds, String status, String priceRange) {
         StringBuilder sql = new StringBuilder("""
                 SELECT COUNT(*)
                 FROM products p
@@ -286,11 +313,12 @@ public class ProductDao extends BaseDao {
                 """);
 
         Map<String, Object> params = new HashMap<>();
-        appendFilters(sql, params, keyword, categoryId, status, priceRange, material, usage);
+        appendFilters(sql, params, keyword, categoryIds, status, priceRange);
 
         return getJdbi().withHandle(handle -> {
             Query query = handle.createQuery(sql.toString());
             params.forEach(query::bind);
+            bindCategoryIds(query, categoryIds);
             return query.mapTo(Integer.class).one();
         });
     }
@@ -305,7 +333,7 @@ public class ProductDao extends BaseDao {
         Map<String, Object> params = new HashMap<>();
         appendKeywordFilter(sql, params, cleanedKeyword);
         sql.append(" ORDER BY COALESCE(s.sold, 0) DESC, p.product_id DESC LIMIT :limit");
-        params.put("limit", Math.max(1, Math.min(limit, 8)));
+        params.put("limit", Math.max(1, Math.min(limit, 4)));
 
         return getJdbi().withHandle(handle -> {
             Query query = handle.createQuery(sql.toString());
@@ -314,14 +342,12 @@ public class ProductDao extends BaseDao {
         });
     }
 
-    private void appendFilters(StringBuilder sql, Map<String, Object> params, String keyword, String categoryId,
-                               String status, String priceRange, String material, String usage) {
+    private void appendFilters(StringBuilder sql, Map<String, Object> params, String keyword, List<Integer> categoryIds,
+                               String status, String priceRange) {
         appendKeywordFilter(sql, params, keyword);
-        appendCategoryFilter(sql, params, categoryId);
+        appendCategoryFilter(sql, categoryIds);
         appendStatusFilter(sql, status);
         appendPriceFilter(sql, priceRange);
-        appendMaterialFilter(sql, params, material);
-        appendUsageFilter(sql, params, usage);
     }
 
     private void appendKeywordFilter(StringBuilder sql, Map<String, Object> params, String keyword) {
@@ -341,7 +367,6 @@ public class ProductDao extends BaseDao {
 
     private List<String> splitKeywordTerms(String keyword) {
         List<String> terms = new ArrayList<>();
-
         if (keyword.contains("+")) {
             for (String part : keyword.split("\\+")) {
                 String cleaned = clean(part);
@@ -351,18 +376,17 @@ public class ProductDao extends BaseDao {
             String cleaned = clean(keyword);
             if (cleaned != null) terms.add(cleaned);
         }
-
         return terms;
     }
 
-    private void appendCategoryFilter(StringBuilder sql, Map<String, Object> params, String categoryId) {
-        String cleaned = clean(categoryId);
-        if (cleaned == null) return;
+    private void appendCategoryFilter(StringBuilder sql, List<Integer> categoryIds) {
+        if (categoryIds == null || categoryIds.isEmpty()) return;
+        sql.append(" AND p.category_id IN (<categoryIds>)");
+    }
 
-        try {
-            sql.append(" AND p.category_id = :categoryId");
-            params.put("categoryId", Integer.parseInt(cleaned));
-        } catch (NumberFormatException ignored) {
+    private void bindCategoryIds(Query query, List<Integer> categoryIds) {
+        if (categoryIds != null && !categoryIds.isEmpty()) {
+            query.bindList("categoryIds", categoryIds);
         }
     }
 
@@ -382,49 +406,6 @@ public class ProductDao extends BaseDao {
             case "100000-500000" -> sql.append(" AND p.product_price BETWEEN 100000 AND 500000");
             case "500000+" -> sql.append(" AND p.product_price > 500000");
         }
-    }
-
-    private void appendMaterialFilter(StringBuilder sql, Map<String, Object> params, String material) {
-        String cleaned = clean(material);
-        if (cleaned == null || "all".equals(cleaned)) return;
-
-        String label = switch (cleaned) {
-            case "len" -> "len";
-            case "vai" -> "vải";
-            case "go" -> "gỗ";
-            case "giay" -> "giấy";
-            case "da" -> "da";
-            case "hat" -> "hạt";
-            case "soi" -> "sợi";
-            default -> cleaned;
-        };
-
-        sql.append(" AND (p.product_name LIKE :material OR p.product_description LIKE :material OR c.name LIKE :material)");
-        params.put("material", "%" + label + "%");
-    }
-
-    private void appendUsageFilter(StringBuilder sql, Map<String, Object> params, String usage) {
-        String cleaned = clean(usage);
-        if (cleaned == null || "all".equals(cleaned)) return;
-
-        List<String> words = switch (cleaned) {
-            case "trang-tri" -> List.of("trang trí", "decor", "nhà", "phòng");
-            case "thoi-trang" -> List.of("thời trang", "phụ kiện", "túi", "vòng", "áo");
-            case "qua-tang" -> List.of("quà", "tặng", "sinh nhật", "kỷ niệm");
-            case "gia-dung" -> List.of("gia dụng", "bếp", "nhà", "khay", "ly");
-            default -> List.of(cleaned);
-        };
-
-        sql.append(" AND (");
-        for (int i = 0; i < words.size(); i++) {
-            if (i > 0) sql.append(" OR ");
-            String paramName = "usage" + i;
-            sql.append("p.product_name LIKE :").append(paramName)
-                    .append(" OR p.product_description LIKE :").append(paramName)
-                    .append(" OR c.name LIKE :").append(paramName);
-            params.put(paramName, "%" + words.get(i) + "%");
-        }
-        sql.append(")");
     }
 
     private void appendSort(StringBuilder sql, String sort) {
@@ -461,79 +442,5 @@ public class ProductDao extends BaseDao {
                         .list()
         );
     }
-    public List<Product> getTopProductsByStatus(int limit, String status) {
-        String sql = """
-        SELECT 
-            p.Product_Id AS productId,
-            p.Product_Name AS productName,
-            p.Product_Price AS productPrice,
-            p.Stock_Quantity AS stockQuantity,
-            COALESCE(SUM(oi.Quantity), 0) AS sold,
-            COALESCE(SUM(oi.Quantity * oi.Unit_Price), 0) AS revenue,
-            (
-                SELECT pi.Image_Url
-                FROM product_images pi
-                WHERE pi.Product_Id = p.Product_Id
-                ORDER BY pi.Image_Id ASC
-                LIMIT 1
-            ) AS imageUrl
-        FROM products p
-        JOIN order_items oi ON p.Product_Id = oi.Product_Id
-        JOIN orders o ON oi.Order_Id = o.Order_Id
-        WHERE o.Status = :status
-        GROUP BY 
-            p.Product_Id,
-            p.Product_Name,
-            p.Product_Price,
-            p.Stock_Quantity
-        ORDER BY sold DESC, revenue DESC
-        LIMIT :limit
-    """;
 
-        return getJdbi().withHandle(handle ->
-                handle.createQuery(sql)
-                        .bind("status", status)
-                        .bind("limit", limit)
-                        .mapToBean(Product.class)
-                        .list()
-        );
-    }
-    public Product getProductById(int productId) {
-        String sql = """
-        SELECT
-            p.Product_Id AS productId,
-            p.Category_Id AS categoryId,
-            p.Product_Name AS productName,
-            c.Name AS categoryName,
-            p.Product_Price AS productPrice,
-            p.Stock_Quantity AS stockQuantity,
-            p.Product_Description AS productDescription,
-            COALESCE(s.sold, 0) AS sold,
-            (
-                SELECT pi.Image_Url
-                FROM product_images pi
-                WHERE pi.Product_Id = p.Product_Id
-                ORDER BY pi.Image_Id ASC
-                LIMIT 1
-            ) AS imageUrl
-        FROM products p
-        JOIN categories c ON p.Category_Id = c.Category_Id
-        LEFT JOIN (
-            SELECT oi.Product_Id, SUM(oi.Quantity) AS sold
-            FROM order_items oi
-            JOIN orders o ON oi.Order_Id = o.Order_Id
-            WHERE o.Status = 'COMPLETED'
-            GROUP BY oi.Product_Id
-        ) s ON s.Product_Id = p.Product_Id
-        WHERE p.Product_Id = :productId
-    """;
-
-        return getJdbi().withHandle(handle ->
-                handle.createQuery(sql)
-                        .bind("productId", productId)
-                        .mapToBean(Product.class)
-                        .findOne()
-                        .orElse(null)
-        );
-    }
 }
