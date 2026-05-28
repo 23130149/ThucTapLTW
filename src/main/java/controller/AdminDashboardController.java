@@ -15,7 +15,10 @@
     import java.util.Map;
 
     @WebServlet(name = "AdminDashboardController", value = "/admin/dashboard")
+
     public class AdminDashboardController extends HttpServlet {
+        private static final String COMPLETED_STATUS = "COMPLETED";
+
         @Override
         protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
             OrderDao oDao = new OrderDao();
@@ -27,29 +30,30 @@
             range = "7";
         }
 
-        double totalRevenue = oDao.getTotalRevenue();
-        int totalOrders = oDao.countOrders();
-        int totalUsers = uDao.countUsers();
+            double totalRevenue = oDao.getTotalRevenueByStatus(COMPLETED_STATUS);
+            int totalOrders = oDao.countOrdersByStatus(COMPLETED_STATUS);
+            int totalUsers = uDao.countUsers();
 
-        List<Map<String, Object>> revenueChart = oDao.getRevenueChart(range);
-        double max = 0;
+            List<Map<String, Object>> revenueChart = oDao.getRevenueChartByStatus(range, COMPLETED_STATUS);
 
-        for (Map<String, Object> item : revenueChart) {
-            double value = (double) item.get("value");
-            if (value > max) {
-                max = value;
+            double max = 0;
+            for (Map<String, Object> item : revenueChart) {
+                double value = (double) item.get("value");
+                if (value > max) {
+                    max = value;
+                }
             }
-        }
 
-        for (Map<String, Object> item : revenueChart) {
-            double value = (double) item.get("value");
-            item.put("percent", max == 0 ? 5 : Math.max((value / max) * 100, 18));
-        }
+            for (Map<String, Object> item : revenueChart) {
+                double value = (double) item.get("value");
+                item.put("percent", max == 0 ? 5 : Math.max((value / max) * 100, 18));
+            }
 
-        List<Product> topProducts = pDao.getTopProducts(5);
-        if (topProducts == null) topProducts = new ArrayList<>();
+            List<Product> topProducts = pDao.getTopProductsByStatus(5, COMPLETED_STATUS);
+            if (topProducts == null) topProducts = new ArrayList<>();
 
-        List<Order> latestOrders = oDao.getLatestOrders(5);
+
+            List<Order> latestOrders = oDao.getLatestOrders(5);
         if (latestOrders == null) latestOrders = new ArrayList<>();
 
 
