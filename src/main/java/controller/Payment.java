@@ -2,6 +2,7 @@ package controller;
 
 import cart.Cart;
 import cart.CartItem;
+import dao.CartDao;
 import dao.OrderDao;
 import dao.OrderItemDao;
 import dao.UserAddressDao;
@@ -24,6 +25,7 @@ import java.util.Set;
 public class Payment extends HttpServlet {
 
     private final UserAddressDao addressDao = new UserAddressDao();
+    private final CartDao cartDao = new CartDao();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -37,7 +39,8 @@ public class Payment extends HttpServlet {
         }
 
         User user = (User) session.getAttribute("user");
-        Cart cart = (Cart) session.getAttribute("cart");
+        Cart cart = cartDao.getCartByUserId(user.getUserId());
+        session.setAttribute("cart", cart);
 
         if (cart == null || cart.getList() == null || cart.getList().isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/cart");
@@ -98,7 +101,8 @@ public class Payment extends HttpServlet {
         }
 
         User user = (User) session.getAttribute("user");
-        Cart cart = (Cart) session.getAttribute("cart");
+        Cart cart = cartDao.getCartByUserId(user.getUserId());
+        session.setAttribute("cart", cart);
 
         if (cart == null || cart.getList() == null || cart.getList().isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/cart");
@@ -169,18 +173,16 @@ public class Payment extends HttpServlet {
 
         OrderItemDao orderItemDao = new OrderItemDao();
 
+        Set<Integer> paidProductIds = new HashSet<>();
+
         for (CartItem item : selectedItems) {
             orderItemDao.insert(orderId, item);
-            cart.deleteProduct(item.getProduct().getProductId());
+            paidProductIds.add(item.getProduct().getProductId());
         }
 
+        cartDao.removeProducts(user.getUserId(), paidProductIds);
         session.removeAttribute("checkoutProductIds");
-
-        if (cart.getList().isEmpty()) {
-            session.removeAttribute("cart");
-        } else {
-            session.setAttribute("cart", cart);
-        }
+        session.setAttribute("cart", cartDao.getCartByUserId(user.getUserId()));
 
         session.setAttribute("orderSuccess", "Đặt hàng thành công!");
 
