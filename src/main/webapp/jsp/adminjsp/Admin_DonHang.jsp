@@ -13,36 +13,77 @@
     <h2 class="logo">Handmade House</h2>
   </div>
   <nav class="slidebar-nav">
-    <ul>
-      <li><a href="${pageContext.request.contextPath}/admin/dashboard"><i class="bx bx-chart"></i>Tổng quan</a></li>
-      <li><a href="${pageContext.request.contextPath}/admin/products"><i class="bx bx-package"></i>Sản phẩm</a></li>
-      <li class="active"><a href="${pageContext.request.contextPath}/admin/orders"><i class="bx bx-receipt"></i>Đơn hàng</a></li>
-      <li><a href="${pageContext.request.contextPath}/admin/customers"><i class="bx bx-group"></i>Khách hàng</a></li>
-      <li><a href="${pageContext.request.contextPath}/admin/reviews"><i class="bx bx-star"></i>Đánh giá</a></li>
-      <li><a href="${pageContext.request.contextPath}/admin/setting"><i class="bx bx-cog"></i>Cài đặt</a></li>
-
-    </ul>
+  <ul>
+    <li><a href="${pageContext.request.contextPath}/admin/dashboard"><i class="bx bx-chart"></i>Tổng quan</a></li>
+    <li><a href="${pageContext.request.contextPath}/admin/category"><i class="bx bx-category"></i>Danh mục</a></li>
+    <li><a href="${pageContext.request.contextPath}/admin/products"><i class="bx bx-package"></i>Sản phẩm</a></li>
+    <li class="active"><a href="${pageContext.request.contextPath}/admin/orders"><i class="bx bx-receipt"></i>Đơn hàng</a></li>
+    <li><a href="${pageContext.request.contextPath}/admin/customers"><i class="bx bx-group"></i>Khách hàng</a></li>
+    <li><a href="${pageContext.request.contextPath}/admin/reviews"><i class="bx bx-star"></i> Đánh giá</a></li>
+    <li><a href="${pageContext.request.contextPath}/admin/contacts"><i class="bx bx-envelope"></i> Liên hệ</a></li>
+    <li><a href="${pageContext.request.contextPath}/admin/banner"><i class="bx bx-image"></i>Banner</a></li>
+    <li><a href="${pageContext.request.contextPath}/admin/setting"><i class="bx bx-cog"></i>Cài đặt</a></li>
+  </ul>
   </nav>
   <div class="logout">
-    <a href="${pageContext.request.contextPath}/home"><i class="bx bx-log-out"></i>Đăng xuất</a>
+    <a href="${pageContext.request.contextPath}/home">
+      <i class="bx bx-log-out"></i> Đăng xuất
+    </a>
   </div>
 </aside>
 <main class="main-content">
   <header class="header">
-    <h2>Đơn hàng</h2>
+    <h2>Quản lý đơn hàng</h2>
     <div class="search-box">
       <input type="text" placeholder="Tìm kiếm...">
       <button><i class="bx bx-search"></i></button>
     </div>
     <div class="user-info">
-      <span class="notification-badge"><i class="bx bx-bell"></i></span>
-      <div class="profile-admin">
-        <span class="admin-avatar">L</span>
-        <div class="user-details">
-          <span class="user-name">Phan Đình Long</span>
-          <span class="user-role">Quản trị viên</span>
+      <div class="notification-wrapper">
+        <a href="${pageContext.request.contextPath}/admin/notifications" class="notification-btn">
+          <i class="bx bx-bell"></i>
+          <c:if test="${notificationCount > 0}">
+            <span class="notification-count">${notificationCount}</span>
+          </c:if>
+        </a>
+        <div class="notification-dropdown">
+          <h4>Thông báo Admin</h4>
+          <c:choose>
+            <c:when test="${empty latestNotifications}">
+              <p class="empty-notification">Không có thông báo mới</p>
+            </c:when>
+            <c:otherwise>
+              <c:forEach items="${latestNotifications}" var="n">
+                <a href="${pageContext.request.contextPath}${n.url}" class="notification-item">
+                  <span class="notification-type">${n.type}</span>
+                  <p>${n.message}</p>
+                </a>
+              </c:forEach>
+            </c:otherwise>
+          </c:choose>
         </div>
       </div>
+      <a href="${pageContext.request.contextPath}/admin/setting" class="profile-admin">
+                <span class="admin-avatar">
+                    <c:choose>
+                      <c:when test="${not empty sessionScope.user.userName}">
+                        ${fn:substring(sessionScope.user.userName, 0, 1)}
+                      </c:when>
+                      <c:otherwise>A</c:otherwise>
+                    </c:choose>
+                </span>
+        <div>
+          <p class="user-name">
+            <c:choose>
+              <c:when test="${not empty sessionScope.user.userName}">
+                ${sessionScope.user.userName}
+              </c:when>
+              <c:otherwise>Admin</c:otherwise>
+            </c:choose>
+          </p>
+          <small class="user-role">Quản trị viên</small>
+        </div>
+      </a>
     </div>
   </header>
   <div class="order-status-tabs">
