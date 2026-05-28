@@ -1,55 +1,41 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-
-<link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/header_footer.css">
-<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-
-<header class="header">
-  <div class="header-top-container">
-    <div class="header-content">
-      <div class="logo">
-        <a href="${pageContext.request.contextPath}/home">Handmade House</a>
-      </div>
-
-      <form class="search-form" action="${pageContext.request.contextPath}/product" method="GET">
-        <input type="text" class="search-input" name="keyword"
-               value="${keyword}" placeholder="Tìm kiếm bất cứ thứ gì">
-        <button type="submit" class="search-btn">
-          <i class="bx bx-search-alt-2"></i>
-        </button>
-      </form>
-
-      <div class="icons">
-        <a href="${pageContext.request.contextPath}/favorite" class="icon-btn favorite-header-icon" id="heartBtn" title="Sản phẩm yêu thích">
-          <i class='bx bx-heart'></i>
-        </a>
-        <a href="${pageContext.request.contextPath}/cart" class="icon-btn">
-          <i class='bx bx-cart'></i>
-            <c:if test="${not empty sessionScope.cart and sessionScope.cart.totalQuantity > 0}">
-        <span class="cart-badge">
-                ${sessionScope.cart.totalQuantity}
-        </span>
-            </c:if>
+<c:set var="headerKeyword" value="${not empty param.keyword ? param.keyword : keyword}" />
+<header class="hh-header">
+    <c:if test="${not empty sessionScope.favoriteMessage}">
+        <div class="hh-toast hh-toast-favorite">
+            <i class="bx bx-check-circle"></i>
+            <span>${sessionScope.favoriteMessage}</span>
+        </div>
+        <c:remove var="favoriteMessage" scope="session"/>
+    </c:if>
+    <div class="hh-header-main">
+        <div class="hh-header-inner">
+            <a class="hh-logo" href="${pageContext.request.contextPath}/home">
+                <span>Handmade</span>
+                <b>House</b>
             </a>
-        <a href="${pageContext.request.contextPath}/Account" class="icon-btn">
-          <i class='bx bx-user'></i>
-        </a>
-      </div>
+            <form class="hh-search-form" action="${pageContext.request.contextPath}/product" method="get" autocomplete="off">
+                <input class="hh-search-input" type="text" name="keyword" value="${headerKeyword}" placeholder="Tìm sản phẩm" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                <button class="hh-search-button" type="submit" aria-label="Tìm kiếm"><i class="bx bx-search-alt-2"></i></button>
+            </form>
+            <div class="hh-actions">
+                <a class="hh-action" href="${pageContext.request.contextPath}/favorite" aria-label="Yêu thích"><i class="bx bx-heart"></i></a>
+                <a class="hh-action" href="${pageContext.request.contextPath}/cart" aria-label="Giỏ hàng">
+                    <i class="bx bx-cart"></i>
+                    <c:if test="${not empty sessionScope.cart and sessionScope.cart.totalQuantity > 0}">
+                        <span class="hh-cart-count">${sessionScope.cart.totalQuantity}</span>
+                    </c:if>
+                </a>
+                <a class="hh-action" href="${pageContext.request.contextPath}/Account" aria-label="Tài khoản"><i class="bx bx-user"></i></a>
+            </div>
+        </div>
     </div>
-  </div>
-
-  <div class="search-bar-section header-bottom-nav">
-    <div class="container nav-only-container">
-      <nav class="nav__links">
-        <ul>
-          <li><a href="${pageContext.request.contextPath}/home">Trang chủ</a></li>
-          <li><a href="${pageContext.request.contextPath}/product">Sản phẩm</a></li>
-          <li><a href="${pageContext.request.contextPath}/jsp/blog.jsp">Blog</a></li>
-          <li><a href="${pageContext.request.contextPath}/jsp/contact.jsp">Liên hệ</a></li>
-        </ul>
-      </nav>
-    </div>
-  </div>
+    <nav class="hh-nav">
+        <a href="${pageContext.request.contextPath}/home">Trang chủ</a>
+        <a href="${pageContext.request.contextPath}/product">Sản phẩm</a>
+        <a href="${pageContext.request.contextPath}/jsp/blog.jsp">Blog</a>
+        <a href="${pageContext.request.contextPath}/contact">Liên hệ</a>
+    </nav>
 </header>
+<script>window.APP_CONTEXT='${pageContext.request.contextPath}';</script>
