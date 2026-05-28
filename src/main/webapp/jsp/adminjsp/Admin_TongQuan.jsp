@@ -16,7 +16,7 @@
     <div class="slidebar-header">
         <h2 class="logo">Handmade House</h2>
     </div>
-    <div class="slidebar-nav">
+    <nav class="slidebar-nav">
         <ul>
             <li class="active"><a href="${pageContext.request.contextPath}/admin/dashboard"><i class="bx bx-chart"></i>Tổng quan</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/category"><i class="bx bx-category"></i>Danh mục</a></li>
@@ -28,7 +28,7 @@
             <li><a href="${pageContext.request.contextPath}/admin/banner"><i class="bx bx-image"></i>Banner</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/setting"><i class="bx bx-cog"></i>Cài đặt</a></li>
         </ul>
-    </div>
+    </nav>
     <div class="logout">
         <a href="${pageContext.request.contextPath}/home">
             <i class="bx bx-log-out"></i> Đăng xuất
