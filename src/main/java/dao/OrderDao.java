@@ -661,4 +661,80 @@ public class OrderDao extends BaseDao {
                         .list()
         );
     }
+    public Order getOrderById(int orderId) {
+        String sql = """
+        SELECT
+            o.Order_Id AS orderId,
+            o.User_Id AS userId,
+            o.User_Address_Id AS userAddressId,
+            o.Ship_Address AS shipAddress,
+            o.Create_At AS createAt,
+            o.Status AS status,
+            o.Order_Code AS orderCode,
+            o.Note AS note,
+            o.Total_Price AS totalPrice,
+            u.User_Name AS userName
+        FROM orders o
+        LEFT JOIN user u ON o.User_Id = u.User_Id
+        WHERE o.Order_Id = :orderId
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("orderId", orderId)
+                        .mapToBean(Order.class)
+                        .findOne()
+                        .orElse(null)
+        );
+    }
+
+    public double getTotalRevenueByStatus(String status) {
+        String sql = """
+        SELECT COALESCE(SUM(Total_Price), 0)
+        FROM orders
+        WHERE Status = :status
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("status", status)
+                        .mapTo(Double.class)
+                        .one()
+        );
+    }
+
+    public List<Map<String, Object>> getRevenueChartByStatus(String range, String status) {
+        int days = "30".equals(range) ? 30 : 7;
+
+        String sql = """
+        SELECT 
+            DATE(Create_At) AS orderDate,
+            COALESCE(SUM(Total_Price), 0) AS revenue
+        FROM orders
+        WHERE Status = :status
+          AND Create_At >= DATE_SUB(
+                (
+                    SELECT MAX(Create_At)
+                    FROM orders
+                    WHERE Status = :status
+                ),
+                INTERVAL :days DAY
+          )
+        GROUP BY DATE(Create_At)
+        ORDER BY orderDate ASC
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("days", days)
+                        .bind("status", status)
+                        .map((rs, ctx) -> {
+                            Map<String, Object> item = new HashMap<>();
+                            item.put("label", rs.getDate("orderDate").toString());
+                            item.put("value", rs.getDouble("revenue"));
+                            return item;
+                        })
+                        .list()
+        );
+    }
 }

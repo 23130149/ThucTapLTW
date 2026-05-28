@@ -227,7 +227,10 @@
             <span class="close-btn" onclick="closeModal()">&times;</span>
         </div>
 
-        <form action="${pageContext.request.contextPath}/admin/products" method="post" id="productForm">
+        <form action="${pageContext.request.contextPath}/admin/products"
+              method="post"
+              id="productForm"
+              enctype="multipart/form-data">
 
             <input type="hidden" name="action" id="modalAction" value="add">
             <input type="hidden" name="productId" id="prodId">
@@ -292,6 +295,7 @@
     document.getElementById("openModalBtn").onclick = function () {
         modal.style.display = "flex";
         productForm.reset();
+        clearImagePreview();
         modalTitle.innerText = "Thêm sản phẩm mới";
         document.getElementById("modalAction").value = "add";
         document.getElementById("prodId").value = "";
@@ -354,6 +358,26 @@
             e.preventDefault(); return;
         }
     });
+    <c:if test="${not empty editProduct}">
+    window.addEventListener("DOMContentLoaded", function () {
+        modal.style.display = "flex";
+        modalTitle.innerText = "Cập nhật sản phẩm";
+
+        document.getElementById("modalAction").value = "update";
+        document.getElementById("prodId").value = "${editProduct.productId}";
+        document.getElementById("prodName").value = `${editProduct.productName}`;
+        document.getElementById("prodPrice").value = "${editProduct.productPrice}";
+        document.getElementById("prodStock").value = "${editProduct.stockQuantity}";
+        document.getElementById("prodCategory").value = "${editProduct.categoryId}";
+        document.getElementById("prodDescription").value = `${editProduct.productDescription}`;
+        document.getElementById("prodImageUrl").value = "${editProduct.imageUrl}";
+
+        if ("${editProduct.imageUrl}" !== "") {
+            document.getElementById("imagePreview").src = "${editProduct.imageUrl}";
+            document.getElementById("imagePreviewWrap").style.display = "block";
+        }
+    });
+    </c:if>
 </script>
 </body>
 </html>

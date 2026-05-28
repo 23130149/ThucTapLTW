@@ -24,6 +24,17 @@ public class AdminProductController extends HttpServlet {
         String status = request.getParameter("status");
         String priceRange = request.getParameter("priceRange");
 
+        String editIdParam = request.getParameter("editId");
+        Product editProduct = null;
+
+        if (editIdParam != null && !editIdParam.isBlank()) {
+            try {
+                int editId = Integer.parseInt(editIdParam);
+                editProduct = pDao.getProductById(editId);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
         int pageSize = 5;
         int currentPage = 1;
         try {
@@ -52,6 +63,7 @@ public class AdminProductController extends HttpServlet {
         request.setAttribute("totalValue", totalValue);
         request.setAttribute("currentPage", currentPage);
         request.setAttribute("totalPages", totalPages);
+        request.setAttribute("editProduct", editProduct);
 
         request.getRequestDispatcher("/jsp/adminjsp/Admin_SanPham.jsp").forward(request, response);
     }
@@ -105,18 +117,25 @@ public class AdminProductController extends HttpServlet {
         }
         response.sendRedirect(request.getContextPath() + "/admin/products");
     }
-        private String resolveImageUrl(HttpServletRequest request) throws IOException, ServletException {
-            String imageUrl = request.getParameter("imageUrl");
-            Part filePart = request.getPart("imageFile");
-            if (filePart != null && filePart.getSize() > 0) {
-                String fileName = filePart.getSubmittedFileName();
-                String uploadDir = getServletContext().getRealPath("/uploads/products/");
-                File dir = new File(uploadDir);
-                if (!dir.exists()) dir.mkdirs();
-                String savedName = System.currentTimeMillis() + "_" + fileName;
-                filePart.write(uploadDir + File.separator + savedName);
-                imageUrl = request.getContextPath() + "/uploads/products/" + savedName;
+    private String resolveImageUrl(HttpServletRequest request) throws IOException, ServletException {
+        String imageUrl = request.getParameter("imageUrl");
+        Part filePart = request.getPart("imageFile");
+
+        if (filePart != null && filePart.getSize() > 0) {
+            String fileName = filePart.getSubmittedFileName();
+            String uploadDir = getServletContext().getRealPath("/uploads/products/");
+
+            File dir = new File(uploadDir);
+            if (!dir.exists()) {
+                dir.mkdirs();
             }
-            return imageUrl;
+
+            String savedName = System.currentTimeMillis() + "_" + fileName;
+            filePart.write(uploadDir + File.separator + savedName);
+
+            imageUrl = "/uploads/products/" + savedName;
         }
+
+        return imageUrl;
+    }
 }

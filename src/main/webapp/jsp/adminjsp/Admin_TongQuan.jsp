@@ -100,20 +100,22 @@
                 </div>
             </div>
         </div>
-        <div class="stat-card stat-new-orders">
+        <a href="${pageContext.request.contextPath}/admin/orders?status=COMPLETED"
+           class="stat-card stat-new-orders dashboard-link-card">
             <div class="stat-icon"><i class="bx bx-receipt"></i></div>
             <div class="stat-details">
-                <div class="title">Đơn hàng</div>
+                <div class="title">Đơn hoàn thành</div>
                 <div class="value">${totalOrders}</div>
             </div>
-        </div>
-        <div class="stat-card stat-customers">
+        </a>
+        <a href="${pageContext.request.contextPath}/admin/customers"
+           class="stat-card stat-customers dashboard-link-card">
             <div class="stat-icon"><i class="bx bx-user"></i></div>
             <div class="stat-details">
                 <div class="title">Khách hàng</div>
                 <div class="value">${totalUsers}</div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="charts-section">
     <div class="chart-card">
@@ -151,7 +153,7 @@
         <h3>Top sản phẩm</h3>
         <div class="top-products">
             <c:forEach items="${topProducts}" var="p" varStatus="st">
-                <a href="${pageContext.request.contextPath}/admin/products?id=${p.productId}"
+                <a href="${pageContext.request.contextPath}/admin/products?editId=${p.productId}"
                    class="product-item">
                     <div class="product-rank rank-${st.count}">
                         #${st.count}
