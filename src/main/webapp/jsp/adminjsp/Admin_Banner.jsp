@@ -5,8 +5,7 @@
     <meta charset="UTF-8">
     <title>Admin - Quản lý Banner</title>
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet"
-          href="${pageContext.request.contextPath}/css/Admin_Banner.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/Admin_Banner.css">
 </head>
 <body>
 <aside class="sliderbar">
@@ -21,7 +20,7 @@
             <li><a href="${pageContext.request.contextPath}/admin/customers"><i class="bx bx-group"></i>Khách hàng</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/reviews"><i class="bx bx-star"></i> Đánh giá</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/contacts"><i class="bx bx-envelope"></i> Liên hệ</a></li>
-            <li class="active"><a href="${pageContext.request.contextPath}/jsp/adminjsp/Admin_Banner.jsp"><i class="bx bx-image"></i>Banner</a></li>
+            <li class="active"><a href="${pageContext.request.contextPath}/admin/banner"><i class="bx bx-image"></i>Banner</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/setting"><i class="bx bx-cog"></i>Cài đặt</a></li>
         </ul>
     </nav>

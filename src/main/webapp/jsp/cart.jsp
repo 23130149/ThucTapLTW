@@ -10,39 +10,14 @@
     <title>Giỏ Hàng</title>
 
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/cart.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/header_footer.css">
 
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <jsp:include page="/jsp/layout-assets.jsp"/>
 </head>
 <body>
 
-<header class="header">
-    <div class="header-content">
-        <div class="logo">
-            <a href="${pageContext.request.contextPath}/home">Handmade House</a>
-        </div>
-
-        <form class="search-form">
-            <input type="text" class="search-input" placeholder="Tìm kiếm bất cứ thứ gì">
-            <button type="submit" class="search-btn">
-                <i class="bx bx-search-alt-2"></i>
-            </button>
-        </form>
-
-        <div class="icons">
-            <a href="${pageContext.request.contextPath}/favorite" class="icon-btn favorite-header-icon" id="heartBtn" title="Sản phẩm yêu thích">
-              <i class='bx bx-heart'></i>
-            </a>
-            <a href="${pageContext.request.contextPath}/cart" class="icon-btn cart-icon"><i class='bx bx-cart'></i>
-                    <c:if test="${not empty sessionScope.cart and sessionScope.cart.totalQuantity > 0}">
-                        <span class="cart-badge">${sessionScope.cart.totalQuantity}</span>
-                    </c:if>
-                </a>
-            <a href="${pageContext.request.contextPath}/Account" class="icon-btn"><i class='bx bx-user'></i></a>
-        </div>
-    </div>
-</header>
+<jsp:include page="/jsp/header.jsp"/>
 
 <section class="cart-page">
 
@@ -169,6 +144,7 @@
 
 
 </section>
+<jsp:include page="/jsp/footer.jsp"/>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const checkAll = document.getElementById("checkAll");
