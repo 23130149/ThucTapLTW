@@ -69,13 +69,6 @@
                             <fmt:formatNumber value="${sessionScope.cart.totalPrice}" type="number" maxFractionDigits="0"/> đ
                         </strong>
                     </div>
-
-                    <div class="summary-line summary-grand-total">
-                        <span>Tổng cộng</span>
-                        <strong id="selectedTotalBottom">
-                            <fmt:formatNumber value="${sessionScope.cart.totalPrice}" type="number" maxFractionDigits="0"/> đ
-                        </strong>
-                    </div>
                 </div>
 
                 <button type="submit"
