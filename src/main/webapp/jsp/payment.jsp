@@ -138,16 +138,6 @@
                             </label>
 
                             <label class="method-option">
-                                <input type="radio" name="paymentMethod" value="BANK_TRANSFER">
-                                <span class="method-icon"><i class='bx bx-card'></i></span>
-                                <span>
-                                    <span class="method-title">Chuyển khoản ngân hàng</span>
-                                    <span class="method-desc">Chuyển khoản trực tiếp vào tài khoản ngân hàng của Handmade House</span>
-                                </span>
-                                <span class="method-radio"></span>
-                            </label>
-
-                            <label class="method-option">
                                 <input type="radio" name="paymentMethod" value="E_WALLET">
                                 <span class="method-icon"><i class='bx bx-mobile-alt'></i></span>
                                 <span>
