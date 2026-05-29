@@ -45,16 +45,44 @@
         </c:when>
         <c:otherwise>
             <div class="cart-summary-bar">
-                <div>
-                    <div class="summary-title">Tổng tiền đã chọn</div>
+                <div class="summary-left">
+                    <div class="summary-title">Tổng tiền ước tính</div>
+
                     <div class="summary-price" id="selectedTotalTop">
                         <fmt:formatNumber value="${sessionScope.cart.totalPrice}" type="number" maxFractionDigits="0"/> đ
                     </div>
+
                     <div class="summary-note">
                         <span id="selectedQuantityTop">${sessionScope.cart.totalQuantity}</span> sản phẩm đã chọn
                     </div>
                 </div>
-                <button type="submit" form="cartSelectionForm" class="summary-checkout checkout-submit">Thanh toán</button>
+
+                <div class="summary-detail">
+                    <div class="summary-line">
+                        <span>Tổng sản phẩm</span>
+                        <strong id="selectedQuantityBottom">${sessionScope.cart.totalQuantity}</strong>
+                    </div>
+
+                    <div class="summary-line">
+                        <span>Tạm tính</span>
+                        <strong id="selectedSubtotalBottom">
+                            <fmt:formatNumber value="${sessionScope.cart.totalPrice}" type="number" maxFractionDigits="0"/> đ
+                        </strong>
+                    </div>
+
+                    <div class="summary-line summary-grand-total">
+                        <span>Tổng cộng</span>
+                        <strong id="selectedTotalBottom">
+                            <fmt:formatNumber value="${sessionScope.cart.totalPrice}" type="number" maxFractionDigits="0"/> đ
+                        </strong>
+                    </div>
+                </div>
+
+                <button type="submit"
+                        form="cartSelectionForm"
+                        class="summary-checkout checkout-submit">
+                    Thanh toán
+                </button>
             </div>
 
             <form id="cartSelectionForm" action="${pageContext.request.contextPath}/payment" method="get">
@@ -110,35 +138,6 @@
                 </div>
             </form>
 
-            <div class="cart-total">
-                <h3>Đơn Hàng Của Bạn</h3>
-
-                <div class="line">
-                    <span>Tổng sản phẩm</span>
-                    <span id="selectedQuantityBottom">${sessionScope.cart.totalQuantity}</span>
-                </div>
-
-                <div class="line">
-                    <span>Tạm tính</span>
-                    <span id="selectedSubtotalBottom"><fmt:formatNumber value="${sessionScope.cart.totalPrice}" type="number" maxFractionDigits="0"/> đ</span>
-                </div>
-
-                <div class="line">
-                    <span>Phí vận chuyển</span>
-                    <span class="free">Miễn phí</span>
-                </div>
-
-                <hr>
-
-                <div class="line total">
-                    <span>Tổng cộng</span>
-                    <span id="selectedTotalBottom"><fmt:formatNumber value="${sessionScope.cart.totalPrice}" type="number" maxFractionDigits="0"/> đ</span>
-                </div>
-
-                <button type="submit" form="cartSelectionForm" class="summary-checkout checkout-submit">
-                    Thanh toán
-                </button>
-            </div>
         </c:otherwise>
     </c:choose>
 
