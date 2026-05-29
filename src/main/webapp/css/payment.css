@@ -910,3 +910,18 @@ a {
 .manage-address:hover {
     text-decoration: underline;
 }
+
+.payment-alert {
+    max-width: 1200px;
+    margin: 0 auto 18px auto;
+    padding: 14px 18px;
+    border-radius: 14px;
+    font-weight: 700;
+    border: 1px solid transparent;
+}
+
+.payment-alert.error {
+    background: #fff0f0;
+    color: #d93025;
+    border-color: #ffc9c9;
+}

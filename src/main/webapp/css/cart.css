@@ -54,12 +54,12 @@ body {
     top: 138px;
     z-index: 50;
 
-    background: #ffffff;
-    color: #172033;
+    background: linear-gradient(135deg, #11998e, #38ef7d);
+    color: #ffffff;
     padding: 24px 28px;
     border-radius: 20px;
-    border: 1px solid #d9f3ed;
-    box-shadow: 0 14px 35px rgba(17, 153, 142, 0.12);
+    border: none;
+    box-shadow: 0 16px 34px rgba(17, 153, 142, 0.25);
 
     display: grid;
     grid-template-columns: 1.1fr 1.2fr auto;
@@ -77,20 +77,20 @@ body {
 
 .summary-title {
     font-size: 14px;
-    color: #667085;
+    color: rgba(255, 255, 255, 0.9);
     font-weight: 600;
 }
 
 .summary-price {
     font-size: 30px;
     font-weight: 800;
-    color: #ff4b2b;
+    color: #ffffff;
     margin: 0;
 }
 
 .summary-note {
     font-size: 13px;
-    color: #11998e;
+    color: rgba(255, 255, 255, 0.95);
     font-weight: 600;
 }
 
@@ -98,8 +98,8 @@ body {
     display: grid;
     gap: 8px;
     padding: 0 24px;
-    border-left: 1px solid #eef2f2;
-    border-right: 1px solid #eef2f2;
+    border-left: 1px solid rgba(255, 255, 255, 0.35);
+    border-right: 1px solid rgba(255, 255, 255, 0.35);
 }
 
 .summary-line {
@@ -108,31 +108,19 @@ body {
     align-items: center;
     gap: 30px;
     font-size: 14px;
-    color: #344054;
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .summary-line strong {
     font-size: 15px;
-    color: #172033;
+    color: #ffffff;
     white-space: nowrap;
-}
-
-.summary-grand-total {
-    padding-top: 8px;
-    margin-top: 4px;
-    border-top: 1px solid #e5e7eb;
-    font-weight: 700;
-}
-
-.summary-grand-total strong {
-    color: #ff4b2b;
-    font-size: 18px;
 }
 
 .summary-checkout {
     min-width: 160px;
-    background: #11998e;
-    color: #ffffff;
+    background: #ffffff;
+    color: #11998e;
     border: none;
     padding: 14px 28px;
     border-radius: 999px;
@@ -145,11 +133,11 @@ body {
     align-items: center;
     justify-content: center;
     white-space: nowrap;
-    box-shadow: 0 10px 22px rgba(17, 153, 142, 0.22);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
 }
 
 .summary-checkout:hover {
-    background: linear-gradient(135deg, #11998e, #38ef7d);
+    background: #f0fff8;
     transform: translateY(-2px);
 }
 
@@ -389,8 +377,8 @@ body {
         padding: 18px 0;
         border-left: none;
         border-right: none;
-        border-top: 1px solid #eef2f2;
-        border-bottom: 1px solid #eef2f2;
+        border-top: 1px solid rgba(255, 255, 255, 0.35);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.35);
     }
 
     .summary-checkout {
