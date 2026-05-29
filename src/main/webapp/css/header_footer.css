@@ -175,3 +175,31 @@
     color: #777;
     font-size: 14px;
 }
+
+/* ===== Unified toast colors ===== */
+.hh-toast-success,
+.hh-toast-cart {
+    background: linear-gradient(135deg,#11998e,#38ef7d);
+}
+
+.hh-toast-favorite {
+    background: linear-gradient(135deg,#ff5c8a,#e91e63);
+}
+
+.hh-toast-error {
+    background: linear-gradient(135deg,#ff4b2b,#ff416c);
+}
+
+/* ===== Footer hardening for pages that used old footer markup ===== */
+.hh-footer {
+    clear: both;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+}
+
+.hh-footer p,
+.hh-footer h3,
+.hh-footer h4 {
+    word-break: normal;
+}

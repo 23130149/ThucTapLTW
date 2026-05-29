@@ -127,6 +127,53 @@ public class ProductDao extends BaseDao {
         );
     }
 
+    public Product getProductById(int id) {
+        String sql = "select p.product_id AS productId, p.category_id AS categoryId, p.product_name AS productName, c.name AS categoryName, p.product_price AS productPrice, p.stock_quantity AS stockQuantity, p.product_description AS productDescription, (select pi.image_url from product_images pi where pi.product_id = p.product_id order by pi.image_id ASC limit 1) as imageUrl from products p join categories c on p.category_id = c.category_id where p.product_id = :id";
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("id", id)
+                        .mapToBean(Product.class)
+                        .findOne()
+                        .orElse(null)
+        );
+    }
+    public List<Product> getTopProductsByStatus(int limit, String status) {
+        String sql = """
+        SELECT
+            p.Product_Id AS productId,
+            p.Product_Name AS productName,
+            p.Product_Price AS productPrice,
+            p.Stock_Quantity AS stockQuantity,
+            COALESCE(SUM(oi.Quantity), 0) AS sold,
+            COALESCE(SUM(oi.Quantity * oi.Unit_Price), 0) AS revenue,
+            (
+                SELECT pi.Image_Url
+                FROM product_images pi
+                WHERE pi.Product_Id = p.Product_Id
+                ORDER BY pi.Image_Id ASC
+                LIMIT 1
+            ) AS imageUrl
+        FROM products p
+        JOIN order_items oi ON p.Product_Id = oi.Product_Id
+        JOIN orders o ON oi.Order_Id = o.Order_Id
+        WHERE o.Status = :status
+        GROUP BY
+            p.Product_Id,
+            p.Product_Name,
+            p.Product_Price,
+            p.Stock_Quantity
+        ORDER BY sold DESC
+        LIMIT :limit
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("status", status)
+                        .bind("limit", limit)
+                        .mapToBean(Product.class)
+                        .list()
+        );
+    }
     public List<Product> getRelatedProducts(int categoryId, int currentProductId, int limit) {
         String sql = """
                 SELECT
@@ -431,79 +478,5 @@ public class ProductDao extends BaseDao {
                         .list()
         );
     }
-    public List<Product> getTopProductsByStatus(int limit, String status) {
-        String sql = """
-        SELECT 
-            p.Product_Id AS productId,
-            p.Product_Name AS productName,
-            p.Product_Price AS productPrice,
-            p.Stock_Quantity AS stockQuantity,
-            COALESCE(SUM(oi.Quantity), 0) AS sold,
-            COALESCE(SUM(oi.Quantity * oi.Unit_Price), 0) AS revenue,
-            (
-                SELECT pi.Image_Url
-                FROM product_images pi
-                WHERE pi.Product_Id = p.Product_Id
-                ORDER BY pi.Image_Id ASC
-                LIMIT 1
-            ) AS imageUrl
-        FROM products p
-        JOIN order_items oi ON p.Product_Id = oi.Product_Id
-        JOIN orders o ON oi.Order_Id = o.Order_Id
-        WHERE o.Status = :status
-        GROUP BY 
-            p.Product_Id,
-            p.Product_Name,
-            p.Product_Price,
-            p.Stock_Quantity
-        ORDER BY sold DESC, revenue DESC
-        LIMIT :limit
-    """;
 
-        return getJdbi().withHandle(handle ->
-                handle.createQuery(sql)
-                        .bind("status", status)
-                        .bind("limit", limit)
-                        .mapToBean(Product.class)
-                        .list()
-        );
-    }
-    public Product getProductById(int productId) {
-        String sql = """
-        SELECT
-            p.Product_Id AS productId,
-            p.Category_Id AS categoryId,
-            p.Product_Name AS productName,
-            c.Name AS categoryName,
-            p.Product_Price AS productPrice,
-            p.Stock_Quantity AS stockQuantity,
-            p.Product_Description AS productDescription,
-            COALESCE(s.sold, 0) AS sold,
-            (
-                SELECT pi.Image_Url
-                FROM product_images pi
-                WHERE pi.Product_Id = p.Product_Id
-                ORDER BY pi.Image_Id ASC
-                LIMIT 1
-            ) AS imageUrl
-        FROM products p
-        JOIN categories c ON p.Category_Id = c.Category_Id
-        LEFT JOIN (
-            SELECT oi.Product_Id, SUM(oi.Quantity) AS sold
-            FROM order_items oi
-            JOIN orders o ON oi.Order_Id = o.Order_Id
-            WHERE o.Status = 'COMPLETED'
-            GROUP BY oi.Product_Id
-        ) s ON s.Product_Id = p.Product_Id
-        WHERE p.Product_Id = :productId
-    """;
-
-        return getJdbi().withHandle(handle ->
-                handle.createQuery(sql)
-                        .bind("productId", productId)
-                        .mapToBean(Product.class)
-                        .findOne()
-                        .orElse(null)
-        );
-    }
 }

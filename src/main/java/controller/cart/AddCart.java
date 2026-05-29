@@ -74,7 +74,9 @@ public class AddCart extends HttpServlet {
         Cart cart = cartDao.getCartByUserId(user.getUserId());
 
         session.setAttribute("cart", cart);
-        session.setAttribute("cartMessage", "Đã thêm sản phẩm vào giỏ hàng");
+        session.setAttribute("toastMessage", "Đã thêm sản phẩm vào giỏ hàng");
+        session.setAttribute("toastType", "hh-toast-cart");
+        session.setAttribute("toastIcon", "bx-cart-add");
 
         if ("1".equals(request.getParameter("buyNow"))) {
             session.setAttribute("checkoutProductIds", java.util.Set.of(id));

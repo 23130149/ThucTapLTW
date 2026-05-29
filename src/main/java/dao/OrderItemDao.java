@@ -34,11 +34,12 @@ public class OrderItemDao extends BaseDao {
     public List<OrderItem> getItemsByOrderId(int orderId) {
         String sql = """
             SELECT
-                oi.Order_Item_Id AS orderItemId,
+                0 AS orderItemId,
                 oi.Order_Id AS orderId,
                 oi.Product_Id AS productId,
                 oi.Quantity AS quantity,
                 oi.Unit_Price AS unitPrice,
+                (oi.Quantity * oi.Unit_Price) AS totalPrice,
                 p.Product_Name AS productName,
                 (
                     SELECT pi.Image_Url

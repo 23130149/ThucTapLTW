@@ -48,7 +48,9 @@ public class DelSelectProduct extends HttpServlet {
         int deletedCount = cartDao.removeProducts(user.getUserId(), productIds);
 
         if (deletedCount > 0) {
-            session.setAttribute("cartSuccess", "Đã xóa " + deletedCount + " sản phẩm");
+            session.setAttribute("toastMessage", "Đã xóa " + deletedCount + " sản phẩm");
+            session.setAttribute("toastType", "hh-toast-cart");
+            session.setAttribute("toastIcon", "bx-trash");
         } else {
             session.setAttribute("cartError", "Vui lòng chọn sản phẩm cần xóa");
         }
