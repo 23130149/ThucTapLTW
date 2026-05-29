@@ -13,13 +13,7 @@
   <jsp:include page="/jsp/layout-assets.jsp"/>
 </head>
 <body>
-<c:if test="${not empty sessionScope.cartMessage}">
-    <div class="cart-toast">
-        <i class='bx bx-check-circle'></i>
-        <span>${sessionScope.cartMessage}</span>
-    </div>
-    <c:remove var="cartMessage" scope="session"/>
-</c:if>
+
 <jsp:include page="/jsp/header.jsp"/>
 
 <main class="favourite-section">

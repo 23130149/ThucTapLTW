@@ -383,3 +383,71 @@ body {
     color: #1f7a3f;
     border-color: #b9e4c9;
 }
+
+/* ===== Cart checkout summary refinements ===== */
+.cart-summary-bar {
+    position: sticky;
+    top: 138px;
+    z-index: 50;
+    gap: 18px;
+    box-shadow: 0 16px 34px rgba(17, 153, 142, 0.22);
+}
+
+.cart-summary-bar .summary-checkout {
+    min-width: 160px;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.cart-total .summary-checkout {
+    width: 100%;
+    margin-top: 16px;
+    background: linear-gradient(135deg, #11998e, #38ef7d);
+    color: #fff;
+}
+
+.cart-total .summary-checkout:hover {
+    background: linear-gradient(135deg, #0f8f84, #2fd66f);
+}
+
+.cart-message {
+    margin-bottom: 18px;
+    padding: 12px 16px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    font-weight: 700;
+}
+
+@media (max-width: 900px) {
+    .cart-summary-bar {
+        top: 184px;
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .cart-summary-bar .summary-checkout {
+        width: 100%;
+    }
+}
+
+@media (max-width: 760px) {
+    .cart-item {
+        grid-template-columns: 28px 76px 1fr 32px;
+        grid-template-areas:
+            "check image info remove"
+            "check image qty total";
+    }
+
+    .item-checkbox { grid-area: check; }
+    .cart-item img { grid-area: image; width: 76px; height: 76px; }
+    .product-info { grid-area: info; }
+    .qty-box { grid-area: qty; justify-content: flex-start; }
+    .item-total-price { grid-area: total; text-align: right; }
+    .item-remove { grid-area: remove; }
+
+    .cart-action {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 12px;
+    }
+}

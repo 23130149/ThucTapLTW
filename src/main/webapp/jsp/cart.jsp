@@ -46,12 +46,12 @@
         <c:otherwise>
             <div class="cart-summary-bar">
                 <div>
-                    <div class="summary-title">Tổng tiền ước tính</div>
+                    <div class="summary-title">Tổng tiền đã chọn</div>
                     <div class="summary-price" id="selectedTotalTop">
-                        0 đ
+                        <fmt:formatNumber value="${sessionScope.cart.totalPrice}" type="number" maxFractionDigits="0"/> đ
                     </div>
                     <div class="summary-note">
-                        <span id="selectedQuantityTop">0</span> sản phẩm đã chọn
+                        <span id="selectedQuantityTop">${sessionScope.cart.totalQuantity}</span> sản phẩm đã chọn
                     </div>
                 </div>
                 <button type="submit" form="cartSelectionForm" class="summary-checkout checkout-submit">Thanh toán</button>
@@ -115,12 +115,12 @@
 
                 <div class="line">
                     <span>Tổng sản phẩm</span>
-                    <span id="selectedQuantityBottom">0</span>
+                    <span id="selectedQuantityBottom">${sessionScope.cart.totalQuantity}</span>
                 </div>
 
                 <div class="line">
                     <span>Tạm tính</span>
-                    <span id="selectedSubtotalBottom">0 đ</span>
+                    <span id="selectedSubtotalBottom"><fmt:formatNumber value="${sessionScope.cart.totalPrice}" type="number" maxFractionDigits="0"/> đ</span>
                 </div>
 
                 <div class="line">
@@ -132,7 +132,7 @@
 
                 <div class="line total">
                     <span>Tổng cộng</span>
-                    <span id="selectedTotalBottom">0 đ</span>
+                    <span id="selectedTotalBottom"><fmt:formatNumber value="${sessionScope.cart.totalPrice}" type="number" maxFractionDigits="0"/> đ</span>
                 </div>
 
                 <button type="submit" form="cartSelectionForm" class="summary-checkout checkout-submit">

@@ -9,16 +9,19 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
-@WebServlet(name = "AdminStaticPageController", value = {"/admin/orders", "/admin/customers", "/admin/reviews", "/admin/banner", "/admin/contacts", "/admin/notifications"})
-public class AdminStaticPageController extends HttpServlet {
+@WebServlet(
+        name = "AdminStaticPageController",
+        value = {
+                "/admin/customers",
+                "/admin/reviews",
+                "/admin/banner",
+                "/admin/contacts",
+                "/admin/notifications"
+        }
+)public class AdminStaticPageController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String path = request.getServletPath();
-
-        if ("/admin/orders".equals(path)) {
-            request.getRequestDispatcher("/jsp/adminjsp/Admin_DonHang.jsp").forward(request, response);
-            return;
-        }
 
         if ("/admin/customers".equals(path)) {
             request.getRequestDispatcher("/jsp/adminjsp/Admin_KhachHang.jsp").forward(request, response);

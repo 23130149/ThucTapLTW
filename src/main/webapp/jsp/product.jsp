@@ -13,13 +13,7 @@
 <body>
 <jsp:include page="/jsp/header.jsp"/>
 
-<c:if test="${not empty sessionScope.cartMessage}">
-    <div class="cart-toast">
-        <i class="bx bx-check-circle"></i>
-        <span>${sessionScope.cartMessage}</span>
-    </div>
-    <c:remove var="cartMessage" scope="session"/>
-</c:if>
+
 
 <main class="product-page">
     <div class="container">
