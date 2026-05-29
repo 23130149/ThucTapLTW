@@ -245,15 +245,6 @@ public class OrderDao extends BaseDao {
                         .one() > 0
         );
     }
-    public void updateStatus(int orderId, String status) {
-        String sql = "UPDATE orders SET Status = :status WHERE Order_Id = :id";
-
-        getJdbi().withHandle(handle ->
-                handle.createUpdate(sql)
-                        .bind("status", status)
-                        .bind("id", orderId)
-                        .execute()
-        );}
 
     public List<Order> getOrdersByUserIdAndStatusesPaged(int userId, List<String> statuses, int limit, int offset) {
         String baseSelect = """
@@ -438,69 +429,6 @@ public class OrderDao extends BaseDao {
         );
     }
 
-
-    public List<Order> getAllOrders() {
-        String sql = """
-        SELECT
-            o.Order_Id            AS orderId,
-            o.Order_Code          AS orderCode,
-            u.User_Name           AS userName,
-            COUNT(oi.Product_Id)  AS totalQuantity,
-            o.Total_Price         AS totalPrice,
-            o.Create_At           AS createAt,
-            o.Status              AS status
-        FROM orders o
-        JOIN user u ON o.User_Id = u.User_Id
-        JOIN order_items oi ON o.Order_Id = oi.Order_Id
-        GROUP BY
-            o.Order_Id, o.Order_Code, u.User_Name,
-            o.Total_Price, o.Create_At, o.Status
-        ORDER BY o.Create_At DESC
-    """;
-
-        return getJdbi().withHandle(h ->
-                h.createQuery(sql)
-                        .mapToBean(Order.class)
-                        .list()
-        );
-    }
-
-    public List<Order> getOrdersByStatus(String status) {
-        String sql = """
-        SELECT
-            o.Order_Id            AS orderId,
-            o.Order_Code          AS orderCode,
-            u.User_Name           AS userName,
-            COUNT(oi.Product_Id)  AS totalQuantity,
-            o.Total_Price         AS totalPrice,
-            o.Create_At           AS createAt,
-            o.Status              AS status
-        FROM orders o
-        JOIN user u ON o.User_Id = u.User_Id
-        JOIN order_items oi ON o.Order_Id = oi.Order_Id
-        WHERE o.Status = :status
-        GROUP BY
-            o.Order_Id, o.Order_Code, u.User_Name,
-            o.Total_Price, o.Create_At, o.Status
-        ORDER BY o.Create_At DESC
-    """;
-
-        return getJdbi().withHandle(h ->
-                h.createQuery(sql)
-                        .bind("status", status)
-                        .mapToBean(Order.class)
-                        .list()
-        );
-    }
-    public int countOrdersByStatus(String status) {
-        String sql = "SELECT COUNT(*) FROM orders WHERE Status = :status";
-        return getJdbi().withHandle(handle ->
-                handle.createQuery(sql)
-                        .bind("status", status)
-                        .mapTo(Integer.class)
-                        .one()
-        );
-    }
     public List<Order> getLatestOrders(int limit) {
         String sql = """
         SELECT
@@ -659,6 +587,164 @@ public class OrderDao extends BaseDao {
                         .bind("limit", limit)
                         .mapToMap()
                         .list()
+        );
+    }
+
+    public double getTotalRevenueByStatus(String status) {
+        String sql = """
+        SELECT COALESCE(SUM(Total_Price), 0)
+        FROM orders
+        WHERE Status = :status
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("status", status)
+                        .mapTo(Double.class)
+                        .one()
+        );
+    }
+
+    public List<Map<String, Object>> getRevenueChartByStatus(String range, String status) {
+        int days = "30".equals(range) ? 30 : 7;
+
+        String sql = """
+        SELECT 
+            DATE(Create_At) AS orderDate,
+            COALESCE(SUM(Total_Price), 0) AS revenue
+        FROM orders
+        WHERE Status = :status
+          AND Create_At >= DATE_SUB(
+                (
+                    SELECT MAX(Create_At)
+                    FROM orders
+                    WHERE Status = :status
+                ),
+                INTERVAL :days DAY
+          )
+        GROUP BY DATE(Create_At)
+        ORDER BY orderDate ASC
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("days", days)
+                        .bind("status", status)
+                        .map((rs, ctx) -> {
+                            Map<String, Object> item = new HashMap<>();
+                            item.put("label", rs.getDate("orderDate").toString());
+                            item.put("value", rs.getDouble("revenue"));
+                            return item;
+                        })
+                        .list()
+        );
+    }
+    public List<Order> getAllOrders() {
+        String sql = """
+        SELECT
+            o.Order_Id AS orderId,
+            o.User_Id AS userId,
+            o.User_Address_Id AS userAddressId,
+            o.Ship_Address AS shipAddress,
+            o.Create_At AS createAt,
+            o.Status AS status,
+            o.Order_Code AS orderCode,
+            o.Note AS note,
+            o.Total_Price AS totalPrice,
+            u.User_Name AS userName
+        FROM orders o
+        LEFT JOIN user u ON o.User_Id = u.User_Id
+        ORDER BY o.Create_At DESC
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .mapToBean(Order.class)
+                        .list()
+        );
+    }
+
+    public List<Order> getOrdersByStatus(String status) {
+        String sql = """
+        SELECT
+            o.Order_Id AS orderId,
+            o.User_Id AS userId,
+            o.User_Address_Id AS userAddressId,
+            o.Ship_Address AS shipAddress,
+            o.Create_At AS createAt,
+            o.Status AS status,
+            o.Order_Code AS orderCode,
+            o.Note AS note,
+            o.Total_Price AS totalPrice,
+            u.User_Name AS userName
+        FROM orders o
+        LEFT JOIN user u ON o.User_Id = u.User_Id
+        WHERE o.Status = :status
+        ORDER BY o.Create_At DESC
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("status", status)
+                        .mapToBean(Order.class)
+                        .list()
+        );
+    }
+
+    public Order getOrderById(int orderId) {
+        String sql = """
+        SELECT
+            o.Order_Id AS orderId,
+            o.User_Id AS userId,
+            o.User_Address_Id AS userAddressId,
+            o.Ship_Address AS shipAddress,
+            o.Create_At AS createAt,
+            o.Status AS status,
+            o.Order_Code AS orderCode,
+            o.Note AS note,
+            o.Total_Price AS totalPrice,
+            u.User_Name AS userName
+        FROM orders o
+        LEFT JOIN user u ON o.User_Id = u.User_Id
+        WHERE o.Order_Id = :orderId
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("orderId", orderId)
+                        .mapToBean(Order.class)
+                        .findOne()
+                        .orElse(null)
+        );
+    }
+
+    public int countOrdersByStatus(String status) {
+        String sql = """
+        SELECT COUNT(*)
+        FROM orders
+        WHERE Status = :status
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("status", status)
+                        .mapTo(Integer.class)
+                        .one()
+        );
+    }
+
+    public void updateStatus(int orderId, String status) {
+        String sql = """
+        UPDATE orders
+        SET Status = :status
+        WHERE Order_Id = :orderId
+    """;
+
+        getJdbi().useHandle(handle ->
+                handle.createUpdate(sql)
+                        .bind("status", status)
+                        .bind("orderId", orderId)
+                        .execute()
         );
     }
 }

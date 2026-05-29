@@ -43,3 +43,7 @@ gradle-app.setting
 Thumbs.db
 ### Mac OS ###
 .DS_Store
+account_improvement_update.sql
+favorite_products_update.sql
+*.sql
+*.zip

@@ -10,39 +10,14 @@
     <title>Giỏ Hàng</title>
 
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/cart.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/header_footer.css">
 
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <jsp:include page="/jsp/layout-assets.jsp"/>
 </head>
 <body>
 
-<header class="header">
-    <div class="header-content">
-        <div class="logo">
-            <a href="${pageContext.request.contextPath}/home">Handmade House</a>
-        </div>
-
-        <form class="search-form">
-            <input type="text" class="search-input" placeholder="Tìm kiếm bất cứ thứ gì">
-            <button type="submit" class="search-btn">
-                <i class="bx bx-search-alt-2"></i>
-            </button>
-        </form>
-
-        <div class="icons">
-            <a href="${pageContext.request.contextPath}/favorite" class="icon-btn favorite-header-icon" id="heartBtn" title="Sản phẩm yêu thích">
-              <i class='bx bx-heart'></i>
-            </a>
-            <a href="${pageContext.request.contextPath}/cart" class="icon-btn cart-icon"><i class='bx bx-cart'></i>
-                    <c:if test="${not empty sessionScope.cart and sessionScope.cart.totalQuantity > 0}">
-                        <span class="cart-badge">${sessionScope.cart.totalQuantity}</span>
-                    </c:if>
-                </a>
-            <a href="${pageContext.request.contextPath}/Account" class="icon-btn"><i class='bx bx-user'></i></a>
-        </div>
-    </div>
-</header>
+<jsp:include page="/jsp/header.jsp"/>
 
 <section class="cart-page">
 
@@ -71,12 +46,12 @@
         <c:otherwise>
             <div class="cart-summary-bar">
                 <div>
-                    <div class="summary-title">Tổng tiền ước tính</div>
+                    <div class="summary-title">Tổng tiền đã chọn</div>
                     <div class="summary-price" id="selectedTotalTop">
-                        0 đ
+                        <fmt:formatNumber value="${sessionScope.cart.totalPrice}" type="number" maxFractionDigits="0"/> đ
                     </div>
                     <div class="summary-note">
-                        <span id="selectedQuantityTop">0</span> sản phẩm đã chọn
+                        <span id="selectedQuantityTop">${sessionScope.cart.totalQuantity}</span> sản phẩm đã chọn
                     </div>
                 </div>
                 <button type="submit" form="cartSelectionForm" class="summary-checkout checkout-submit">Thanh toán</button>
@@ -140,12 +115,12 @@
 
                 <div class="line">
                     <span>Tổng sản phẩm</span>
-                    <span id="selectedQuantityBottom">0</span>
+                    <span id="selectedQuantityBottom">${sessionScope.cart.totalQuantity}</span>
                 </div>
 
                 <div class="line">
                     <span>Tạm tính</span>
-                    <span id="selectedSubtotalBottom">0 đ</span>
+                    <span id="selectedSubtotalBottom"><fmt:formatNumber value="${sessionScope.cart.totalPrice}" type="number" maxFractionDigits="0"/> đ</span>
                 </div>
 
                 <div class="line">
@@ -157,7 +132,7 @@
 
                 <div class="line total">
                     <span>Tổng cộng</span>
-                    <span id="selectedTotalBottom">0 đ</span>
+                    <span id="selectedTotalBottom"><fmt:formatNumber value="${sessionScope.cart.totalPrice}" type="number" maxFractionDigits="0"/> đ</span>
                 </div>
 
                 <button type="submit" form="cartSelectionForm" class="summary-checkout checkout-submit">
@@ -169,6 +144,7 @@
 
 
 </section>
+<jsp:include page="/jsp/footer.jsp"/>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const checkAll = document.getElementById("checkAll");

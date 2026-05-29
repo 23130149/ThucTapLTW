@@ -9,58 +9,12 @@
     <title>Sản phẩm yêu thích - Handmade House</title>
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/header_footer.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/favourite.css">
+  <jsp:include page="/jsp/layout-assets.jsp"/>
 </head>
 <body>
-<c:if test="${not empty sessionScope.cartMessage}">
-    <div class="cart-toast">
-        <i class='bx bx-check-circle'></i>
-        <span>${sessionScope.cartMessage}</span>
-    </div>
-    <c:remove var="cartMessage" scope="session"/>
-</c:if>
-<header class="header">
-    <div class="header-top-container">
-        <div class="header-content">
-            <div class="logo">
-                <a href="${pageContext.request.contextPath}/home">Handmade House</a>
-            </div>
-            <form class="search-form" action="${pageContext.request.contextPath}/product" method="GET">
-                <input type="text" class="search-input" name="keyword" value="${keyword}" placeholder="Tìm kiếm bất cứ thứ gì..." aria-label="Tìm kiếm sản phẩm">
-                <button type="submit" class="search-btn">
-                    <i class="bx bx-search-alt-2"></i>
-                </button>
-            </form>
-            <div class="icons">
-                <a href="${pageContext.request.contextPath}/favorite" class="icon-btn favorite-header-icon active" id="heartBtn" title="Sản phẩm yêu thích">
-                    <i class='bx bxs-heart'></i>
-                </a>
-                <a href="${pageContext.request.contextPath}/cart" class="icon-btn cart-icon" id="cartBtn">
-                    <i class='bx bx-cart'></i>
-                    <c:if test="${not empty sessionScope.cart and sessionScope.cart.totalQuantity > 0}">
-                        <span class="cart-badge">${sessionScope.cart.totalQuantity}</span>
-                    </c:if>
-                </a>
-                <a href="${pageContext.request.contextPath}/Account" class="icon-btn" id="userBtn">
-                    <i class='bx bx-user'></i>
-                </a>
-            </div>
-        </div>
-    </div>
-    <div class="search-bar-section header-bottom-nav">
-        <div class="container nav-only-container">
-            <nav class="nav__links">
-                <ul>
-                    <li><a href="${pageContext.request.contextPath}/home">Trang chủ</a></li>
-                    <li><a href="${pageContext.request.contextPath}/product">Sản phẩm</a></li>
-                    <li><a href="${pageContext.request.contextPath}/jsp/blog.jsp">Blog</a></li>
-                    <li><a href="${pageContext.request.contextPath}/jsp/contact.jsp">Liên hệ</a></li>
-                </ul>
-            </nav>
-        </div>
-    </div>
-</header>
+
+<jsp:include page="/jsp/header.jsp"/>
 
 <main class="favourite-section">
     <div class="container">
@@ -77,12 +31,6 @@
                 <p>${favoriteCount} món đồ đang nằm trong chiếc hộp tim của bạn.</p>
             </div>
         </div>
-
-        <c:if test="${not empty sessionScope.favoriteMessage}">
-            <div class="favorite-message">${sessionScope.favoriteMessage}</div>
-            <c:remove var="favoriteMessage" scope="session"/>
-        </c:if>
-
         <c:choose>
             <c:when test="${empty productList}">
                 <div class="empty-favourite">
@@ -171,7 +119,7 @@
     </div>
 </main>
 
-<jsp:include page="/jsp/footer.jsp" />
+<jsp:include page="/jsp/footer.jsp"/>
 <script>
     const selectAllFavorites = document.getElementById('selectAllFavorites');
     const favoriteBulkForm = document.getElementById('favoriteBulkForm');

@@ -51,7 +51,9 @@ public class DelProduct extends HttpServlet {
 
         boolean deleted = cartDao.removeProduct(user.getUserId(), id);
         if (deleted) {
-            session.setAttribute("cartSuccess", "Đã xóa sản phẩm khỏi giỏ hàng");
+            session.setAttribute("toastMessage", "Đã xóa sản phẩm khỏi giỏ hàng");
+            session.setAttribute("toastType", "hh-toast-cart");
+            session.setAttribute("toastIcon", "bx-trash");
         } else {
             session.setAttribute("cartError", "Sản phẩm không tồn tại trong giỏ hàng");
         }

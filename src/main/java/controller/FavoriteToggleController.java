@@ -39,7 +39,9 @@ public class FavoriteToggleController extends HttpServlet {
 
         User user = (User) session.getAttribute("user");
         boolean added = favoriteDao.toggleFavorite(user.getUserId(), productId);
-        session.setAttribute("favoriteMessage", added ? "Đã thêm vào sản phẩm yêu thích" : "Đã bỏ khỏi sản phẩm yêu thích");
+        session.setAttribute("toastMessage", added ? "Đã thêm vào sản phẩm yêu thích" : "Đã bỏ khỏi sản phẩm yêu thích");
+        session.setAttribute("toastType", "hh-toast-favorite");
+        session.setAttribute("toastIcon", added ? "bx-heart" : "bx-heart-circle");
 
         redirectBack(request, response);
     }
