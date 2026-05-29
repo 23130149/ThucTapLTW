@@ -31,10 +31,11 @@ public class OrderItemDao extends BaseDao {
                         .execute()
         );
     }
+
     public List<OrderItem> getItemsByOrderId(int orderId) {
         String sql = """
             SELECT
-                0 AS orderItemId,
+                oi.Order_Items_Id AS orderItemId,
                 oi.Order_Id AS orderId,
                 oi.Product_Id AS productId,
                 oi.Quantity AS quantity,
