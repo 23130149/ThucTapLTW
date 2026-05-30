@@ -107,7 +107,7 @@
             <option value="">Tất cả trạng thái</option>
             <option value="instock" ${param.status == 'instock' ? 'selected' : ''}>Còn hàng</option>
             <option value="lowstock" ${param.status == 'lowstock' ? 'selected' : ''}>Sắp hết</option>
-            <option value="outstock" ${param.status == 'outstock' ? 'selected' : ''}>Hết hàng</option>
+            <option value="outofstock" ${param.status == 'outofstock' ? 'selected' : ''}>Hết hàng</option>
         </select>
         <select name="priceRange" class="filter-select">
             <option value="">Tất cả giá</option>
@@ -148,7 +148,14 @@
                 <td class="img-col">
                     <c:choose>
                         <c:when test="${not empty p.imageUrl}">
-                            <img src="${p.imageUrl}" alt="${p.productName}" width="50">
+                            <c:choose>
+                                <c:when test="${fn:startsWith(p.imageUrl, 'http://') or fn:startsWith(p.imageUrl, 'https://')}">
+                                    <img src="${p.imageUrl}" alt="${p.productName}" width="50">
+                                </c:when>
+                                <c:otherwise>
+                                    <img src="${pageContext.request.contextPath}${p.imageUrl}" alt="${p.productName}" width="50">
+                                </c:otherwise>
+                            </c:choose>
                         </c:when>
                         <c:otherwise>
                             <img src="${pageContext.request.contextPath}/images/no-image.png"
@@ -286,78 +293,118 @@
     </div>
 </div>
 <script>
-    document.querySelectorAll(".filter-select").forEach(function (sel) {
-        sel.addEventListener("change", function () { this.form.submit(); });
+    const contextPath = "${pageContext.request.contextPath}";
+
+    document.querySelectorAll("#filterForm .filter-select").forEach(function (sel) {
+        sel.addEventListener("change", function () {
+            document.getElementById("filterForm").submit();
+        });
     });
+
     const modal = document.getElementById("productModal");
     const productForm = document.getElementById("productForm");
     const modalTitle = document.querySelector(".modal-header h3");
+
     document.getElementById("openModalBtn").onclick = function () {
         modal.style.display = "flex";
         productForm.reset();
         clearImagePreview();
+
         modalTitle.innerText = "Thêm sản phẩm mới";
         document.getElementById("modalAction").value = "add";
         document.getElementById("prodId").value = "";
     };
-    function closeModal() { modal.style.display = "none"; }
+
+    function closeModal() {
+        modal.style.display = "none";
+    }
 
     window.addEventListener("click", function (e) {
-        if (e.target === modal) closeModal();
+        if (e.target === modal) {
+            closeModal();
+        }
     });
+
+    function getImageSrc(imageUrl) {
+        if (!imageUrl) {
+            return "";
+        }
+
+        if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+            return imageUrl;
+        }
+
+        if (imageUrl.startsWith("/")) {
+            return contextPath + imageUrl;
+        }
+
+        return contextPath + "/" + imageUrl;
+    }
 
     function openEditModal(btn) {
         modal.style.display = "flex";
         modalTitle.innerText = "Cập nhật sản phẩm";
+
         document.getElementById("modalAction").value = "update";
         document.getElementById("prodId").value = btn.dataset.id;
-        document.getElementById("prodName").value = btn.dataset.name;
-        document.getElementById("prodPrice").value = btn.dataset.price;
-        document.getElementById("prodStock").value = btn.dataset.stock;
-        document.getElementById("prodCategory").value = btn.dataset.category;
-        document.getElementById("prodDescription").value = btn.dataset.description;
-        document.getElementById("prodImageUrl").value    = btn.dataset.image || "";
+        document.getElementById("prodName").value = btn.dataset.name || "";
+        document.getElementById("prodPrice").value = btn.dataset.price || "";
+        document.getElementById("prodStock").value = btn.dataset.stock || "";
+        document.getElementById("prodCategory").value = btn.dataset.category || "";
+        document.getElementById("prodDescription").value = btn.dataset.description || "";
+        document.getElementById("prodImageUrl").value = btn.dataset.image || "";
 
         if (btn.dataset.image) {
-            document.getElementById("imagePreview").src              = btn.dataset.image;
+            document.getElementById("imagePreview").src = getImageSrc(btn.dataset.image);
             document.getElementById("imagePreviewWrap").style.display = "block";
         } else {
             clearImagePreview();
         }
     }
+
     function previewImage(input) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
+
             reader.onload = function (e) {
-                document.getElementById("imagePreview").src              = e.target.result;
+                document.getElementById("imagePreview").src = e.target.result;
                 document.getElementById("imagePreviewWrap").style.display = "block";
                 document.getElementById("prodImageUrl").value = "";
             };
+
             reader.readAsDataURL(input.files[0]);
         }
     }
 
     function clearImagePreview() {
-        document.getElementById("imagePreview").src              = "";
+        document.getElementById("imagePreview").src = "";
         document.getElementById("imagePreviewWrap").style.display = "none";
     }
+
     productForm.addEventListener("submit", function (e) {
         const name = document.getElementById("prodName").value.trim();
         const price = parseFloat(document.getElementById("prodPrice").value);
         const stock = parseInt(document.getElementById("prodStock").value);
+
         if (name === "") {
             alert("Tên sản phẩm không được để trống!");
-            e.preventDefault(); return;
+            e.preventDefault();
+            return;
         }
+
         if (isNaN(price) || price <= 0) {
             alert("Giá sản phẩm phải lớn hơn 0!");
-            e.preventDefault(); return;
+            e.preventDefault();
+            return;
         }
+
         if (isNaN(stock) || stock < 0) {
             alert("Số lượng kho không hợp lệ!");
-            e.preventDefault(); return;
+            e.preventDefault();
+            return;
         }
     });
+
     <c:if test="${not empty editProduct}">
     window.addEventListener("DOMContentLoaded", function () {
         modal.style.display = "flex";
@@ -373,7 +420,7 @@
         document.getElementById("prodImageUrl").value = "${editProduct.imageUrl}";
 
         if ("${editProduct.imageUrl}" !== "") {
-            document.getElementById("imagePreview").src = "${editProduct.imageUrl}";
+            document.getElementById("imagePreview").src = getImageSrc("${editProduct.imageUrl}");
             document.getElementById("imagePreviewWrap").style.display = "block";
         }
     });
