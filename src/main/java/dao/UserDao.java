@@ -246,60 +246,41 @@ public class UserDao extends BaseDao {
 
     public List<User> getAllCustomers() {
         String sql = """
-            SELECT
-                u.User_Id,
-                u.Customer_Code,
-                u.User_Name,
-                u.Phone,
-                u.Email,
-                u.Date_Of_Birth,
-                u.Gender,
-                u.Avatar_Url,
-                u.Bio,
-                u.Create_At,
-                COUNT(o.Order_Id) AS orderCount,
-                COALESCE(SUM(o.Total_Price), 0) AS totalSpend
-            FROM user u
-            LEFT JOIN orders o
-                ON u.User_Id = o.User_Id
-                AND o.Status = 'COMPLETED'
-            WHERE u.Role = 'USER'
-            GROUP BY
-                u.User_Id,
-                u.Customer_Code,
-                u.User_Name,
-                u.Phone,
-                u.Email,
-                u.Date_Of_Birth,
-                u.Gender,
-                u.Avatar_Url,
-                u.Bio,
-                u.Create_At
-            ORDER BY u.Create_At DESC
-        """;
+        SELECT
+            u.User_Id       AS userId,
+            u.Customer_Code AS customerCode,
+            u.User_Name     AS userName,
+            u.Phone         AS phone,
+            u.Email         AS email,
+            u.Date_Of_Birth AS dateOfBirth,
+            u.Gender        AS gender,
+            u.Avatar_Url    AS avatarUrl,
+            u.Bio           AS bio,
+            u.Create_At     AS createAt,
+            COUNT(o.Order_Id) AS orderCount,
+            COALESCE(SUM(o.Total_Price), 0) AS totalSpend
+        FROM user u
+        LEFT JOIN orders o
+            ON u.User_Id = o.User_Id
+            AND o.Status = 'COMPLETED'
+        WHERE u.Role = 'USER'
+        GROUP BY
+            u.User_Id,
+            u.Customer_Code,
+            u.User_Name,
+            u.Phone,
+            u.Email,
+            u.Date_Of_Birth,
+            u.Gender,
+            u.Avatar_Url,
+            u.Bio,
+            u.Create_At
+        ORDER BY u.Create_At DESC
+    """;
 
-        return getJdbi().withHandle(h ->
-                h.createQuery(sql)
-                        .map((rs, ctx) -> {
-                            User u = new User();
-                            u.setUserId(rs.getInt("User_Id"));
-                            u.setCustomerCode(rs.getString("Customer_Code"));
-                            u.setUserName(rs.getString("User_Name"));
-                            u.setPhone(rs.getString("Phone"));
-                            u.setEmail(rs.getString("Email"));
-
-                            if (rs.getDate("Date_Of_Birth") != null) {
-                                u.setDateOfBirth(rs.getDate("Date_Of_Birth").toLocalDate());
-                            }
-
-                            u.setGender(rs.getString("Gender"));
-                            u.setAvatarUrl(rs.getString("Avatar_Url"));
-                            u.setBio(rs.getString("Bio"));
-                            u.setCreateAt(rs.getTimestamp("Create_At").toLocalDateTime());
-                            u.setOrderCount(rs.getInt("orderCount"));
-                            u.setTotalSpend(rs.getBigDecimal("totalSpend"));
-                            return u;
-                        })
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .mapToBean(User.class)
                         .list()
         );
     }
