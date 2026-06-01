@@ -91,7 +91,7 @@
 
             <div>
                 <p>Tổng khách hàng</p>
-                <span class="summary-value">0</span>
+                <span class="summary-value">${totalCustomers}</span>
                 <span class="summary-detail growth">Tất cả khách hàng</span>
             </div>
         </div>
@@ -103,8 +103,8 @@
 
             <div>
                 <p>Khách VIP</p>
-                <span class="summary-value">0</span>
-                <span class="summary-detail growth">Chi tiêu cao</span>
+                <span class="summary-value">${vipCustomers}</span>
+                <span class="summary-detail growth">Chi tiêu từ 10 triệu</span>
             </div>
         </div>
 
@@ -115,7 +115,7 @@
 
             <div>
                 <p>Khách mới</p>
-                <span class="summary-value">0</span>
+                <span class="summary-value">${newCustomersThisMonth}</span>
                 <span class="summary-detail growth">Trong tháng này</span>
             </div>
         </div>
@@ -127,7 +127,7 @@
 
             <div>
                 <p>Giá trị TB/Khách</p>
-                <span class="summary-value money">0 ₫</span>
+                <span class="summary-value money">${averageSpendFormatted}</span>
                 <span class="summary-detail">Theo đơn hoàn thành</span>
             </div>
         </div>
@@ -169,16 +169,16 @@
 
                     <c:otherwise>
                         <c:forEach items="${customers}" var="customer">
-                            <tr>
+                            <tr class="${customer.customerType == 'vip' ? 'vip-row' : ''}">
                                 <td class="customer-info">
-                        <span class="customer-avatar">
-                            <c:choose>
-                                <c:when test="${not empty customer.userName}">
-                                    ${fn:substring(customer.userName, 0, 1)}
-                                </c:when>
-                                <c:otherwise>K</c:otherwise>
-                            </c:choose>
-                        </span>
+                                    <span class="customer-avatar ${customer.customerType == 'vip' ? 'vip-avatar' : ''}">
+                                        <c:choose>
+                                            <c:when test="${not empty customer.userName}">
+                                                ${fn:substring(customer.userName, 0, 1)}
+                                            </c:when>
+                                            <c:otherwise>K</c:otherwise>
+                                        </c:choose>
+                                    </span>
 
                                     <div>
                                         <strong>
@@ -220,7 +220,9 @@
                                 <td>${customer.joinDateFormatted}</td>
 
                                 <td>
-                                    <span class="customer-type-tag type-moi">Mới</span>
+                                    <span class="customer-type-tag type-${customer.customerType}">
+                                            ${customer.customerTypeLabel}
+                                    </span>
                                 </td>
 
                                 <td>

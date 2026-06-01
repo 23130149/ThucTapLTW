@@ -10,19 +10,25 @@ import model.User;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.text.NumberFormat;
+import java.util.Locale;
 
 @WebServlet(name = "AdminCustomerController", value = "/admin/customers")
 public class AdminCustomerController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        UserDao userDao = new UserDao();
-        OrderDao orderDao = new OrderDao();
+        UserDao uDao = new UserDao();
+        OrderDao oDao = new OrderDao();
 
-        List<User> customers = userDao.getAllCustomers();
-        List<Map<String, Object>> latestNotifications = orderDao.getLatestAdminNotifications(5);
+        List<User> customers = uDao.getAllCustomers();
+        List<Map<String, Object>> latestNotifications = oDao.getLatestAdminNotifications(5);
 
         request.setAttribute("customers", customers);
-        request.setAttribute("notificationCount", orderDao.countAdminNotifications());
+        request.setAttribute("totalCustomers", uDao.countTotalCustomers());
+        request.setAttribute("vipCustomers", uDao.countVipCustomers());
+        request.setAttribute("newCustomersThisMonth", uDao.countNewCustomersThisMonth());
+        request.setAttribute("averageSpendFormatted", formatCurrency(uDao.getAverageSpendPerCustomer()));
+        request.setAttribute("notificationCount", oDao.countAdminNotifications());
         request.setAttribute("latestNotifications", latestNotifications);
 
         request.getRequestDispatcher("/jsp/adminjsp/Admin_KhachHang.jsp").forward(request, response);
@@ -31,6 +37,9 @@ public class AdminCustomerController extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
+    }
+    private String formatCurrency(double value) {
+        NumberFormat vn = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+        return vn.format(value);
     }
 }
