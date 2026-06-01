@@ -581,11 +581,10 @@ a {
 
 .view-btn {
     background: #e8f4ff;
-    color: #0984e3;
 }
 
 .view-btn:hover {
-    background: #0984e3;
+    background: #38ef7d;
     color: white;
 }
 
@@ -670,4 +669,24 @@ a {
 
 .vip-avatar {
     background: linear-gradient(135deg, #f6b93b, #fa983a) !important;
+}
+.reset-filter-btn {
+    height: 42px;
+    border-radius: 10px;
+    padding: 0 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: 600;
+    background: #ffffff;
+    color: #555;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.reset-filter-btn:hover {
+    background: #f7f9fc;
+    color: #333;
+    border-color: #ccc;
 }
