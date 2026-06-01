@@ -139,13 +139,22 @@
                 <p>Quản lý thông tin và phân loại khách hàng</p>
             </div>
         </div>
-        <div class="customer-search-filter-row">
+        <form method="get"
+              action="${pageContext.request.contextPath}/admin/customers"
+              class="customer-search-filter-row">
+
             <div class="search-customer-box">
                 <i class="bx bx-search"></i>
-                <input type="text" placeholder="Tìm kiếm khách hàng...">
+                <input type="text"
+                       name="keyword"
+                       value="${keyword}"
+                       placeholder="Tìm theo tên, số điện thoại, email...">
             </div>
-            <button class="filter-button-icon"><i class="bx bx-filter"></i>Lọc</button>
-        </div>
+            <a href="${pageContext.request.contextPath}/admin/customers" class="reset-filter-btn">
+                <i class="bx bx-refresh"></i>Làm mới
+            </a>
+        </form>
+
         <div class="order-table-container">
             <table class="data-table">
                 <thead>

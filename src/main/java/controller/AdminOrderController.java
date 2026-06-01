@@ -24,7 +24,7 @@ public class AdminOrderController extends HttpServlet {
     );
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        OrderDao orderDao = new OrderDao();
+        OrderDao oDao = new OrderDao();
         OrderItemDao oiDao = new OrderItemDao();
 
         String keyword = request.getParameter("keyword");
@@ -49,7 +49,7 @@ public class AdminOrderController extends HttpServlet {
             status = null;
         }
 
-        List<Order> orders = orderDao.getAdminOrders(keyword, status);
+        List<Order> orders = oDao.getAdminOrders(keyword, status);
 
         Order selectedOrder = null;
         List<OrderItem> selectedOrderItems = new ArrayList<>();
@@ -57,7 +57,7 @@ public class AdminOrderController extends HttpServlet {
         if (detailIdParam != null && !detailIdParam.isBlank()) {
             try {
                 int detailId = Integer.parseInt(detailIdParam);
-                selectedOrder = orderDao.getOrderById(detailId);
+                selectedOrder = oDao.getOrderById(detailId);
 
                 if (selectedOrder != null) {
                     selectedOrderItems = oiDao.getItemsByOrderId(detailId);
@@ -71,15 +71,15 @@ public class AdminOrderController extends HttpServlet {
         request.setAttribute("selectedOrderItems", selectedOrderItems);
         request.setAttribute("keyword", keyword);
         request.setAttribute("currentStatus", status);
-        request.setAttribute("allCount", orderDao.countOrders());
-        request.setAttribute("pendingCount", orderDao.countOrdersByStatus("PENDING"));
-        request.setAttribute("confirmedCount", orderDao.countOrdersByStatus("CONFIRMED"));
-        request.setAttribute("shippedCount", orderDao.countOrdersByStatus("SHIPPED"));
-        request.setAttribute("completedCount", orderDao.countOrdersByStatus("COMPLETED"));
-        request.setAttribute("cancelledCount", orderDao.countOrdersByStatus("CANCELLED"));
+        request.setAttribute("allCount", oDao.countOrders());
+        request.setAttribute("pendingCount", oDao.countOrdersByStatus("PENDING"));
+        request.setAttribute("confirmedCount", oDao.countOrdersByStatus("CONFIRMED"));
+        request.setAttribute("shippedCount", oDao.countOrdersByStatus("SHIPPED"));
+        request.setAttribute("completedCount", oDao.countOrdersByStatus("COMPLETED"));
+        request.setAttribute("cancelledCount", oDao.countOrdersByStatus("CANCELLED"));
 
-        request.setAttribute("notificationCount", orderDao.countAdminNotifications());
-        request.setAttribute("latestNotifications", orderDao.getLatestAdminNotifications(5));
+        request.setAttribute("notificationCount", oDao.countAdminNotifications());
+        request.setAttribute("latestNotifications", oDao.getLatestAdminNotifications(5));
 
         request.getRequestDispatcher("/jsp/adminjsp/Admin_DonHang.jsp").forward(request, response);
     }

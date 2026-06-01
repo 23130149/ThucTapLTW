@@ -38,23 +38,51 @@
     <header class="header">
         <h2>Quản lý sản phẩm</h2>
         <div class="user-info">
-            <span class="notification-badge">
+        <div class="notification-wrapper">
+            <a href="${pageContext.request.contextPath}/admin/notifications" class="notification-btn">
                 <i class="bx bx-bell"></i>
-            </span>
-            <div class="profile-admin">
+                <c:if test="${notificationCount > 0}">
+                    <span class="notification-count">${notificationCount}</span>
+                </c:if>
+            </a>
+            <div class="notification-dropdown">
+                <h4>Thông báo Admin</h4>
+                <c:choose>
+                    <c:when test="${empty latestNotifications}">
+                        <p class="empty-notification">Không có thông báo mới</p>
+                    </c:when>
+                    <c:otherwise>
+                        <c:forEach items="${latestNotifications}" var="n">
+                            <a href="${pageContext.request.contextPath}${n.url}" class="notification-item">
+                                <span class="notification-type">${n.type}</span>
+                                <p>${n.message}</p>
+                            </a>
+                        </c:forEach>
+                    </c:otherwise>
+                </c:choose>
+            </div>
+        </div>
+        <a href="${pageContext.request.contextPath}/admin/setting" class="profile-admin">
                 <span class="admin-avatar">
                     <c:choose>
                         <c:when test="${not empty sessionScope.user.userName}">
-                            ${fn:substring(sessionScope.user.userName,0,1)}
+                            ${fn:substring(sessionScope.user.userName, 0, 1)}
                         </c:when>
                         <c:otherwise>A</c:otherwise>
                     </c:choose>
                 </span>
-                <div>
-                    <p class="user-name">${sessionScope.user.userName}</p>
-                    <small class="user-role">Quản trị viên</small>
-                </div>
+            <div>
+                <p class="user-name">
+                    <c:choose>
+                        <c:when test="${not empty sessionScope.user.userName}">
+                            ${sessionScope.user.userName}
+                        </c:when>
+                        <c:otherwise>Admin</c:otherwise>
+                    </c:choose>
+                </p>
+                <small class="user-role">Quản trị viên</small>
             </div>
+        </a>
         </div>
     </header>
     <div class="stats-grid">

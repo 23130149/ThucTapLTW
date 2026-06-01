@@ -3,6 +3,8 @@ package dao;
 import model.User;
 
 import java.util.List;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class UserDao extends BaseDao {
 
@@ -432,5 +434,80 @@ public class UserDao extends BaseDao {
                         .mapTo(Double.class)
                         .one()
         );
+    }
+    public List<User> searchCustomers(String keyword) {
+        String sql = """
+        SELECT
+            u.User_Id,
+            u.Customer_Code,
+            u.User_Name,
+            u.Phone,
+            u.Email,
+            u.Date_Of_Birth,
+            u.Gender,
+            u.Avatar_Url,
+            u.Bio,
+            u.Create_At,
+            COUNT(o.Order_Id) AS orderCount,
+            COALESCE(SUM(o.Total_Price), 0) AS totalSpend
+        FROM user u
+        LEFT JOIN orders o
+            ON u.User_Id = o.User_Id
+            AND o.Status = 'COMPLETED'
+        WHERE u.Role = 'USER'
+          AND (
+                :keyword = ''
+                OR LOWER(COALESCE(u.User_Name, '')) LIKE CONCAT('%', LOWER(:keyword), '%')
+                OR COALESCE(u.Phone, '') LIKE CONCAT('%', :keyword, '%')
+                OR LOWER(COALESCE(u.Email, '')) LIKE CONCAT('%', LOWER(:keyword), '%')
+                OR LOWER(COALESCE(u.Customer_Code, '')) LIKE CONCAT('%', LOWER(:keyword), '%')
+          )
+        GROUP BY
+            u.User_Id,
+            u.Customer_Code,
+            u.User_Name,
+            u.Phone,
+            u.Email,
+            u.Date_Of_Birth,
+            u.Gender,
+            u.Avatar_Url,
+            u.Bio,
+            u.Create_At
+        ORDER BY u.Create_At DESC
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("keyword", keyword == null ? "" : keyword.trim())
+                        .map((rs, ctx) -> mapCustomer(rs))
+                        .list()
+        );
+    }
+
+    private User mapCustomer(ResultSet rs) throws SQLException {
+        User user = new User();
+
+        user.setUserId(rs.getInt("User_Id"));
+        user.setCustomerCode(rs.getString("Customer_Code"));
+        user.setUserName(rs.getString("User_Name"));
+        user.setPhone(rs.getString("Phone"));
+        user.setEmail(rs.getString("Email"));
+
+        if (rs.getDate("Date_Of_Birth") != null) {
+            user.setDateOfBirth(rs.getDate("Date_Of_Birth").toLocalDate());
+        }
+
+        user.setGender(rs.getString("Gender"));
+        user.setAvatarUrl(rs.getString("Avatar_Url"));
+        user.setBio(rs.getString("Bio"));
+
+        if (rs.getTimestamp("Create_At") != null) {
+            user.setCreateAt(rs.getTimestamp("Create_At").toLocalDateTime());
+        }
+
+        user.setOrderCount(rs.getInt("orderCount"));
+        user.setTotalSpend(rs.getBigDecimal("totalSpend"));
+
+        return user;
     }
 }

@@ -20,7 +20,12 @@ public class AdminCustomerController extends HttpServlet {
         UserDao uDao = new UserDao();
         OrderDao oDao = new OrderDao();
 
-        List<User> customers = uDao.getAllCustomers();
+        String keyword = request.getParameter("keyword");
+        keyword = keyword == null ? "" : keyword.trim();
+
+        List<User> customers = uDao.searchCustomers(keyword);
+
+        request.setAttribute("keyword", keyword);
         List<Map<String, Object>> latestNotifications = oDao.getLatestAdminNotifications(5);
 
         request.setAttribute("customers", customers);
