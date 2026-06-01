@@ -3,20 +3,18 @@
     padding: 0;
     box-sizing: border-box;
 }
-
 body {
     display: flex;
-    font-family: "Poppins", Arial, sans-serif;
-    background: #f5f6fa;
-    color: #2d3436;
+    font-family: "Poppins", sans-serif;
+    background: #f4f6fa;
+    color: #333;
+    line-height: 1.6;
     min-height: 100vh;
 }
-
 a {
     text-decoration: none;
     color: inherit;
 }
-
 .sliderbar {
     width: 250px;
     background: linear-gradient(to bottom, #11998e, #38ef7d);
@@ -26,65 +24,52 @@ a {
     flex-direction: column;
     height: 100vh;
     position: fixed;
-    left: 0;
-    top: 0;
     z-index: 1001;
 }
-
 .slidebar-header {
     padding: 0 20px 30px;
+    border: none;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
-
 .logo {
     font-size: 24px;
     font-weight: 700;
     color: #ffd1dc;
     white-space: nowrap;
 }
-
 .slidebar-nav {
     flex-grow: 1;
     padding: 16px 0;
 }
-
 .slidebar-nav ul {
     list-style: none;
 }
-
 .slidebar-nav li a {
     display: flex;
     align-items: center;
     padding: 12px 20px;
     transition: 0.3s;
-    color: white;
 }
-
 .slidebar-nav li:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255,255,255,0.1);
 }
-
 .slidebar-nav i {
     margin-right: 15px;
     font-size: 20px;
 }
-
 .slidebar-nav li.active {
     background: #fff;
     border-radius: 50px 0 0 50px;
     margin-left: 15px;
 }
-
 .slidebar-nav li.active a {
     color: #11998e;
     font-weight: 600;
 }
-
 .logout {
     padding: 20px;
     margin-top: auto;
 }
-
 .logout a {
     color: white;
     display: flex;
@@ -92,13 +77,11 @@ a {
     gap: 10px;
     font-size: 14px;
 }
-
 .main-content {
     margin-left: 250px;
     padding: 100px 30px 30px;
     width: calc(100% - 250px);
 }
-
 .header {
     background: white;
     padding: 0 32px;
@@ -115,10 +98,11 @@ a {
 }
 
 .header h2 {
-    font-size: 26px;
+    font-size: 22px;
     font-weight: 700;
-    color: #2d3436;
+    color: #222;
 }
+
 
 .user-info {
     display: flex;
@@ -140,6 +124,7 @@ a {
     color: #555;
     position: relative;
     transition: 0.25s;
+    font-size: 20px;
 }
 
 .notification-btn:hover {
@@ -164,6 +149,7 @@ a {
     justify-content: center;
 }
 
+
 .notification-dropdown {
     position: absolute;
     top: 50px;
@@ -174,7 +160,7 @@ a {
     box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
     padding: 15px;
     display: none;
-    z-index: 2000;
+    z-index: 999;
 }
 
 .notification-wrapper:hover .notification-dropdown {
@@ -218,7 +204,6 @@ a {
     text-align: center;
     padding: 12px;
 }
-
 .profile-admin {
     display: flex;
     align-items: center;
@@ -246,13 +231,14 @@ a {
 
 .user-name {
     font-size: 14px;
-    font-weight: 700;
-    color: #2d3436;
+    font-weight: 600;
+    color: #222;
+    margin: 0;
 }
 
 .user-role {
     font-size: 12px;
-    color: #636e72;
+    color: #888;
 }
 
 .order-status-tabs {

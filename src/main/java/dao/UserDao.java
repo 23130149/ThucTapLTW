@@ -376,19 +376,23 @@ public class UserDao extends BaseDao {
 
     public int countVipCustomers() {
         String sql = """
-            SELECT COUNT(*) FROM (
-                SELECT u.User_Id
-                FROM user u
-                JOIN orders o ON u.User_Id = o.User_Id
-                WHERE u.Role = 'USER'
-                  AND o.Status = 'COMPLETED'
-                GROUP BY u.User_Id
-                HAVING SUM(o.Total_Price) >= 5000000
-            ) vip
-        """;
+        SELECT COUNT(*)
+        FROM (
+            SELECT
+                u.User_Id,
+                COALESCE(SUM(o.Total_Price), 0) AS totalSpend
+            FROM user u
+            LEFT JOIN orders o
+                ON u.User_Id = o.User_Id
+                AND o.Status = 'COMPLETED'
+            WHERE u.Role = 'USER'
+            GROUP BY u.User_Id
+        ) c
+        WHERE c.totalSpend >= 10000000
+    """;
 
-        return getJdbi().withHandle(h ->
-                h.createQuery(sql)
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
                         .mapTo(Integer.class)
                         .one()
         );
@@ -396,33 +400,35 @@ public class UserDao extends BaseDao {
 
     public int countNewCustomersThisMonth() {
         String sql = """
-            SELECT COUNT(*)
-            FROM user
-            WHERE Role = 'USER'
-              AND MONTH(Create_At) = MONTH(CURRENT_DATE())
-              AND YEAR(Create_At) = YEAR(CURRENT_DATE())
-        """;
+        SELECT COUNT(*)
+        FROM user
+        WHERE Role = 'USER'
+          AND MONTH(Create_At) = MONTH(CURRENT_DATE())
+          AND YEAR(Create_At) = YEAR(CURRENT_DATE())
+    """;
 
-        return getJdbi().withHandle(h ->
-                h.createQuery(sql)
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
                         .mapTo(Integer.class)
                         .one()
         );
     }
 
+
     public double getAverageSpendPerCustomer() {
         String sql = """
-            SELECT
-                COALESCE(SUM(o.Total_Price) / COUNT(DISTINCT u.User_Id), 0)
-            FROM user u
-            LEFT JOIN orders o
-                ON u.User_Id = o.User_Id
-                AND o.Status = 'COMPLETED'
-            WHERE u.Role = 'USER'
-        """;
+        SELECT COALESCE(
+            SUM(CASE WHEN o.Status = 'COMPLETED' THEN o.Total_Price ELSE 0 END)
+            / NULLIF(COUNT(DISTINCT u.User_Id), 0),
+            0
+        )
+        FROM user u
+        LEFT JOIN orders o ON u.User_Id = o.User_Id
+        WHERE u.Role = 'USER'
+    """;
 
-        return getJdbi().withHandle(h ->
-                h.createQuery(sql)
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
                         .mapTo(Double.class)
                         .one()
         );
