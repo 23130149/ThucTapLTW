@@ -150,6 +150,21 @@
                        value="${keyword}"
                        placeholder="Tìm theo tên, số điện thoại, email...">
             </div>
+            <select name="customerType" class="filter-select"  onchange="this.form.submit();">
+                <option value="" ${empty currentCustomerType ? 'selected' : ''}>Tất cả loại</option>
+                <option value="vip" ${currentCustomerType == 'vip' ? 'selected' : ''}>VIP</option>
+                <option value="regular" ${currentCustomerType == 'regular' ? 'selected' : ''}>Thường xuyên</option>
+                <option value="new" ${currentCustomerType == 'new' ? 'selected' : ''}>Mới</option>
+            </select>
+
+            <select name="orderRange" class="filter-select" onchange="this.form.submit();">
+                <option value="" ${empty currentOrderRange ? 'selected' : ''}>Tất cả số đơn</option>
+                <option value="0" ${currentOrderRange == '0' ? 'selected' : ''}>Chưa có đơn</option>
+                <option value="1-5" ${currentOrderRange == '1-5' ? 'selected' : ''}>1 - 5 đơn</option>
+                <option value="6-10" ${currentOrderRange == '6-10' ? 'selected' : ''}>6 - 10 đơn</option>
+                <option value="11+" ${currentOrderRange == '11+' ? 'selected' : ''}>Từ 11 đơn</option>
+            </select>
+
             <a href="${pageContext.request.contextPath}/admin/customers" class="reset-filter-btn">
                 <i class="bx bx-refresh"></i>Làm mới
             </a>
