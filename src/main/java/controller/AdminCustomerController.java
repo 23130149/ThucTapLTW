@@ -21,14 +21,25 @@ public class AdminCustomerController extends HttpServlet {
         OrderDao oDao = new OrderDao();
 
         String keyword = request.getParameter("keyword");
+        String customerType = request.getParameter("customerType");
+        String orderRange = request.getParameter("orderRange");
+
         keyword = keyword == null ? "" : keyword.trim();
+        customerType = customerType == null ? "" : customerType.trim();
+        orderRange = orderRange == null ? "" : orderRange.trim();
 
-        List<User> customers = uDao.searchCustomers(keyword);
+        int[] orderRangeValue = parseOrderRange(orderRange);
+        int minOrders = orderRangeValue[0];
+        int maxOrders = orderRangeValue[1];
 
-        request.setAttribute("keyword", keyword);
+        List<User> customers = uDao.filterCustomers(keyword, customerType, minOrders, maxOrders);
+
         List<Map<String, Object>> latestNotifications = oDao.getLatestAdminNotifications(5);
 
         request.setAttribute("customers", customers);
+        request.setAttribute("keyword", keyword);
+        request.setAttribute("currentCustomerType", customerType);
+        request.setAttribute("currentOrderRange", orderRange);
         request.setAttribute("totalCustomers", uDao.countTotalCustomers());
         request.setAttribute("vipCustomers", uDao.countVipCustomers());
         request.setAttribute("newCustomersThisMonth", uDao.countNewCustomersThisMonth());
@@ -46,5 +57,14 @@ public class AdminCustomerController extends HttpServlet {
     private String formatCurrency(double value) {
         NumberFormat vn = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
         return vn.format(value);
+    }
+    private int[] parseOrderRange(String orderRange) {
+        return switch (orderRange) {
+            case "0" -> new int[]{0, 0};
+            case "1-5" -> new int[]{1, 5};
+            case "6-10" -> new int[]{6, 10};
+            case "11+" -> new int[]{11, -1};
+            default -> new int[]{-1, -1};
+        };
     }
 }
