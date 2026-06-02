@@ -578,4 +578,135 @@ public class UserDao extends BaseDao {
                     .execute();
         });
     }
+    public List<User> filterCustomers(String keyword,
+                                      String customerType,
+                                      int minOrders,
+                                      int maxOrders,
+                                      int page,
+                                      int pageSize) {
+
+        String sql = """
+        SELECT *
+        FROM (
+            SELECT
+                u.User_Id,
+                u.Customer_Code,
+                u.User_Name,
+                u.Phone,
+                u.Email,
+                u.Date_Of_Birth,
+                u.Gender,
+                u.Avatar_Url,
+                u.Bio,
+                u.Create_At,
+                COUNT(o.Order_Id) AS orderCount,
+                COALESCE(SUM(o.Total_Price), 0) AS totalSpend
+            FROM user u
+            LEFT JOIN orders o
+                ON u.User_Id = o.User_Id
+                AND o.Status = 'COMPLETED'
+            WHERE u.Role = 'USER'
+            GROUP BY
+                u.User_Id,
+                u.Customer_Code,
+                u.User_Name,
+                u.Phone,
+                u.Email,
+                u.Date_Of_Birth,
+                u.Gender,
+                u.Avatar_Url,
+                u.Bio,
+                u.Create_At
+        ) c
+        WHERE (
+            :keyword = ''
+            OR LOWER(COALESCE(c.User_Name, '')) LIKE CONCAT('%', LOWER(:keyword), '%')
+            OR COALESCE(c.Phone, '') LIKE CONCAT('%', :keyword, '%')
+            OR LOWER(COALESCE(c.Email, '')) LIKE CONCAT('%', LOWER(:keyword), '%')
+            OR LOWER(COALESCE(c.Customer_Code, '')) LIKE CONCAT('%', LOWER(:keyword), '%')
+        )
+        AND (
+            :customerType = ''
+            OR (:customerType = 'vip' AND c.totalSpend >= 10000000)
+            OR (:customerType = 'regular' AND c.totalSpend >= 3000000 AND c.totalSpend < 10000000)
+            OR (:customerType = 'new' AND c.totalSpend < 3000000)
+        )
+        AND (:minOrders < 0 OR c.orderCount >= :minOrders)
+        AND (:maxOrders < 0 OR c.orderCount <= :maxOrders)
+        ORDER BY c.Create_At DESC
+        LIMIT :limit OFFSET :offset
+    """;
+
+        int safePage = Math.max(page, 1);
+        int safePageSize = Math.max(pageSize, 1);
+        int offset = (safePage - 1) * safePageSize;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("keyword", keyword == null ? "" : keyword.trim())
+                        .bind("customerType", customerType == null ? "" : customerType.trim())
+                        .bind("minOrders", minOrders)
+                        .bind("maxOrders", maxOrders)
+                        .bind("limit", safePageSize)
+                        .bind("offset", offset)
+                        .map((rs, ctx) -> mapCustomer(rs))
+                        .list()
+        );
+    }
+
+    public int countFilteredCustomers(String keyword,
+                                      String customerType,
+                                      int minOrders,
+                                      int maxOrders) {
+
+        String sql = """
+        SELECT COUNT(*)
+        FROM (
+            SELECT
+                u.User_Id,
+                COUNT(o.Order_Id) AS orderCount,
+                COALESCE(SUM(o.Total_Price), 0) AS totalSpend,
+                u.User_Name,
+                u.Phone,
+                u.Email,
+                u.Customer_Code
+            FROM user u
+            LEFT JOIN orders o
+                ON u.User_Id = o.User_Id
+                AND o.Status = 'COMPLETED'
+            WHERE u.Role = 'USER'
+            GROUP BY
+                u.User_Id,
+                u.User_Name,
+                u.Phone,
+                u.Email,
+                u.Customer_Code
+        ) c
+        WHERE (
+            :keyword = ''
+            OR LOWER(COALESCE(c.User_Name, '')) LIKE CONCAT('%', LOWER(:keyword), '%')
+            OR COALESCE(c.Phone, '') LIKE CONCAT('%', :keyword, '%')
+            OR LOWER(COALESCE(c.Email, '')) LIKE CONCAT('%', LOWER(:keyword), '%')
+            OR LOWER(COALESCE(c.Customer_Code, '')) LIKE CONCAT('%', LOWER(:keyword), '%')
+        )
+        AND (
+            :customerType = ''
+            OR (:customerType = 'vip' AND c.totalSpend >= 10000000)
+            OR (:customerType = 'regular' AND c.totalSpend >= 3000000 AND c.totalSpend < 10000000)
+            OR (:customerType = 'new' AND c.totalSpend < 3000000)
+        )
+        AND (:minOrders < 0 OR c.orderCount >= :minOrders)
+        AND (:maxOrders < 0 OR c.orderCount <= :maxOrders)
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("keyword", keyword == null ? "" : keyword.trim())
+                        .bind("customerType", customerType == null ? "" : customerType.trim())
+                        .bind("minOrders", minOrders)
+                        .bind("maxOrders", maxOrders)
+                        .mapTo(Integer.class)
+                        .one()
+        );
+    }
 }
