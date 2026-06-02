@@ -15,6 +15,7 @@ import java.util.Locale;
 
 @WebServlet(name = "AdminCustomerController", value = "/admin/customers")
 public class AdminCustomerController extends HttpServlet {
+    private static final int PAGE_SIZE = 8;
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         UserDao uDao = new UserDao();
@@ -24,6 +25,7 @@ public class AdminCustomerController extends HttpServlet {
         String customerType = request.getParameter("customerType");
         String orderRange = request.getParameter("orderRange");
         String detailIdRaw = request.getParameter("detailId");
+        int page = parsePage(request.getParameter("page"));
 
         keyword = keyword == null ? "" : keyword.trim();
         customerType = customerType == null ? "" : customerType.trim();
@@ -33,6 +35,8 @@ public class AdminCustomerController extends HttpServlet {
         int[] orderRangeValue = parseOrderRange(orderRange);
         int minOrders = orderRangeValue[0];
         int maxOrders = orderRangeValue[1];
+        int totalResult = uDao.countFilteredCustomers(keyword, customerType, minOrders, maxOrders);
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalResult / PAGE_SIZE));
 
         if (detailIdRaw != null && !detailIdRaw.isBlank()) {
             try {
@@ -41,8 +45,11 @@ public class AdminCustomerController extends HttpServlet {
             } catch (NumberFormatException ignored) {
             }
         }
+        if (page > totalPages) {
+            page = totalPages;
+        }
 
-        List<User> customers = uDao.filterCustomers(keyword, customerType, minOrders, maxOrders);
+        List<User> customers = uDao.filterCustomers(keyword, customerType, minOrders, maxOrders, page, PAGE_SIZE);
 
         List<Map<String, Object>> latestNotifications = oDao.getLatestAdminNotifications(5);
 
@@ -55,6 +62,10 @@ public class AdminCustomerController extends HttpServlet {
         request.setAttribute("newCustomersThisMonth", uDao.countNewCustomersThisMonth());
         request.setAttribute("averageSpendFormatted", formatCurrency(uDao.getAverageSpendPerCustomer()));
         request.setAttribute("selectedCustomer", selectedCustomer);
+        request.setAttribute("customers", customers);
+        request.setAttribute("totalResult", totalResult);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
         request.setAttribute("notificationCount", oDao.countAdminNotifications());
         request.setAttribute("latestNotifications", latestNotifications);
 
@@ -92,5 +103,13 @@ public class AdminCustomerController extends HttpServlet {
             case "11+" -> new int[]{11, -1};
             default -> new int[]{-1, -1};
         };
+    }
+    private int parsePage(String value) {
+        try {
+            int page = Integer.parseInt(value);
+            return page > 0 ? page : 1;
+        } catch (Exception e) {
+            return 1;
+        }
     }
 }

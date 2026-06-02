@@ -193,7 +193,7 @@
 
                     <c:otherwise>
                         <c:forEach items="${customers}" var="customer">
-                            <c:set var="detailUrl" value="${pageContext.request.contextPath}/admin/customers?detailId=${customer.userId}&keyword=${keyword}&customerType=${currentCustomerType}&orderRange=${currentOrderRange}" />
+                            <c:set var="detailUrl" value="${pageContext.request.contextPath}/admin/customers?detailId=${customer.userId}&keyword=${keyword}&customerType=${currentCustomerType}&orderRange=${currentOrderRange}&page=${currentPage}" />
                             <tr class="${customer.customerType == 'vip' ? 'vip-row' : ''}">
                                 <td class="customer-info">
                                     <span class="customer-avatar ${customer.customerType == 'vip' ? 'vip-avatar' : ''}">
@@ -276,11 +276,34 @@
                 </c:choose>
                 </tbody>
             </table>
+            <c:if test="${totalPages > 1}">
+                <div class="pagination">
+                    <c:if test="${currentPage > 1}">
+                        <a href="${pageContext.request.contextPath}/admin/customers?keyword=${keyword}&customerType=${currentCustomerType}&orderRange=${currentOrderRange}&page=${currentPage - 1}"
+                        class="page-link">
+                        <i class="bx bx-chevron-left"></i>
+                        </a>
+                    </c:if>
+
+                    <c:forEach begin="1" end="${totalPages}" var="pageNumber">
+                        <a href="${pageContext.request.contextPath}/admin/customers?keyword=${keyword}&customerType=${currentCustomerType}&orderRange=${currentOrderRange}&page=${pageNumber}"
+                           class="page-link ${pageNumber == currentPage ? 'active' : ''}">
+                                ${pageNumber}
+                        </a>
+                    </c:forEach>
+
+                    <c:if test="${currentPage < totalPages}">
+                        <a href="${pageContext.request.contextPath}/admin/customers?keyword=${keyword}&customerType=${currentCustomerType}&orderRange=${currentOrderRange}&page=${currentPage + 1}" class="page-link">
+                            <i class="bx bx-chevron-right"></i>
+                        </a>
+                    </c:if>
+                </div>
+            </c:if>
         </div>
     </div>
 </main>
 <c:if test="${not empty selectedCustomer}">
-    <c:set var="closeDetailUrl" value="${pageContext.request.contextPath}/admin/customers?keyword=${keyword}&customerType=${currentCustomerType}&orderRange=${currentOrderRange}" />
+    <c:set var="closeDetailUrl" value="${pageContext.request.contextPath}/admin/customers?keyword=${keyword}&customerType=${currentCustomerType}&orderRange=${currentOrderRange}&page=${currentPage}" />
     <div class="modal-overlay show">
         <div class="modal-content">
             <div class="modal-header">
