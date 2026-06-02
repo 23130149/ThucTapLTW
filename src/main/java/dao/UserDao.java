@@ -287,67 +287,6 @@ public class UserDao extends BaseDao {
         );
     }
 
-    public User getCustomerDetail(int userId) {
-        String sql = """
-            SELECT
-                u.User_Id,
-                u.Customer_Code,
-                u.User_Name,
-                u.Phone,
-                u.Email,
-                u.Date_Of_Birth,
-                u.Gender,
-                u.Avatar_Url,
-                u.Bio,
-                u.Create_At,
-                COUNT(o.Order_Id) AS orderCount,
-                COALESCE(SUM(o.Total_Price), 0) AS totalSpend
-            FROM user u
-            LEFT JOIN orders o
-                ON u.User_Id = o.User_Id
-                AND o.Status = 'COMPLETED'
-            WHERE u.User_Id = :id
-            GROUP BY
-                u.User_Id,
-                u.Customer_Code,
-                u.User_Name,
-                u.Phone,
-                u.Email,
-                u.Date_Of_Birth,
-                u.Gender,
-                u.Avatar_Url,
-                u.Bio,
-                u.Create_At
-        """;
-
-        return getJdbi().withHandle(h ->
-                h.createQuery(sql)
-                        .bind("id", userId)
-                        .map((rs, ctx) -> {
-                            User u = new User();
-                            u.setUserId(rs.getInt("User_Id"));
-                            u.setCustomerCode(rs.getString("Customer_Code"));
-                            u.setUserName(rs.getString("User_Name"));
-                            u.setPhone(rs.getString("Phone"));
-                            u.setEmail(rs.getString("Email"));
-
-                            if (rs.getDate("Date_Of_Birth") != null) {
-                                u.setDateOfBirth(rs.getDate("Date_Of_Birth").toLocalDate());
-                            }
-
-                            u.setGender(rs.getString("Gender"));
-                            u.setAvatarUrl(rs.getString("Avatar_Url"));
-                            u.setBio(rs.getString("Bio"));
-                            u.setCreateAt(rs.getTimestamp("Create_At").toLocalDateTime());
-                            u.setOrderCount(rs.getInt("orderCount"));
-                            u.setTotalSpend(rs.getBigDecimal("totalSpend"));
-                            return u;
-                        })
-                        .findOne()
-                        .orElse(null)
-        );
-    }
-
     public void updateCustomer(int userId, String userName, String phone) {
         String sql = """
             UPDATE user
@@ -571,5 +510,72 @@ public class UserDao extends BaseDao {
                         .map((rs, ctx) -> mapCustomer(rs))
                         .list()
         );
+    }
+    public User getCustomerDetail(int userId) {
+        String sql = """
+        SELECT
+            u.User_Id,
+            u.Customer_Code,
+            u.User_Name,
+            u.Phone,
+            u.Email,
+            u.Date_Of_Birth,
+            u.Gender,
+            u.Avatar_Url,
+            u.Bio,
+            u.Create_At,
+            COUNT(o.Order_Id) AS orderCount,
+            COALESCE(SUM(o.Total_Price), 0) AS totalSpend
+        FROM user u
+        LEFT JOIN orders o
+            ON u.User_Id = o.User_Id
+            AND o.Status = 'COMPLETED'
+        WHERE u.User_Id = :id
+          AND u.Role = 'USER'
+        GROUP BY
+            u.User_Id,
+            u.Customer_Code,
+            u.User_Name,
+            u.Phone,
+            u.Email,
+            u.Date_Of_Birth,
+            u.Gender,
+            u.Avatar_Url,
+            u.Bio,
+            u.Create_At
+        LIMIT 1
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("id", userId)
+                        .map((rs, ctx) -> mapCustomer(rs))
+                        .findOne()
+                        .orElse(null)
+        );
+    }
+
+    public void deleteCustomer(int userId) {
+        getJdbi().useTransaction(handle -> {
+            handle.createUpdate("DELETE FROM favorite_products WHERE User_Id = :id")
+                    .bind("id", userId)
+                    .execute();
+
+            handle.createUpdate("DELETE FROM reviews WHERE User_Id = :id")
+                    .bind("id", userId)
+                    .execute();
+
+            handle.createUpdate("DELETE FROM contact WHERE User_Id = :id")
+                    .bind("id", userId)
+                    .execute();
+
+            handle.createUpdate("DELETE FROM user_address WHERE User_Id = :id")
+                    .bind("id", userId)
+                    .execute();
+
+            handle.createUpdate("DELETE FROM user WHERE User_Id = :id AND Role = 'USER'")
+                    .bind("id", userId)
+                    .execute();
+        });
     }
 }

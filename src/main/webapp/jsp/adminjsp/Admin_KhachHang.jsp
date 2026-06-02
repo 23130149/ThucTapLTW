@@ -193,6 +193,7 @@
 
                     <c:otherwise>
                         <c:forEach items="${customers}" var="customer">
+                            <c:set var="detailUrl" value="${pageContext.request.contextPath}/admin/customers?detailId=${customer.userId}&keyword=${keyword}&customerType=${currentCustomerType}&orderRange=${currentOrderRange}" />
                             <tr class="${customer.customerType == 'vip' ? 'vip-row' : ''}">
                                 <td class="customer-info">
                                     <span class="customer-avatar ${customer.customerType == 'vip' ? 'vip-avatar' : ''}">
@@ -250,9 +251,24 @@
                                 </td>
 
                                 <td>
-                                    <button class="action-btn view-btn" type="button">
-                                        <i class="bx bx-show-alt"></i>
-                                    </button>
+                                    <div class="table-actions">
+                                        <a href="${detailUrl}" class="action-btn view-btn" title="Xem chi tiết">
+                                            <i class="bx bx-show-alt"></i>
+                                        </a>
+
+                                        <form method="post"
+                                              action="${pageContext.request.contextPath}/admin/customers"
+                                              class="delete-form"
+                                              onsubmit="return confirm('Bạn có chắc muốn xóa khách hàng này không?');">
+
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="userId" value="${customer.userId}">
+
+                                            <button type="submit" class="action-btn delete-btn" title="Xóa">
+                                                <i class="bx bx-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         </c:forEach>
@@ -263,5 +279,81 @@
         </div>
     </div>
 </main>
+<c:if test="${not empty selectedCustomer}">
+    <c:set var="closeDetailUrl" value="${pageContext.request.contextPath}/admin/customers?keyword=${keyword}&customerType=${currentCustomerType}&orderRange=${currentOrderRange}" />
+    <div class="modal-overlay show">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Chi tiết khách hàng</h3>
+                <a href="${closeDetailUrl}" class="close-modal">&times;</a>
+            </div>
+
+            <div class="customer-detail-card">
+                <span class="detail-avatar ${selectedCustomer.customerType == 'vip' ? 'vip-avatar' : ''}">
+                    <c:choose>
+                        <c:when test="${not empty selectedCustomer.userName}">
+                            ${fn:substring(selectedCustomer.userName, 0, 1)}
+                        </c:when>
+                        <c:otherwise>K</c:otherwise>
+                    </c:choose>
+                </span>
+
+                <h4>
+                    <c:choose>
+                        <c:when test="${not empty selectedCustomer.userName}">
+                            ${selectedCustomer.userName}
+                        </c:when>
+                        <c:otherwise>Khách chưa cập nhật tên</c:otherwise>
+                    </c:choose>
+                </h4>
+
+                <p>${selectedCustomer.customerCode}</p>
+
+                <span class="customer-type-tag type-${selectedCustomer.customerType}">
+                        ${selectedCustomer.customerTypeLabel}
+                </span>
+            </div>
+
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span><i class="bx bx-envelope"></i>Email</span>
+                    <strong>${selectedCustomer.email}</strong>
+                </div>
+
+                <div class="detail-item">
+                    <span><i class="bx bx-phone"></i>Số điện thoại</span>
+                    <strong>
+                        <c:choose>
+                            <c:when test="${not empty selectedCustomer.phone}">
+                                ${selectedCustomer.phone}
+                            </c:when>
+                            <c:otherwise>Chưa cập nhật</c:otherwise>
+                        </c:choose>
+                    </strong>
+                </div>
+
+                <div class="detail-item">
+                    <span><i class="bx bx-calendar"></i>Ngày tham gia</span>
+                    <strong>${selectedCustomer.joinDateFormatted}</strong>
+                </div>
+
+                <div class="detail-item">
+                    <span><i class="bx bx-receipt"></i>Số đơn hoàn thành</span>
+                    <strong>${selectedCustomer.orderCount}</strong>
+                </div>
+
+                <div class="detail-item">
+                    <span><i class="bx bx-wallet"></i>Tổng chi tiêu</span>
+                    <strong>${selectedCustomer.totalSpendFormatted}</strong>
+                </div>
+
+                <div class="detail-item">
+                    <span><i class="bx bx-user"></i>Giới tính</span>
+                    <strong>${selectedCustomer.genderLabel}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</c:if>
 </body>
 </html>

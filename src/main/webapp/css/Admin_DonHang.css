@@ -3,6 +3,7 @@
     padding: 0;
     box-sizing: border-box;
 }
+
 body {
     display: flex;
     font-family: "Poppins", sans-serif;
@@ -11,10 +12,12 @@ body {
     line-height: 1.6;
     min-height: 100vh;
 }
+
 a {
     text-decoration: none;
     color: inherit;
 }
+
 .sliderbar {
     width: 250px;
     background: linear-gradient(to bottom, #11998e, #38ef7d);
@@ -24,52 +27,65 @@ a {
     flex-direction: column;
     height: 100vh;
     position: fixed;
+    left: 0;
+    top: 0;
     z-index: 1001;
 }
+
 .slidebar-header {
     padding: 0 20px 30px;
-    border: none;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
+
 .logo {
     font-size: 24px;
     font-weight: 700;
     color: #ffd1dc;
     white-space: nowrap;
 }
+
 .slidebar-nav {
     flex-grow: 1;
     padding: 16px 0;
 }
+
 .slidebar-nav ul {
     list-style: none;
 }
+
 .slidebar-nav li a {
     display: flex;
     align-items: center;
     padding: 12px 20px;
     transition: 0.3s;
+    color: white;
 }
+
 .slidebar-nav li:hover {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
 }
+
 .slidebar-nav i {
     margin-right: 15px;
     font-size: 20px;
 }
+
 .slidebar-nav li.active {
     background: #fff;
     border-radius: 50px 0 0 50px;
     margin-left: 15px;
 }
+
 .slidebar-nav li.active a {
     color: #11998e;
     font-weight: 600;
 }
+
 .logout {
     padding: 20px;
     margin-top: auto;
 }
+
 .logout a {
     color: white;
     display: flex;
@@ -77,11 +93,14 @@ a {
     gap: 10px;
     font-size: 14px;
 }
+
 .main-content {
     margin-left: 250px;
     padding: 100px 30px 30px;
     width: calc(100% - 250px);
+    min-height: 100vh;
 }
+
 .header {
     background: white;
     padding: 0 32px;
@@ -102,7 +121,6 @@ a {
     font-weight: 700;
     color: #222;
 }
-
 
 .user-info {
     display: flex;
@@ -240,7 +258,22 @@ a {
     font-size: 12px;
     color: #888;
 }
+.user-details {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
 
+.user-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2d3436;
+}
+
+.user-role {
+    font-size: 12px;
+    color: #777;
+}
 .order-status-tabs {
     display: flex;
     flex-wrap: wrap;
