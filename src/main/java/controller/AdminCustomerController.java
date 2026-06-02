@@ -23,14 +23,24 @@ public class AdminCustomerController extends HttpServlet {
         String keyword = request.getParameter("keyword");
         String customerType = request.getParameter("customerType");
         String orderRange = request.getParameter("orderRange");
+        String detailIdRaw = request.getParameter("detailId");
 
         keyword = keyword == null ? "" : keyword.trim();
         customerType = customerType == null ? "" : customerType.trim();
         orderRange = orderRange == null ? "" : orderRange.trim();
+        User selectedCustomer = null;
 
         int[] orderRangeValue = parseOrderRange(orderRange);
         int minOrders = orderRangeValue[0];
         int maxOrders = orderRangeValue[1];
+
+        if (detailIdRaw != null && !detailIdRaw.isBlank()) {
+            try {
+                int detailId = Integer.parseInt(detailIdRaw);
+                selectedCustomer = uDao.getCustomerDetail(detailId);
+            } catch (NumberFormatException ignored) {
+            }
+        }
 
         List<User> customers = uDao.filterCustomers(keyword, customerType, minOrders, maxOrders);
 
@@ -44,6 +54,7 @@ public class AdminCustomerController extends HttpServlet {
         request.setAttribute("vipCustomers", uDao.countVipCustomers());
         request.setAttribute("newCustomersThisMonth", uDao.countNewCustomersThisMonth());
         request.setAttribute("averageSpendFormatted", formatCurrency(uDao.getAverageSpendPerCustomer()));
+        request.setAttribute("selectedCustomer", selectedCustomer);
         request.setAttribute("notificationCount", oDao.countAdminNotifications());
         request.setAttribute("latestNotifications", latestNotifications);
 
@@ -53,7 +64,22 @@ public class AdminCustomerController extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+
+        UserDao uDao = new UserDao();
+        String action = request.getParameter("action");
+
+        if ("delete".equals(action)) {
+            try {
+                int userId = Integer.parseInt(request.getParameter("userId"));
+                uDao.deleteCustomer(userId);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        response.sendRedirect(request.getContextPath() + "/admin/customers");
     }
+
     private String formatCurrency(double value) {
         NumberFormat vn = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
         return vn.format(value);
