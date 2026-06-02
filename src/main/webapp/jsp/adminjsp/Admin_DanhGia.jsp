@@ -1,6 +1,9 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <title>Admin</title>
@@ -15,294 +18,165 @@
     <nav class="slidebar-nav">
         <ul>
             <li><a href="${pageContext.request.contextPath}/admin/dashboard"><i class="bx bx-chart"></i>Tổng quan</a></li>
+            <li><a href="${pageContext.request.contextPath}/admin/category"><i class="bx bx-category"></i>Danh mục</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/products"><i class="bx bx-package"></i>Sản phẩm</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/orders"><i class="bx bx-receipt"></i>Đơn hàng</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/customers"><i class="bx bx-group"></i>Khách hàng</a></li>
-            <li class="active"><a href="${pageContext.request.contextPath}/admin/reviews"><i class="bx bx-star"></i>Đánh giá</a></li>
+            <li class="active"><a href="${pageContext.request.contextPath}/admin/reviews"><i class="bx bx-star"></i> Đánh giá</a></li>
+            <li><a href="${pageContext.request.contextPath}/admin/contacts"><i class="bx bx-envelope"></i> Liên hệ</a></li>
+            <li><a href="${pageContext.request.contextPath}/admin/banner"><i class="bx bx-image"></i>Banner</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/setting"><i class="bx bx-cog"></i>Cài đặt</a></li>
         </ul>
     </nav>
     <div class="logout">
-        <a href="${pageContext.request.contextPath}/home"><i class="bx bx-log-out"></i>Đăng xuất</a>
+        <a href="${pageContext.request.contextPath}/home">
+            <i class="bx bx-log-out"></i> Đăng xuất
+        </a>
     </div>
 </aside>
 <main class="main-content">
     <header class="header">
-        <h2>Đánh giá</h2>
-        <div class="search-box">
-            <input type="text" placeholder="Tìm kiếm...">
-            <button><i class="bx bx-search"></i></button>
-        </div>
+        <h2>Quản lý đánh giá</h2>
         <div class="user-info">
-            <span class="notification-badge"><i class="bx bx-bell"></i></span>
-            <div class="profile-admin">
-                <span class="admin-avatar">L</span>
-                <div class="user-details">
-                    <span class="user-name">Phan Đình Long</span>
-                    <span class="user-role">Quản trị viên</span>
+            <div class="notification-wrapper">
+                <a href="${pageContext.request.contextPath}/admin/notifications" class="notification-btn">
+                    <i class="bx bx-bell"></i>
+                    <c:if test="${notificationCount > 0}">
+                        <span class="notification-count">${notificationCount}</span>
+                    </c:if>
+                </a>
+                <div class="notification-dropdown">
+                    <h4>Thông báo Admin</h4>
+                    <c:choose>
+                        <c:when test="${empty latestNotifications}">
+                            <p class="empty-notification">Không có thông báo mới</p>
+                        </c:when>
+                        <c:otherwise>
+                            <c:forEach items="${latestNotifications}" var="n">
+                                <a href="${pageContext.request.contextPath}${n.url}" class="notification-item">
+                                    <span class="notification-type">${n.type}</span>
+                                    <p>${n.message}</p>
+                                </a>
+                            </c:forEach>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
             </div>
+            <a href="${pageContext.request.contextPath}/admin/setting" class="profile-admin">
+                <span class="admin-avatar">
+                    <c:choose>
+                        <c:when test="${not empty sessionScope.user.userName}">
+                            ${fn:substring(sessionScope.user.userName, 0, 1)}
+                        </c:when>
+                        <c:otherwise>A</c:otherwise>
+                    </c:choose>
+                </span>
+                <div>
+                    <p class="user-name">
+                        <c:choose>
+                            <c:when test="${not empty sessionScope.user.userName}">
+                                ${sessionScope.user.userName}
+                            </c:when>
+                            <c:otherwise>Admin</c:otherwise>
+                        </c:choose>
+                    </p>
+                    <small class="user-role">Quản trị viên</small>
+                </div>
+            </a>
         </div>
     </header>
-    <div class="table card">
-        <div class="reviews-summary-grid">
-            <div class="summary-card">
-                <p>Tổng đánh giá</p>
-                <span class="summary-value">240</span>
-                <span class="summary-detail">+6 đánh giá mới</span>
-            </div>
-            <div class="summary-card">
-                <p>Đánh giá trung bình</p>
-                <span class="summary-value">4.6
-                        <i class="bx bxs-star"></i>
-                        <i class="bx bxs-star"></i>
-                        <i class="bx bxs-star"></i>
-                        <i class="bx bxs-star"></i>
-                        <i class="bx bxs-star-half"></i>
-                    </span>
-            </div>
-            <div class="summary-card">
-                <p>Chờ duyệt</p>
-                <span class="summary-value">2</span>
-                <span class="summary-detail">Cần xem xét</span>
-            </div>
-            <div class="summary-card">
-                <p>Tỷ lệ 5 sao</p>
-                <span class="summary-value">76%</span>
-                <span class="summary-detail">Xuất sắc!</span>
+    <section class="stats-grid">
+        <div class="stat-card stat-total">
+            <div class="stat-icon"><i class="bx bx-message-square-detail"></i></div>
+            <div class="stat-details">
+                <p class="title">Tổng đánh giá</p>
+                <p class="value">${totalReviews}</p>
             </div>
         </div>
-        <div class="rating-breakdown-card">
-            <h3>Phân bố đánh giá</h3>
-            <div class="rating-bar-item">
-                <span class="rating-star-label">5<i class="bx bxs-star"></i></span>
-                <div class="progress-bar-container">
-                    <div class="progress-bar" style="width: 75%;"></div>
-                </div>
-                <span class="rating-count">150 đánh giá</span>
-            </div>
-            <div class="rating-bar-item">
-                <span class="rating-star-label">4<i class="bx bxs-star"></i></span>
-                <div class="progress-bar-container">
-                    <div class="progress-bar" style="width: 15%;"></div>
-                </div>
-                <span class="rating-count"> 50 đánh giá</span>
-            </div>
-            <div class="rating-bar-item">
-                <span class="rating-star-label">3<i class="bx bxs-star"></i></span>
-                <div class="progress-bar-container">
-                    <div class="progress-bar" style="width: 7%;"></div>
-                </div>
-                <span class="rating-count">25 đánh giá</span>
-            </div>
-            <div class="rating-bar-item">
-                <span class="rating-star-label">2<i class="bx bxs-star"></i></span>
-                <div class="progress-bar-container">
-                    <div class="progress-bar" style="width: 2%;"></div>
-                </div>
-                <span class="rating-count">10 đánh giá</span>
-            </div>
-            <div class="rating-bar-item">
-                <span class="rating-star-label">1<i class="bx bxs-star"></i></span>
-                <div class="progress-bar-container">
-                    <div class="progress-bar" style="width: 1%;"></div>
-                </div>
-                <span class="rating-count">5 đánh giá</span>
+
+        <div class="stat-card stat-rating">
+            <div class="stat-icon"><i class="bx bxs-star"></i></div>
+            <div class="stat-details">
+                <p class="title">Đánh giá trung bình</p>
+                <p class="value">
+                    <fmt:formatNumber value="${averageRating}" minFractionDigits="1" maxFractionDigits="1"/>
+                </p>
             </div>
         </div>
-        <div class="rating-filter-row">
-            <div class="rating-filter-buttons">
-                <button class="filter-button active">Tất cả</button>
-                <button class="filter-button">5<i class="bx bxs-star"></i></button>
-                <button class="filter-button">4<i class="bx bxs-star"></i></button>
-                <button class="filter-button">3<i class="bx bxs-star"></i></button>
-                <button class="filter-button">2<i class="bx bxs-star"></i></button>
-                <button class="filter-button">1<i class="bx bxs-star"></i></button>
+
+        <div class="stat-card stat-pending">
+            <div class="stat-icon"><i class="bx bx-time-five"></i></div>
+            <div class="stat-details">
+                <p class="title">Chờ duyệt</p>
+                <p class="value">${pendingReviews}</p>
             </div>
         </div>
+
+        <div class="stat-card stat-five">
+            <div class="stat-icon"><i class="bx bx-trending-up"></i></div>
+            <div class="stat-details">
+                <p class="title">Tỷ lệ 5 sao</p>
+                <p class="value">${fiveStarPercent}%</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="review-panel">
+        <div class="panel-header">
+            <div>
+                <h3>Danh sách đánh giá</h3>
+                <p>Quản lý đánh giá của khách hàng về sản phẩm</p>
+            </div>
+        </div>
+
         <div class="search-filter-row">
             <div class="search-review-box">
-                <input type="text" placeholder="Tìm kiếm đánh giá...">
+                <i class="bx bx-search"></i>
+                <input type="text" placeholder="Tìm kiếm đánh giá..." disabled>
             </div>
-            <button class="filter-button-icon"><i class="bx bx-filter"></i>Lọc</button>
+
+            <select class="filter-select" disabled>
+                <option>Tất cả số sao</option>
+            </select>
+
+            <select class="filter-select" disabled>
+                <option>Tất cả trạng thái</option>
+            </select>
+
+            <button class="filter-btn" disabled>
+                <i class="bx bx-filter-alt"></i>Lọc
+            </button>
         </div>
-        <div class="review-list-container">
-            <div class="review-item">
-                <span class="customer-avatar-review">P</span>
-                <div class="review-content">
-                    <div class="review-header">
-                        <div>
-                            <span class="reviewer-name">Nguyễn Thanh Phú</span>
-                            <div class="rating-stars">
-                                <i class="bx bxs-star"></i>
-                                <i class="bx bxs-star"></i>
-                                <i class="bx bxs-star"></i>
-                                <i class="bx bxs-star"></i>
-                                <i class="bx bxs-star"></i>
-                            </div>
+
+        <div class="order-table-container">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Mã</th>
+                    <th>Khách hàng</th>
+                    <th>Sản phẩm</th>
+                    <th>Số sao</th>
+                    <th>Nội dung</th>
+                    <th>Ngày đánh giá</th>
+                    <th>Hữu ích</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr>
+                    <td colspan="9">
+                        <div class="empty-state">
+                            <i class="bx bx-message-square-x"></i>
+                            <p>Chưa có dữ liệu đánh giá.</p>
                         </div>
-                        <div class="review-actions">
-                            <span class="status-tag">Đã duyệt</span>
-                            <div class="review-action-icons">
-                                <i class="bx bx-check"></i>
-                                <i class="bx bx-show-alt action-icon"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <p class="review-product">Móc khóa lá cờ Việt Nam</p>
-                    <span class="review-item-date">1/12/2025</span>
-                    <p class="review-text">Móc khóa dễ thương, chắc chắn lần sau tui sẽ mua tiếp.</p>
-                    <div class="shop-response">
-                        <p class="response-title"><i class="bx bx-reply"></i> Phản hồi từ shop:</p>
-                        <p class="response-text">Cảm ơn bạn đã ủng hộ shop! Chúc bạn sử dụng sản phẩm vui vẻ ạ <i
-                                class="bx bxs-heart"></i></p>
-                    </div>
-                    <div class="review-utility-container">
-                        <span class="review-utility">
-                            <i class="bx bx-like"></i> Hữu ích (28)
-                        </span>
-                    </div>
-                </div>
-            </div>
-            <div class="review-item">
-                <span class="customer-avatar-review">Đ</span>
-                <div class="review-content">
-                    <div class="review-header">
-                        <div>
-                            <span class="reviewer-name">Nguyễn Lê Tiến Đạt</span>
-                            <div class="rating-stars">
-                                <i class="bx bxs-star"></i>
-                                <i class="bx bxs-star"></i>
-                                <i class="bx bxs-star"></i>
-                                <i class="bx bxs-star"></i>
-                                <i class="bx bxs-star"></i>
-                            </div>
-                        </div>
-                        <div class="review-actions">
-                            <span class="status-tag">Đã duyệt</span>
-                            <div class="review-action-icons">
-                                <i class="bx bx-check"></i>
-                                <i class="bx bx-show-alt action-icon"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <p class="review-product">Túi hoa Tulip</p>
-                    <span class="review-item-date">24/12/2025</span>
-                    <p class="review-text">Sản phẩm rất đẹp không có chỗ nào chê.</p>
-                    <div class="review-utility-container">
-                        <span class="review-utility">
-                            <i class="bx bx-like"></i> Hữu ích (15)
-                        </span>
-                        <button class="review-reply-action"><i class="bx bx-reply"></i>Phản hồi</button>
-                    </div>
-                </div>
-            </div>
-            <div class="review-item">
-                <span class="customer-avatar-review">B</span>
-                <div class="review-content">
-                    <div class="review-header">
-                        <div>
-                            <span class="reviewer-name">Nguyễn Huy Bảo</span>
-                            <div class="rating-stars">
-                                <i class="bx bxs-star"></i>
-                                <i class="bx bxs-star"></i>
-                                <i class="bx bxs-star"></i>
-                                <i class="bx bxs-star"></i>
-                                <i class="bx bx-star"></i>
-                            </div>
-                        </div>
-                        <div class="review-actions">
-                            <span class="status-tag">Đã duyệt</span>
-                            <div class="review-action-icons">
-                                <i class="bx bx-check"></i>
-                                <i class="bx bx-show-alt action-icon"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <p class="review-product">Kẹp tóc hoa dâu tulip</p>
-                    <span class="review-item-date">10/12/2025</span>
-                    <p class="review-text">Sản phẩm rất đẹp. Tuy nhiên giao hơi lâu so với dự kiến. Nhưng nhìn chung vẫn
-                        ok.</p>
-                    <div class="review-utility-container">
-                        <span class="review-utility">
-                            <i class="bx bx-like"></i> Hữu ích (12)
-                        </span>
-                        <button class="review-reply-action"><i class="bx bx-reply"></i>Phản hồi</button>
-                    </div>
-                </div>
-            </div>
-            <div class="review-item">
-                <span class="customer-avatar-review">Q</span>
-                <div class="review-content">
-                    <div class="review-header">
-                        <div>
-                            <span class="reviewer-name">Trần Hoàng Quan</span>
-                            <div class="rating-stars">
-                                <i class="bx bxs-star"></i>
-                                <i class="bx bxs-star"></i>
-                                <i class="bx bxs-star"></i>
-                                <i class="bx bxs-star"></i>
-                                <i class="bx bxs-star"></i>
-                            </div>
-                        </div>
-                        <div class="review-actions">
-                            <span class="status-tag">Đã duyệt</span>
-                            <div class="review-action-icons">
-                                <i class="bx bx-check"></i>
-                                <i class="bx bx-show-alt action-icon"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <p class="review-product">Ốp lưng điện thoại</p>
-                    <span class="review-item-date">7/12/2025</span>
-                    <p class="review-text">Sản phẩm rất tốt, chắc chắn sẽ mua tiếp.</p>
-                    <div class="shop-response">
-                        <p class="response-title"><i class="bx bx-reply"></i> Phản hồi từ shop:</p>
-                        <p class="response-text">Cảm ơn bạn đã ủng hộ shop! Chúc bạn sử dụng sản phẩm vui vẻ ạ <i
-                                class="bx bxs-heart"></i></p>
-                    </div>
-                    <div class="review-utility-container">
-                        <span class="review-utility">
-                            <i class="bx bx-like"></i> Hữu ích (15)
-                        </span>
-                    </div>
-                </div>
-            </div>
-            <div class="review-item">
-                <span class="customer-avatar-review">K</span>
-                <div class="review-content">
-                    <div class="review-header">
-                        <div>
-                            <span class="reviewer-name">Lê Viết Khanh</span>
-                            <div class="rating-stars">
-                                <i class="bx bxs-star"></i>
-                                <i class="bx bxs-star"></i>
-                                <i class="bx bxs-star"></i>
-                                <i class="bx bxs-star"></i>
-                                <i class="bx bxs-star"></i>
-                            </div>
-                        </div>
-                        <div class="review-actions">
-                            <span class="status-tag">Đã duyệt</span>
-                            <div class="review-action-icons">
-                                <i class="bx bx-check"></i>
-                                <i class="bx bx-show-alt action-icon"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <p class="review-product">Nến thơm xương rồng</p>
-                    <span class="review-item-date">5/12/2025</span>
-                    <p class="review-text">Sản phẩm rất đẹp, chất liệu tốt.</p>
-                    <div class="review-utility-container">
-                        <span class="review-utility">
-                            <i class="bx bx-like"></i> Hữu ích (12)
-                        </span>
-                        <button class="review-reply-action"><i class="bx bx-reply"></i>Phản hồi</button>
-                    </div>
-                </div>
-            </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
         </div>
-    </div>
+    </section>
 </main>
 <div id="replyModal" class="modal-overlay">
     <div class="modal-content">
