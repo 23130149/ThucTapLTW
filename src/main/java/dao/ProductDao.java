@@ -137,7 +137,43 @@ public class ProductDao extends BaseDao {
                         .orElse(null)
         );
     }
+    public List<Product> getTopProductsByStatus(int limit, String status) {
+        String sql = """
+        SELECT
+            p.Product_Id AS productId,
+            p.Product_Name AS productName,
+            p.Product_Price AS productPrice,
+            p.Stock_Quantity AS stockQuantity,
+            COALESCE(SUM(oi.Quantity), 0) AS sold,
+            COALESCE(SUM(oi.Quantity * oi.Unit_Price), 0) AS revenue,
+            (
+                SELECT pi.Image_Url
+                FROM product_images pi
+                WHERE pi.Product_Id = p.Product_Id
+                ORDER BY pi.Image_Id ASC
+                LIMIT 1
+            ) AS imageUrl
+        FROM products p
+        JOIN order_items oi ON p.Product_Id = oi.Product_Id
+        JOIN orders o ON oi.Order_Id = o.Order_Id
+        WHERE o.Status = :status
+        GROUP BY
+            p.Product_Id,
+            p.Product_Name,
+            p.Product_Price,
+            p.Stock_Quantity
+        ORDER BY sold DESC
+        LIMIT :limit
+    """;
 
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("status", status)
+                        .bind("limit", limit)
+                        .mapToBean(Product.class)
+                        .list()
+        );
+    }
     public List<Product> getRelatedProducts(int categoryId, int currentProductId, int limit) {
         String sql = """
                 SELECT

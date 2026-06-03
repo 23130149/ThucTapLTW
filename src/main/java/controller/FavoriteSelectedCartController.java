@@ -22,7 +22,9 @@ public class FavoriteSelectedCartController extends HttpServlet {
         HttpSession session = request.getSession();
 
         if (selectedIds == null || selectedIds.length == 0) {
-            session.setAttribute("cartMessage", "Vui lòng chọn ít nhất một sản phẩm");
+            session.setAttribute("toastMessage", "Vui lòng chọn ít nhất một sản phẩm");
+            session.setAttribute("toastType", "hh-toast-cart");
+            session.setAttribute("toastIcon", "bx-cart-add");
             response.sendRedirect(request.getContextPath() + "/favorite");
             return;
         }
@@ -50,19 +52,25 @@ public class FavoriteSelectedCartController extends HttpServlet {
         session.setAttribute("cart", cart);
 
         if (addedCount == 0) {
-            session.setAttribute("cartMessage", "Không có sản phẩm hợp lệ để thêm vào giỏ");
+            session.setAttribute("toastMessage", "Không có sản phẩm hợp lệ để thêm vào giỏ");
+            session.setAttribute("toastType", "hh-toast-cart");
+            session.setAttribute("toastIcon", "bx-cart-add");
             response.sendRedirect(request.getContextPath() + "/favorite");
             return;
         }
 
         String action = request.getParameter("action");
         if ("buy".equals(action)) {
-            session.setAttribute("cartMessage", "Đã thêm " + addedCount + " sản phẩm đã chọn vào giỏ hàng");
+            session.setAttribute("toastMessage", "Đã thêm " + addedCount + " sản phẩm đã chọn vào giỏ hàng");
+            session.setAttribute("toastType", "hh-toast-cart");
+            session.setAttribute("toastIcon", "bx-cart-add");
             response.sendRedirect(request.getContextPath() + "/payment");
             return;
         }
 
-        session.setAttribute("cartMessage", "Đã thêm " + addedCount + " sản phẩm đã chọn vào giỏ hàng");
+        session.setAttribute("toastMessage", "Đã thêm " + addedCount + " sản phẩm đã chọn vào giỏ hàng");
+        session.setAttribute("toastType", "hh-toast-cart");
+        session.setAttribute("toastIcon", "bx-cart-add");
         response.sendRedirect(request.getContextPath() + "/favorite");
     }
 

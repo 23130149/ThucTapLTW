@@ -39,6 +39,9 @@ public class DBProperties {
         return prop.getProperty("db.dbOption");
     }
 
+    public static String get(String key) {
+        return prop.getProperty(key);
+    }
 
 }
 

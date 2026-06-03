@@ -2,12 +2,14 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <c:set var="headerKeyword" value="${not empty param.keyword ? param.keyword : keyword}" />
 <header class="hh-header">
-    <c:if test="${not empty sessionScope.favoriteMessage}">
-        <div class="hh-toast hh-toast-favorite">
-            <i class="bx bx-check-circle"></i>
-            <span>${sessionScope.favoriteMessage}</span>
+    <c:if test="${not empty sessionScope.toastMessage}">
+        <div class="hh-toast ${empty sessionScope.toastType ? 'hh-toast-success' : sessionScope.toastType}">
+            <i class="bx ${empty sessionScope.toastIcon ? 'bx-check-circle' : sessionScope.toastIcon}"></i>
+            <span>${sessionScope.toastMessage}</span>
         </div>
-        <c:remove var="favoriteMessage" scope="session"/>
+        <c:remove var="toastMessage" scope="session"/>
+        <c:remove var="toastType" scope="session"/>
+        <c:remove var="toastIcon" scope="session"/>
     </c:if>
     <div class="hh-header-main">
         <div class="hh-header-inner">

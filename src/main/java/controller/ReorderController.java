@@ -89,7 +89,9 @@ public class ReorderController extends HttpServlet {
             if (skipped > 0) {
                 message += " Một số sản phẩm đã hết hàng hoặc vượt tồn kho nên không thêm.";
             }
-            session.setAttribute("cartMessage", message);
+            session.setAttribute("toastMessage", message);
+            session.setAttribute("toastType", "hh-toast-cart");
+            session.setAttribute("toastIcon", "bx-cart-add");
             response.sendRedirect(request.getContextPath() + "/cart");
         } else {
             session.setAttribute("orderMessage", "Không thể mua lại vì các sản phẩm trong đơn đã hết hàng hoặc vượt tồn kho.");

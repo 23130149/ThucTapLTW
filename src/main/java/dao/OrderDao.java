@@ -169,21 +169,31 @@ public class OrderDao extends BaseDao {
         INSERT INTO orders (
             User_Id,
             User_Address_Id,
+            Payment_Method_Id,
             Ship_Address,
+            ship_name,
+            ship_phone,
             Note,
             Status,
             Create_At,
             Total_Price,
+            Payment_Status,
+            Payment_Provider,
             Order_Code
         )
         VALUES (
             :userId,
             :userAddressId,
+            :paymentMethodId,
             :shipAddress,
+            :shipName,
+            :shipPhone,
             :note,
             :status,
             NOW(),
             :totalPrice,
+            :paymentStatus,
+            :paymentProvider,
             :orderCode
         )
     """;
@@ -245,15 +255,6 @@ public class OrderDao extends BaseDao {
                         .one() > 0
         );
     }
-    public void updateStatus(int orderId, String status) {
-        String sql = "UPDATE orders SET Status = :status WHERE Order_Id = :id";
-
-        getJdbi().withHandle(handle ->
-                handle.createUpdate(sql)
-                        .bind("status", status)
-                        .bind("id", orderId)
-                        .execute()
-        );}
 
     public List<Order> getOrdersByUserIdAndStatusesPaged(int userId, List<String> statuses, int limit, int offset) {
         String baseSelect = """
@@ -438,69 +439,6 @@ public class OrderDao extends BaseDao {
         );
     }
 
-
-    public List<Order> getAllOrders() {
-        String sql = """
-        SELECT
-            o.Order_Id            AS orderId,
-            o.Order_Code          AS orderCode,
-            u.User_Name           AS userName,
-            COUNT(oi.Product_Id)  AS totalQuantity,
-            o.Total_Price         AS totalPrice,
-            o.Create_At           AS createAt,
-            o.Status              AS status
-        FROM orders o
-        JOIN user u ON o.User_Id = u.User_Id
-        JOIN order_items oi ON o.Order_Id = oi.Order_Id
-        GROUP BY
-            o.Order_Id, o.Order_Code, u.User_Name,
-            o.Total_Price, o.Create_At, o.Status
-        ORDER BY o.Create_At DESC
-    """;
-
-        return getJdbi().withHandle(h ->
-                h.createQuery(sql)
-                        .mapToBean(Order.class)
-                        .list()
-        );
-    }
-
-    public List<Order> getOrdersByStatus(String status) {
-        String sql = """
-        SELECT
-            o.Order_Id            AS orderId,
-            o.Order_Code          AS orderCode,
-            u.User_Name           AS userName,
-            COUNT(oi.Product_Id)  AS totalQuantity,
-            o.Total_Price         AS totalPrice,
-            o.Create_At           AS createAt,
-            o.Status              AS status
-        FROM orders o
-        JOIN user u ON o.User_Id = u.User_Id
-        JOIN order_items oi ON o.Order_Id = oi.Order_Id
-        WHERE o.Status = :status
-        GROUP BY
-            o.Order_Id, o.Order_Code, u.User_Name,
-            o.Total_Price, o.Create_At, o.Status
-        ORDER BY o.Create_At DESC
-    """;
-
-        return getJdbi().withHandle(h ->
-                h.createQuery(sql)
-                        .bind("status", status)
-                        .mapToBean(Order.class)
-                        .list()
-        );
-    }
-    public int countOrdersByStatus(String status) {
-        String sql = "SELECT COUNT(*) FROM orders WHERE Status = :status";
-        return getJdbi().withHandle(handle ->
-                handle.createQuery(sql)
-                        .bind("status", status)
-                        .mapTo(Integer.class)
-                        .one()
-        );
-    }
     public List<Order> getLatestOrders(int limit) {
         String sql = """
         SELECT
@@ -661,32 +599,6 @@ public class OrderDao extends BaseDao {
                         .list()
         );
     }
-    public Order getOrderById(int orderId) {
-        String sql = """
-        SELECT
-            o.Order_Id AS orderId,
-            o.User_Id AS userId,
-            o.User_Address_Id AS userAddressId,
-            o.Ship_Address AS shipAddress,
-            o.Create_At AS createAt,
-            o.Status AS status,
-            o.Order_Code AS orderCode,
-            o.Note AS note,
-            o.Total_Price AS totalPrice,
-            u.User_Name AS userName
-        FROM orders o
-        LEFT JOIN user u ON o.User_Id = u.User_Id
-        WHERE o.Order_Id = :orderId
-    """;
-
-        return getJdbi().withHandle(handle ->
-                handle.createQuery(sql)
-                        .bind("orderId", orderId)
-                        .mapToBean(Order.class)
-                        .findOne()
-                        .orElse(null)
-        );
-    }
 
     public double getTotalRevenueByStatus(String status) {
         String sql = """
@@ -735,6 +647,192 @@ public class OrderDao extends BaseDao {
                             return item;
                         })
                         .list()
+        );
+    }
+    public List<Order> getAllOrders() {
+        String sql = """
+        SELECT
+            o.Order_Id AS orderId,
+            o.User_Id AS userId,
+            o.User_Address_Id AS userAddressId,
+            o.Ship_Address AS shipAddress,
+            o.Create_At AS createAt,
+            o.Status AS status,
+            o.Order_Code AS orderCode,
+            o.Note AS note,
+            o.Total_Price AS totalPrice,
+            u.User_Name AS userName
+        FROM orders o
+        LEFT JOIN user u ON o.User_Id = u.User_Id
+        ORDER BY o.Create_At DESC
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .mapToBean(Order.class)
+                        .list()
+        );
+    }
+
+    public List<Order> getOrdersByStatus(String status) {
+        String sql = """
+        SELECT
+            o.Order_Id AS orderId,
+            o.User_Id AS userId,
+            o.User_Address_Id AS userAddressId,
+            o.Ship_Address AS shipAddress,
+            o.Create_At AS createAt,
+            o.Status AS status,
+            o.Order_Code AS orderCode,
+            o.Note AS note,
+            o.Total_Price AS totalPrice,
+            u.User_Name AS userName
+        FROM orders o
+        LEFT JOIN user u ON o.User_Id = u.User_Id
+        WHERE o.Status = :status
+        ORDER BY o.Create_At DESC
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("status", status)
+                        .mapToBean(Order.class)
+                        .list()
+        );
+    }
+
+    public Order getOrderById(int orderId) {
+        String sql = """
+        SELECT
+            o.Order_Id AS orderId,
+            o.User_Id AS userId,
+            o.User_Address_Id AS userAddressId,
+            o.Ship_Address AS shipAddress,
+            o.Create_At AS createAt,
+            o.Status AS status,
+            o.Order_Code AS orderCode,
+            o.Note AS note,
+            o.Total_Price AS totalPrice,
+            u.User_Name AS userName
+        FROM orders o
+        LEFT JOIN user u ON o.User_Id = u.User_Id
+        WHERE o.Order_Id = :orderId
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("orderId", orderId)
+                        .mapToBean(Order.class)
+                        .findOne()
+                        .orElse(null)
+        );
+    }
+
+    public int countOrdersByStatus(String status) {
+        String sql = """
+        SELECT COUNT(*)
+        FROM orders
+        WHERE Status = :status
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("status", status)
+                        .mapTo(Integer.class)
+                        .one()
+        );
+    }
+
+    public void updateStatus(int orderId, String status) {
+        String sql = """
+        UPDATE orders
+        SET Status = :status
+        WHERE Order_Id = :orderId
+    """;
+
+        getJdbi().useHandle(handle ->
+                handle.createUpdate(sql)
+                        .bind("status", status)
+                        .bind("orderId", orderId)
+                        .execute()
+        );
+    }
+
+    public boolean markVnpayPaid(String orderCode, String transactionNo, String responseCode) {
+        String sql = """
+        UPDATE orders
+        SET
+            Payment_Status = 'PAID',
+            Payment_Provider = 'VNPAY',
+            Payment_Transaction_No = :transactionNo,
+            Payment_Response_Code = :responseCode,
+            Paid_At = NOW(),
+            Status = 'CONFIRMED'
+        WHERE Order_Code = :orderCode
+          AND Payment_Status <> 'PAID'
+    """;
+
+        int rows = getJdbi().withHandle(handle ->
+                handle.createUpdate(sql)
+                        .bind("orderCode", orderCode)
+                        .bind("transactionNo", transactionNo)
+                        .bind("responseCode", responseCode)
+                        .execute()
+        );
+
+        return rows > 0;
+    }
+
+    public void markVnpayFailed(String orderCode, String responseCode) {
+        String sql = """
+        UPDATE orders
+        SET
+            Payment_Status = 'FAILED',
+            Payment_Provider = 'VNPAY',
+            Payment_Response_Code = :responseCode,
+            Status = 'PAYMENT_FAILED'
+        WHERE Order_Code = :orderCode
+          AND Payment_Status <> 'PAID'
+    """;
+
+        getJdbi().useHandle(handle ->
+                handle.createUpdate(sql)
+                        .bind("orderCode", orderCode)
+                        .bind("responseCode", responseCode)
+                        .execute()
+        );
+    }
+
+    public Order getOrderByCode(String orderCode) {
+        String sql = """
+        SELECT
+            Order_Id AS orderId,
+            User_Id AS userId,
+            User_Address_Id AS userAddressId,
+            Payment_Method_Id AS paymentMethodId,
+            Ship_Address AS shipAddress,
+            ship_name AS shipName,
+            ship_phone AS shipPhone,
+            Note AS note,
+            Status AS status,
+            Create_At AS createAt,
+            Total_Price AS totalPrice,
+            Payment_Status AS paymentStatus,
+            Payment_Provider AS paymentProvider,
+            Payment_Transaction_No AS paymentTransactionNo,
+            Payment_Response_Code AS paymentResponseCode,
+            Paid_At AS paidAt,
+            Order_Code AS orderCode
+        FROM orders
+        WHERE Order_Code = :orderCode
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("orderCode", orderCode)
+                        .mapToBean(Order.class)
+                        .findOne()
+                        .orElse(null)
         );
     }
 }
