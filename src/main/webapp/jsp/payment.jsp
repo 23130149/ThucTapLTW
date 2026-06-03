@@ -294,7 +294,11 @@
             if (!res.ok) throw new Error('Shipping API is not ready');
 
             const data = await res.json();
-            updateShippingUI(data.shippingFee, data.distanceKm, 'Phí được tính từ API khoảng cách/vận chuyển.');
+            if (data.source === 'GHN') {
+                updateShippingUI(data.shippingFee, null, 'Phí giao hàng được tính từ Giao Hàng Nhanh.');
+            } else {
+                updateShippingUI(data.shippingFee, data.distanceKm, 'Đang dùng phí tạm tính vì địa chỉ chưa có mã GHN hoặc GHN chưa trả phí.');
+            }
         } catch (error) {
             const fee = calculateFallbackFee(fallbackDistance);
             updateShippingUI(fee, fallbackDistance, 'Đang dùng công thức tạm thời vì API tính phí chưa được kết nối.');
