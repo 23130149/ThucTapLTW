@@ -97,6 +97,24 @@
       Chờ xác nhận <span class="count">${pendingCount}</span>
     </a>
 
+    <a class="tab-btn ${currentStatus == 'PENDING_PAYMENT' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/admin/orders?status=PENDING_PAYMENT&keyword=${keyword}">
+      <i class="bx bx-credit-card"></i>
+      Chờ thanh toán <span class="count">${pendingPaymentCount}</span>
+    </a>
+
+    <a class="tab-btn ${currentStatus == 'PAYMENT_FAILED' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/admin/orders?status=PAYMENT_FAILED&keyword=${keyword}">
+      <i class="bx bx-error-circle"></i>
+      Thanh toán lỗi <span class="count">${paymentFailedCount}</span>
+    </a>
+
+    <a class="tab-btn ${currentStatus == 'PROCESSING' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/admin/orders?status=PROCESSING&keyword=${keyword}">
+      <i class="bx bx-loader-circle"></i>
+      Đang xử lý <span class="count">${processingCount}</span>
+    </a>
+
     <a class="tab-btn ${currentStatus == 'CONFIRMED' ? 'active' : ''}"
        href="${pageContext.request.contextPath}/admin/orders?status=CONFIRMED&keyword=${keyword}">
       <i class="bx bx-check-circle"></i>
@@ -119,6 +137,23 @@
        href="${pageContext.request.contextPath}/admin/orders?status=CANCELLED&keyword=${keyword}">
       <i class="bx bx-x-circle"></i>
       Đã hủy <span class="count">${cancelledCount}</span>
+    </a>
+    <a class="tab-btn ${currentStatus == 'RETURN_REQUESTED' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/admin/orders?status=RETURN_REQUESTED&keyword=${keyword}">
+      <i class="bx bx-undo"></i>
+      Yêu cầu trả <span class="count">${returnRequestedCount}</span>
+    </a>
+
+    <a class="tab-btn ${currentStatus == 'RETURNED' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/admin/orders?status=RETURNED&keyword=${keyword}">
+      <i class="bx bx-check-shield"></i>
+      Đã trả <span class="count">${returnedCount}</span>
+    </a>
+
+    <a class="tab-btn ${currentStatus == 'RETURN_REJECTED' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/admin/orders?status=RETURN_REJECTED&keyword=${keyword}">
+      <i class="bx bx-x"></i>
+      Từ chối trả <span class="count">${returnRejectedCount}</span>
     </a>
   </div>
   <div class="search-filter-row">
@@ -177,6 +212,21 @@
                 <c:set var="statusText" value="Đã xác nhận"/>
               </c:when>
 
+              <c:when test="${order.status == 'PENDING_PAYMENT'}">
+                <c:set var="statusClass" value="status-payment"/>
+                <c:set var="statusText" value="Chờ thanh toán"/>
+              </c:when>
+
+              <c:when test="${order.status == 'PAYMENT_FAILED'}">
+                <c:set var="statusClass" value="status-cancelled"/>
+                <c:set var="statusText" value="Thanh toán lỗi"/>
+              </c:when>
+
+              <c:when test="${order.status == 'PROCESSING'}">
+                <c:set var="statusClass" value="status-processing"/>
+                <c:set var="statusText" value="Đang xử lý"/>
+              </c:when>
+
               <c:when test="${order.status == 'SHIPPED'}">
                 <c:set var="statusClass" value="status-shipping"/>
                 <c:set var="statusText" value="Đang giao"/>
@@ -190,6 +240,20 @@
               <c:when test="${order.status == 'CANCELLED'}">
                 <c:set var="statusClass" value="status-cancelled"/>
                 <c:set var="statusText" value="Đã hủy"/>
+              </c:when>
+              <c:when test="${order.status == 'RETURN_REQUESTED'}">
+                <c:set var="statusClass" value="status-return"/>
+                <c:set var="statusText" value="Yêu cầu trả hàng"/>
+              </c:when>
+
+              <c:when test="${order.status == 'RETURNED'}">
+                <c:set var="statusClass" value="status-returned"/>
+                <c:set var="statusText" value="Đã trả hàng"/>
+              </c:when>
+
+              <c:when test="${order.status == 'RETURN_REJECTED'}">
+                <c:set var="statusClass" value="status-cancelled"/>
+                <c:set var="statusText" value="Từ chối trả hàng"/>
               </c:when>
             </c:choose>
 
@@ -259,10 +323,24 @@
                           class="inline-form">
                       <input type="hidden" name="action" value="updateStatus">
                       <input type="hidden" name="orderId" value="${order.orderId}">
+                      <input type="hidden" name="status" value="PROCESSING">
+
+                      <button type="submit" class="action-btn confirm-btn" title="Chuyển sang đang xử lý">
+                        <i class="bx bx-check"></i>
+                      </button>
+                    </form>
+                  </c:if>
+
+                  <c:if test="${order.status == 'PROCESSING'}">
+                    <form method="post"
+                          action="${pageContext.request.contextPath}/admin/orders"
+                          class="inline-form">
+                      <input type="hidden" name="action" value="updateStatus">
+                      <input type="hidden" name="orderId" value="${order.orderId}">
                       <input type="hidden" name="status" value="CONFIRMED">
 
                       <button type="submit" class="action-btn confirm-btn" title="Xác nhận đơn hàng">
-                        <i class="bx bx-check"></i>
+                        <i class="bx bx-check-circle"></i>
                       </button>
                     </form>
                   </c:if>
@@ -291,6 +369,32 @@
 
                       <button type="submit" class="action-btn complete-btn" title="Hoàn thành đơn hàng">
                         <i class="bx bx-check-double"></i>
+                      </button>
+                    </form>
+                  </c:if>
+
+                  <c:if test="${order.status == 'RETURN_REQUESTED'}">
+                    <form method="post"
+                          action="${pageContext.request.contextPath}/admin/orders"
+                          class="inline-form">
+                      <input type="hidden" name="action" value="updateStatus">
+                      <input type="hidden" name="orderId" value="${order.orderId}">
+                      <input type="hidden" name="status" value="RETURNED">
+
+                      <button type="submit" class="action-btn complete-btn" title="Xác nhận đã trả hàng">
+                        <i class="bx bx-check-double"></i>
+                      </button>
+                    </form>
+
+                    <form method="post"
+                          action="${pageContext.request.contextPath}/admin/orders"
+                          class="inline-form">
+                      <input type="hidden" name="action" value="updateStatus">
+                      <input type="hidden" name="orderId" value="${order.orderId}">
+                      <input type="hidden" name="status" value="RETURN_REJECTED">
+
+                      <button type="submit" class="action-btn reject-btn" title="Từ chối trả hàng">
+                        <i class="bx bx-x"></i>
                       </button>
                     </form>
                   </c:if>
