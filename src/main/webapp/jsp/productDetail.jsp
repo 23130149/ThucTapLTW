@@ -176,6 +176,17 @@
             </div>
           </div>
           <p class="review-text">${r.comment}</p>
+          <c:if test="${not empty r.shopReply}">
+            <div class="shop-response">
+              <p class="response-title">
+                <i class="bx bx-reply"></i>
+                Phản hồi từ shop:
+              </p>
+              <p class="response-text">
+                <c:out value="${r.shopReply}"/>
+              </p>
+            </div>
+          </c:if>
         </div>
       </c:forEach>
     </div>

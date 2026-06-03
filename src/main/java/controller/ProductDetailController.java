@@ -2,11 +2,13 @@ package controller;
 
 import dao.FavoriteDao;
 import dao.ProductDao;
+import dao.ReviewDao;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 import model.Product;
 import model.ProductImage;
+import model.Review;
 import model.User;
 
 import java.io.IOException;
@@ -19,6 +21,7 @@ public class ProductDetailController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         ProductDao pDao = new ProductDao();
         FavoriteDao favoriteDao = new FavoriteDao();
+        ReviewDao rDao = new ReviewDao();
         String idParam = request.getParameter("id");
 
         if (idParam == null) {
@@ -43,6 +46,10 @@ public class ProductDetailController extends HttpServlet {
         List<ProductImage> productImages = pDao.getImagesByProductId(productId);
         List<Product> relatedProducts = pDao.getRelatedProducts(product.getCategoryId(), product.getProductId(), 4);
 
+        List<Review> reviews = rDao.getReviewsByProductId(productId, null, null);
+        double avgRating = rDao.getAverageRating(productId);
+        int reviewCount = rDao.countReviews(productId);
+
         HttpSession session = request.getSession(false);
         if (session != null && session.getAttribute("user") != null) {
             User user = (User) session.getAttribute("user");
@@ -54,8 +61,9 @@ public class ProductDetailController extends HttpServlet {
         request.setAttribute("product", product);
         request.setAttribute("productImages", productImages);
         request.setAttribute("relatedProducts", relatedProducts);
-        request.setAttribute("avgRating", 5);
-        request.setAttribute("reviewCount", 0);
+        request.setAttribute("reviews", reviews);
+        request.setAttribute("avgRating", avgRating);
+        request.setAttribute("reviewCount", reviewCount);
         request.getRequestDispatcher("/jsp/productDetail.jsp").forward(request, response);
     }
 
