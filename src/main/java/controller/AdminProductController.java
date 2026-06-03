@@ -1,6 +1,7 @@
 package controller;
 
 import dao.CategoryDao;
+import dao.OrderDao;
 import dao.ProductDao;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
@@ -16,6 +17,7 @@ import java.util.List;
 public class AdminProductController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        OrderDao oDao = new OrderDao();
         ProductDao pDao = new ProductDao();
         CategoryDao cDao = new CategoryDao();
 
@@ -64,6 +66,9 @@ public class AdminProductController extends HttpServlet {
         request.setAttribute("currentPage", currentPage);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("editProduct", editProduct);
+
+        request.setAttribute("notificationCount", oDao.countAdminNotifications());
+        request.setAttribute("latestNotifications", oDao.getLatestAdminNotifications(5));
 
         request.getRequestDispatcher("/jsp/adminjsp/Admin_SanPham.jsp").forward(request, response);
     }

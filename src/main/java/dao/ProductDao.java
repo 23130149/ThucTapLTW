@@ -429,6 +429,8 @@ public class ProductDao extends BaseDao {
     private void appendStatusFilter(StringBuilder sql, String status) {
         if ("instock".equals(status)) {
             sql.append(" AND p.stock_quantity > 0");
+        } else if ("lowstock".equals(status)) {
+            sql.append(" AND p.stock_quantity > 0 AND p.stock_quantity < 5");
         } else if ("outofstock".equals(status)) {
             sql.append(" AND p.stock_quantity = 0");
         }
@@ -439,7 +441,8 @@ public class ProductDao extends BaseDao {
 
         switch (priceRange) {
             case "0-100000" -> sql.append(" AND p.product_price BETWEEN 0 AND 100000");
-            case "100000-500000" -> sql.append(" AND p.product_price BETWEEN 100000 AND 500000");
+            case "100000-300000" -> sql.append(" AND p.product_price BETWEEN 100000 AND 300000");
+            case "300000-500000" -> sql.append(" AND p.product_price BETWEEN 300000 AND 500000");
             case "500000+" -> sql.append(" AND p.product_price > 500000");
         }
     }

@@ -185,6 +185,8 @@ public class Payment extends HttpServlet {
             return;
         }
 
+        order.setOrderId(orderId);
+
         OrderItemDao orderItemDao = new OrderItemDao();
         Set<Integer> paidProductIds = new HashSet<>();
 

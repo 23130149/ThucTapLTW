@@ -23,7 +23,8 @@ public class ReviewDao extends BaseDao {
                     User_Id INT NOT NULL,
                     Rating INT NOT NULL,
                     Comment TEXT NOT NULL,
-                    Status VARCHAR(30) DEFAULT 'APPROVED',
+                    Status VARCHAR(30) DEFAULT 'PENDING',
+                    Shop_Reply TEXT NULL,
                     Create_At DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
                 """;
@@ -65,6 +66,7 @@ public class ReviewDao extends BaseDao {
                     r.Rating AS rating,
                     r.Comment AS comment,
                     r.Status AS status,
+                    r.Shop_Reply AS shopReply,
                     r.Create_At AS createAt,
                     (SELECT COUNT(*) FROM review_likes rl WHERE rl.Review_Id = r.Review_Id) AS helpfulCount,
                     CASE WHEN :currentUserId > 0 AND EXISTS (
@@ -87,9 +89,11 @@ public class ReviewDao extends BaseDao {
             Query query = handle.createQuery(sql.toString())
                     .bind("productId", productId)
                     .bind("currentUserId", currentUserId == null ? 0 : currentUserId);
+
             if (rating != null && rating >= 1 && rating <= 5) {
                 query.bind("rating", rating);
             }
+
             return query.mapToBean(Review.class).list();
         });
 
@@ -159,6 +163,7 @@ public class ReviewDao extends BaseDao {
 
     public Map<Integer, Integer> countReviewsByRating(int productId) {
         Map<Integer, Integer> result = new LinkedHashMap<>();
+
         for (int i = 5; i >= 1; i--) {
             result.put(i, 0);
         }
@@ -184,7 +189,7 @@ public class ReviewDao extends BaseDao {
     public void addReview(int productId, int userId, int rating, String comment) {
         String sql = """
                 INSERT INTO reviews (Product_Id, User_Id, Rating, Comment, Status, Create_At)
-                VALUES (:productId, :userId, :rating, :comment, 'APPROVED', NOW())
+                VALUES (:productId, :userId, :rating, :comment, 'PENDING', NOW())
                 """;
 
         getJdbi().useHandle(handle ->
@@ -199,7 +204,11 @@ public class ReviewDao extends BaseDao {
 
     public void toggleLike(int reviewId, int userId) {
         boolean liked = getJdbi().withHandle(handle ->
-                handle.createQuery("SELECT COUNT(*) FROM review_likes WHERE Review_Id = :reviewId AND User_Id = :userId")
+                handle.createQuery("""
+                                SELECT COUNT(*)
+                                FROM review_likes
+                                WHERE Review_Id = :reviewId AND User_Id = :userId
+                                """)
                         .bind("reviewId", reviewId)
                         .bind("userId", userId)
                         .mapTo(Integer.class)
@@ -208,14 +217,20 @@ public class ReviewDao extends BaseDao {
 
         if (liked) {
             getJdbi().useHandle(handle ->
-                    handle.createUpdate("DELETE FROM review_likes WHERE Review_Id = :reviewId AND User_Id = :userId")
+                    handle.createUpdate("""
+                                    DELETE FROM review_likes
+                                    WHERE Review_Id = :reviewId AND User_Id = :userId
+                                    """)
                             .bind("reviewId", reviewId)
                             .bind("userId", userId)
                             .execute()
             );
         } else {
             getJdbi().useHandle(handle ->
-                    handle.createUpdate("INSERT INTO review_likes (Review_Id, User_Id) VALUES (:reviewId, :userId)")
+                    handle.createUpdate("""
+                                    INSERT INTO review_likes (Review_Id, User_Id)
+                                    VALUES (:reviewId, :userId)
+                                    """)
                             .bind("reviewId", reviewId)
                             .bind("userId", userId)
                             .execute()
@@ -236,5 +251,193 @@ public class ReviewDao extends BaseDao {
                         .bind("replyText", replyText)
                         .execute()
         );
+    }
+    public List<Review> getAdminReviews(String keyword, Integer rating, String status) {
+        StringBuilder sql = new StringBuilder("""
+            SELECT
+                r.Review_Id AS reviewId,
+                r.Product_Id AS productId,
+                r.User_Id AS userId,
+                COALESCE(u.User_Name, u.Email, 'Khách hàng') AS userName,
+                COALESCE(p.Product_Name, 'Sản phẩm đã xóa') AS productName,
+                r.Rating AS rating,
+                r.Comment AS comment,
+                COALESCE(r.Status, 'APPROVED') AS status,
+                r.Create_At AS createAt,
+                (SELECT COUNT(*) FROM review_likes rl WHERE rl.Review_Id = r.Review_Id) AS helpfulCount
+            FROM reviews r
+            LEFT JOIN `user` u ON u.User_Id = r.User_Id
+            LEFT JOIN products p ON p.Product_Id = r.Product_Id
+            WHERE 1 = 1
+            """);
+
+        boolean hasKeyword = keyword != null && !keyword.isBlank();
+        boolean hasRating = rating != null && rating >= 1 && rating <= 5;
+        boolean hasStatus = status != null && !status.isBlank();
+
+        if (hasKeyword) {
+            sql.append("""
+                 AND (
+                    r.Comment LIKE CONCAT('%', :keyword, '%')
+                    OR u.User_Name LIKE CONCAT('%', :keyword, '%')
+                    OR u.Email LIKE CONCAT('%', :keyword, '%')
+                    OR p.Product_Name LIKE CONCAT('%', :keyword, '%')
+                )
+                """);
+        }
+
+        if (hasRating) {
+            sql.append(" AND r.Rating = :rating");
+        }
+
+        if (hasStatus) {
+            sql.append(" AND COALESCE(r.Status, 'APPROVED') = :status");
+        }
+
+        sql.append("""
+            ORDER BY
+                CASE WHEN r.Status = 'PENDING' THEN 0 ELSE 1 END,
+                r.Create_At DESC,
+                r.Review_Id DESC
+            """);
+
+        return getJdbi().withHandle(handle -> {
+            Query query = handle.createQuery(sql.toString());
+
+            if (hasKeyword) {
+                query.bind("keyword", keyword.trim());
+            }
+
+            if (hasRating) {
+                query.bind("rating", rating);
+            }
+
+            if (hasStatus) {
+                query.bind("status", status.trim().toUpperCase());
+            }
+
+            return query.mapToBean(Review.class).list();
+        });
+    }
+
+    public void updateReviewStatus(int reviewId, String status) {
+        String sql = """
+                UPDATE reviews
+                SET Status = :status
+                WHERE Review_Id = :reviewId
+                """;
+
+        getJdbi().useHandle(handle ->
+                handle.createUpdate(sql)
+                        .bind("status", status)
+                        .bind("reviewId", reviewId)
+                        .execute()
+        );
+    }
+
+    public void replyReview(int reviewId, String shopReply) {
+        String sql = """
+                UPDATE reviews
+                SET Shop_Reply = :shopReply
+                WHERE Review_Id = :reviewId
+                """;
+
+        getJdbi().useHandle(handle ->
+                handle.createUpdate(sql)
+                        .bind("shopReply", shopReply)
+                        .bind("reviewId", reviewId)
+                        .execute()
+        );
+    }
+
+    public List<Review> getAdminReviews() {
+        String sql = """
+                SELECT
+                    r.Review_Id AS reviewId,
+                    r.Product_Id AS productId,
+                    r.User_Id AS userId,
+                    COALESCE(u.User_Name, u.Email, 'Khách hàng') AS userName,
+                    COALESCE(p.Product_Name, 'Sản phẩm đã xóa') AS productName,
+                    r.Rating AS rating,
+                    r.Comment AS comment,
+                    COALESCE(r.Status, 'APPROVED') AS status,
+                    r.Create_At AS createAt,
+                    (SELECT COUNT(*) FROM review_likes rl WHERE rl.Review_Id = r.Review_Id) AS helpfulCount
+                FROM reviews r
+                LEFT JOIN `user` u ON u.User_Id = r.User_Id
+                LEFT JOIN products p ON p.Product_Id = r.Product_Id
+                ORDER BY
+                    CASE WHEN r.Status = 'PENDING' THEN 0 ELSE 1 END,
+                    r.Create_At DESC,
+                    r.Review_Id DESC
+                """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .mapToBean(Review.class)
+                        .list()
+        );
+    }
+
+    public int countAllReviews() {
+        String sql = "SELECT COUNT(*) FROM reviews";
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .mapTo(Integer.class)
+                        .one()
+        );
+    }
+
+    public int countReviewsByStatus(String status) {
+        String sql = "SELECT COUNT(*) FROM reviews WHERE Status = :status";
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("status", status)
+                        .mapTo(Integer.class)
+                        .one()
+        );
+    }
+
+    public double getAverageRatingAll() {
+        String sql = "SELECT COALESCE(AVG(Rating), 0) FROM reviews";
+
+        BigDecimal avg = getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .mapTo(BigDecimal.class)
+                        .one()
+        );
+
+        return avg == null ? 0 : Math.round(avg.doubleValue() * 10.0) / 10.0;
+    }
+
+    public Map<Integer, Integer> countAllReviewsByRating() {
+        Map<Integer, Integer> result = new LinkedHashMap<>();
+
+        for (int i = 5; i >= 1; i--) {
+            result.put(i, 0);
+        }
+
+        String sql = """
+                SELECT Rating AS rating, COUNT(*) AS total
+                FROM reviews
+                GROUP BY Rating
+                """;
+
+        getJdbi().useHandle(handle ->
+                handle.createQuery(sql)
+                        .map((rs, ctx) -> Map.entry(rs.getInt("rating"), rs.getInt("total")))
+                        .forEach(entry -> {
+                            int ratingValue = entry.getKey();
+
+                            if (ratingValue >= 1 && ratingValue <= 5) {
+                                result.put(ratingValue, entry.getValue());
+                            }
+                        })
+        );
+
+        return result;
+
     }
 }

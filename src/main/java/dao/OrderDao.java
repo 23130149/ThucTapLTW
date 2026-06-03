@@ -5,7 +5,6 @@ import model.Product;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.*;
 
 public class OrderDao extends BaseDao {
 
@@ -650,55 +649,11 @@ public class OrderDao extends BaseDao {
         );
     }
     public List<Order> getAllOrders() {
-        String sql = """
-        SELECT
-            o.Order_Id AS orderId,
-            o.User_Id AS userId,
-            o.User_Address_Id AS userAddressId,
-            o.Ship_Address AS shipAddress,
-            o.Create_At AS createAt,
-            o.Status AS status,
-            o.Order_Code AS orderCode,
-            o.Note AS note,
-            o.Total_Price AS totalPrice,
-            u.User_Name AS userName
-        FROM orders o
-        LEFT JOIN user u ON o.User_Id = u.User_Id
-        ORDER BY o.Create_At DESC
-    """;
-
-        return getJdbi().withHandle(handle ->
-                handle.createQuery(sql)
-                        .mapToBean(Order.class)
-                        .list()
-        );
+        return getAdminOrders("", "");
     }
 
     public List<Order> getOrdersByStatus(String status) {
-        String sql = """
-        SELECT
-            o.Order_Id AS orderId,
-            o.User_Id AS userId,
-            o.User_Address_Id AS userAddressId,
-            o.Ship_Address AS shipAddress,
-            o.Create_At AS createAt,
-            o.Status AS status,
-            o.Order_Code AS orderCode,
-            o.Note AS note,
-            o.Total_Price AS totalPrice,
-            u.User_Name AS userName
-        FROM orders o
-        LEFT JOIN user u ON o.User_Id = u.User_Id
-        WHERE o.Status = :status
-        ORDER BY o.Create_At DESC
-    """;
-
-        return getJdbi().withHandle(handle ->
-                handle.createQuery(sql)
-                        .bind("status", status)
-                        .mapToBean(Order.class)
-                        .list()
-        );
+        return getAdminOrders("", status);
     }
 
     public Order getOrderById(int orderId) {
@@ -707,16 +662,35 @@ public class OrderDao extends BaseDao {
             o.Order_Id AS orderId,
             o.User_Id AS userId,
             o.User_Address_Id AS userAddressId,
-            o.Ship_Address AS shipAddress,
+            o.ship_address AS shipAddress,
+            o.ship_name AS shipName,
+            o.ship_phone AS shipPhone,
             o.Create_At AS createAt,
             o.Status AS status,
             o.Order_Code AS orderCode,
             o.Note AS note,
             o.Total_Price AS totalPrice,
-            u.User_Name AS userName
+            o.Payment_Status AS paymentStatus,
+            u.User_Name AS userName,
+            COALESCE(SUM(oi.Quantity), 0) AS totalQuantity
         FROM orders o
         LEFT JOIN user u ON o.User_Id = u.User_Id
+        LEFT JOIN order_items oi ON o.Order_Id = oi.Order_Id
         WHERE o.Order_Id = :orderId
+        GROUP BY
+            o.Order_Id,
+            o.User_Id,
+            o.User_Address_Id,
+            o.ship_address,
+            o.ship_name,
+            o.ship_phone,
+            o.Create_At,
+            o.Status,
+            o.Order_Code,
+            o.Note,
+            o.Total_Price,
+            o.Payment_Status,
+            u.User_Name
     """;
 
         return getJdbi().withHandle(handle ->
@@ -727,7 +701,6 @@ public class OrderDao extends BaseDao {
                         .orElse(null)
         );
     }
-
     public int countOrdersByStatus(String status) {
         String sql = """
         SELECT COUNT(*)
@@ -833,6 +806,72 @@ public class OrderDao extends BaseDao {
                         .mapToBean(Order.class)
                         .findOne()
                         .orElse(null)
+        );
+    }
+    public List<Order> getAdminOrders(String keyword, String status) {
+        if (keyword == null) {
+            keyword = "";
+        }
+
+        if (status == null) {
+            status = "";
+        }
+
+        String sql = """
+        SELECT
+            o.Order_Id AS orderId,
+            o.User_Id AS userId,
+            o.User_Address_Id AS userAddressId,
+            o.ship_address AS shipAddress,
+            o.ship_name AS shipName,
+            o.ship_phone AS shipPhone,
+            o.Create_At AS createAt,
+            o.Status AS status,
+            o.Order_Code AS orderCode,
+            o.Note AS note,
+            o.Total_Price AS totalPrice,
+            o.Payment_Status AS paymentStatus,
+            u.User_Name AS userName,
+            COALESCE(SUM(oi.Quantity), 0) AS totalQuantity
+        FROM orders o
+        LEFT JOIN user u ON o.User_Id = u.User_Id
+        LEFT JOIN order_items oi ON o.Order_Id = oi.Order_Id
+        WHERE
+            (:status = '' OR o.Status = :status)
+            AND (
+                :keyword = ''
+                OR o.Order_Code LIKE CONCAT('%', :keyword, '%')
+                OR CAST(o.Order_Id AS CHAR) LIKE CONCAT('%', :keyword, '%')
+                OR u.User_Name LIKE CONCAT('%', :keyword, '%')
+                OR o.ship_name LIKE CONCAT('%', :keyword, '%')
+                OR o.ship_phone LIKE CONCAT('%', :keyword, '%')
+            )
+        GROUP BY
+            o.Order_Id,
+            o.User_Id,
+            o.User_Address_Id,
+            o.ship_address,
+            o.ship_name,
+            o.ship_phone,
+            o.Create_At,
+            o.Status,
+            o.Order_Code,
+            o.Note,
+            o.Total_Price,
+            o.Payment_Status,
+            u.User_Name
+        ORDER BY o.Create_At DESC
+    """;
+
+        String finalKeyword = keyword;
+        String finalStatus = status;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("keyword", finalKeyword)
+                        .bind("status", finalStatus)
+                        .mapToBean(Order.class)
+                        .list()
         );
     }
 }

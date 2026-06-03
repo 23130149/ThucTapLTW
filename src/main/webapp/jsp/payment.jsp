@@ -29,6 +29,13 @@
 
     <h1 class="page-title">Thanh toán</h1>
 
+    <c:if test="${not empty sessionScope.paymentError}">
+        <div class="payment-alert error">
+            ${sessionScope.paymentError}
+        </div>
+        <c:remove var="paymentError" scope="session"/>
+    </c:if>
+
     <form action="${pageContext.request.contextPath}/payment" method="post" id="checkoutForm">
         <c:forEach items="${cartItems}" var="checkoutItem">
             <input type="hidden" name="productIds" value="${checkoutItem.product.productId}">
