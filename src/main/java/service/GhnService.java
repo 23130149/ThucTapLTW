@@ -1,14 +1,16 @@
 package service;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonArray;
 import dao.DBProperties;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
-import java.net.http.*;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.Duration;
 
 public class GhnService {
@@ -42,7 +44,6 @@ public class GhnService {
         body.addProperty("service_id", serviceId);
         body.addProperty("to_district_id", toDistrictId);
         body.addProperty("to_ward_code", toWardCode);
-
         body.addProperty("height", 10);
         body.addProperty("length", 20);
         body.addProperty("weight", 500);
