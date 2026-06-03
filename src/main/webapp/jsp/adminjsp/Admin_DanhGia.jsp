@@ -108,7 +108,7 @@
             <div class="stat-icon"><i class="bx bx-time-five"></i></div>
             <div class="stat-details">
                 <p class="title">Chờ duyệt</p>
-                <p class="value">${pendingReviews}</p>
+                <p class="value">${pendingCount}</p>
             </div>
         </div>
 
@@ -116,7 +116,7 @@
             <div class="stat-icon"><i class="bx bx-trending-up"></i></div>
             <div class="stat-details">
                 <p class="title">Tỷ lệ 5 sao</p>
-                <p class="value">${fiveStarPercent}%</p>
+                <p class="value">${fiveStarRate}%</p>
             </div>
         </div>
     </section>
@@ -129,52 +129,127 @@
             </div>
         </div>
 
-        <div class="search-filter-row">
-            <div class="search-review-box">
-                <i class="bx bx-search"></i>
-                <input type="text" placeholder="Tìm kiếm đánh giá..." disabled>
-            </div>
+        <div class="rating-breakdown-card">
+            <h3>Biểu đồ số sao</h3>
 
-            <select class="filter-select" disabled>
-                <option>Tất cả số sao</option>
-            </select>
+            <c:forEach var="row" begin="1" end="5">
+                <c:set var="star" value="${6 - row}"/>
+                <c:set var="count" value="${ratingCounts[star]}"/>
 
-            <select class="filter-select" disabled>
-                <option>Tất cả trạng thái</option>
-            </select>
+                <div class="rating-bar-item">
+                <span class="rating-star-label">
+                    ${star}<i class="bx bxs-star"></i>
+                </span>
 
-            <button class="filter-btn" disabled>
-                <i class="bx bx-filter-alt"></i>Lọc
-            </button>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar"
+                             style="width: ${totalReviews == 0 ? 0 : count * 100 / totalReviews}%">
+                        </div>
+                    </div>
+
+                    <span class="rating-count">${count} đánh giá</span>
+                </div>
+            </c:forEach>
         </div>
 
-        <div class="order-table-container">
-            <table class="data-table">
-                <thead>
-                <tr>
-                    <th>Mã</th>
-                    <th>Khách hàng</th>
-                    <th>Sản phẩm</th>
-                    <th>Số sao</th>
-                    <th>Nội dung</th>
-                    <th>Ngày đánh giá</th>
-                    <th>Hữu ích</th>
-                    <th>Trạng thái</th>
-                    <th>Thao tác</th>
-                </tr>
-                </thead>
+            <form method="get" action="${pageContext.request.contextPath}/admin/reviews" class="search-filter-row">
+                <div class="search-review-box">
+                    <i class="bx bx-search"></i>
+                    <input type="text"
+                           name="keyword"
+                           value="${fn:escapeXml(keyword)}"
+                           placeholder="Tìm kiếm đánh giá...">
+                </div>
 
-                <tbody>
-                <tr>
-                    <td colspan="9">
-                        <div class="empty-state">
-                            <i class="bx bx-message-square-x"></i>
-                            <p>Chưa có dữ liệu đánh giá.</p>
+                <select name="rating" class="filter-select" onchange="this.form.submit()">
+                    <option value="" ${empty currentRating ? 'selected' : ''}>Tất cả số sao</option>
+                    <option value="5" ${currentRating == 5 ? 'selected' : ''}>5 sao</option>
+                    <option value="4" ${currentRating == 4 ? 'selected' : ''}>4 sao</option>
+                    <option value="3" ${currentRating == 3 ? 'selected' : ''}>3 sao</option>
+                    <option value="2" ${currentRating == 2 ? 'selected' : ''}>2 sao</option>
+                    <option value="1" ${currentRating == 1 ? 'selected' : ''}>1 sao</option>
+                </select>
+
+                <select name="rating" class="filter-select" onchange="this.form.submit()">
+                    <option value="" ${empty currentStatus ? 'selected' : ''}>Tất cả trạng thái</option>
+                    <option value="PENDING" ${currentStatus == 'PENDING' ? 'selected' : ''}>Chờ duyệt</option>
+                    <option value="APPROVED" ${currentStatus == 'APPROVED' ? 'selected' : ''}>Đã duyệt</option>
+                    <option value="HIDDEN" ${currentStatus == 'HIDDEN' ? 'selected' : ''}>Đã ẩn</option>
+                </select>
+            </form>
+        <div class="review-list-container">
+            <c:choose>
+                <c:when test="${empty reviews}">
+                    <div class="empty-state">
+                        <i class="bx bx-message-square-x"></i>
+                        <p>Chưa có dữ liệu đánh giá.</p>
+                    </div>
+                </c:when>
+
+                <c:otherwise>
+                    <c:forEach var="review" items="${reviews}">
+                        <div class="review-item">
+                        <span class="customer-avatar-review">
+                            <c:choose>
+                                <c:when test="${not empty review.userName}">
+                                    ${fn:substring(review.userName, 0, 1)}
+                                </c:when>
+                                <c:otherwise>K</c:otherwise>
+                            </c:choose>
+                        </span>
+
+                            <div class="review-content">
+                                <div class="review-header">
+                                    <div>
+                                        <span class="reviewer-name">${review.userName}</span>
+
+                                        <div class="rating-stars">
+                                            <c:forEach var="i" begin="1" end="5">
+                                                <c:choose>
+                                                    <c:when test="${i <= review.rating}">
+                                                        <i class="bx bxs-star"></i>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <i class="bx bx-star"></i>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </c:forEach>
+                                        </div>
+                                    </div>
+
+                                    <span class="status-tag status-${fn:toLowerCase(review.status)}">
+                                    <c:choose>
+                                        <c:when test="${review.status == 'PENDING'}">Chờ duyệt</c:when>
+                                        <c:when test="${review.status == 'APPROVED'}">Đã duyệt</c:when>
+                                        <c:when test="${review.status == 'HIDDEN'}">Đã ẩn</c:when>
+                                        <c:otherwise>${review.status}</c:otherwise>
+                                    </c:choose>
+                                </span>
+                                </div>
+
+                                <p class="review-product">
+                                    Sản phẩm: ${review.productName}
+                                </p>
+
+                                <span class="review-item-date">
+                                        ${review.createAt}
+                                </span>
+
+                                <p class="review-text">
+                                        ${review.comment}
+                                </p>
+
+                                <div class="review-extra">
+                                <span>
+                                    <i class="bx bx-like"></i>
+                                    Hữu ích: ${review.helpfulCount}
+                                </span>
+                                </div>
+                            </div>
                         </div>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+                    </c:forEach>
+                </c:otherwise>
+            </c:choose>
         </div>
     </section>
 </main>
