@@ -174,14 +174,14 @@ public class User {
         if (totalSpend.doubleValue() >= 3000000) return "regular";
         return "new";
     }
-
-
-
     public String getCustomerTypeLabel() {
         switch (getCustomerType()) {
-            case "vip": return "Vip";
-            case "regular": return "Thường xuyên";
-            default: return "Mới";
+            case "vip":
+                return "Vip";
+            case "regular":
+                return "Thường xuyên";
+            default:
+                return "Mới";
         }
     }
 }
