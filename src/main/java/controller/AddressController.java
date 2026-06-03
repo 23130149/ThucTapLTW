@@ -91,6 +91,9 @@ public class AddressController extends HttpServlet {
         address.setProvince(province);
         address.setDistrict(district);
         address.setStreet(street);
+        address.setProvinceId(parseInteger(request.getParameter("provinceId")));
+        address.setDistrictId(parseInteger(request.getParameter("districtId")));
+        address.setWardCode(normalize(request.getParameter("wardCode")));
 
         if (addressId == 0) {
             addressDao.insert(address);
@@ -103,5 +106,17 @@ public class AddressController extends HttpServlet {
 
     private String normalize(String value) {
         return value == null ? "" : value.trim().replaceAll("\\s+", " ");
+    }
+
+    private Integer parseInteger(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }

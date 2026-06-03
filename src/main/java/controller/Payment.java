@@ -12,7 +12,7 @@ import jakarta.servlet.http.*;
 import model.Order;
 import model.User;
 import model.UserAddress;
-import service.VnpayService;
+import service.GhnService;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -30,6 +30,7 @@ public class Payment extends HttpServlet {
 
     private final UserAddressDao addressDao = new UserAddressDao();
     private final CartDao cartDao = new CartDao();
+    private final GhnService ghnService = new GhnService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -337,6 +338,16 @@ public class Payment extends HttpServlet {
     }
 
     private BigDecimal calculateShippingFee(UserAddress address) {
+        if (address != null && address.getDistrictId() != null && address.getWardCode() != null && !address.getWardCode().isBlank()) {
+            try {
+                return ghnService.calculateFee(address.getDistrictId(), address.getWardCode());
+            } catch (IOException | InterruptedException e) {
+                if (e instanceof InterruptedException) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+
         String shipAddress = buildShipAddress(address);
         double distanceKm = estimateDistanceKm(shipAddress);
         return calculateFeeByDistance(distanceKm);

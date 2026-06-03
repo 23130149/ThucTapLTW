@@ -39,6 +39,18 @@
         <c:remove var="cartSuccess" scope="session"/>
     </c:if>
     <c:choose>
+        <c:when test="${loginRequired}">
+            <div class="cart-login-required">
+                <div class="cart-login-icon">
+                    <i class='bx bx-lock-alt'></i>
+                </div>
+                <h2>Bạn chưa đăng nhập</h2>
+                <p>Cần đăng nhập để xem giỏ hàng và tiếp tục mua sắm.</p>
+                <a href="${pageContext.request.contextPath}/SignIn?redirect=cart" class="cart-login-btn">
+                    Đăng nhập
+                </a>
+            </div>
+        </c:when>
         <c:when test="${empty sessionScope.cart.data}">
             <p>Giỏ Hàng Của Bạn Đang Trống</p>
             <a href="${pageContext.request.contextPath}/product">Tiếp tục mua sắm</a>
