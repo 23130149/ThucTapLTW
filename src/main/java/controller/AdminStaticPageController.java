@@ -12,7 +12,6 @@ import java.io.IOException;
 @WebServlet(
         name = "AdminStaticPageController",
         value = {
-                "/admin/banner",
                 "/admin/contacts",
                 "/admin/notifications"
         }
@@ -21,11 +20,6 @@ import java.io.IOException;
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String path = request.getServletPath();
 
-
-        if ("/admin/banner".equals(path)) {
-            request.getRequestDispatcher("/jsp/adminjsp/Admin_Banner.jsp").forward(request, response);
-            return;
-        }
 
         if ("/admin/contacts".equals(path)) {
             ContactDao contactDao = new ContactDao();

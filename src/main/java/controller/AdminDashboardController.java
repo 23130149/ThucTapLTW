@@ -14,7 +14,7 @@
     import java.util.List;
     import java.util.Map;
 
-    @WebServlet(name = "AdminDashboardController", value = "/admin/dashboard")
+    @WebServlet(name = "AdminDashboardController", value = {"/admin", "/admin/dashboard"})
 
     public class AdminDashboardController extends HttpServlet {
         private static final String COMPLETED_STATUS = "COMPLETED";

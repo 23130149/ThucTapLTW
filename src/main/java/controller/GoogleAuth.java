@@ -54,7 +54,7 @@ public class GoogleAuth extends HttpServlet {
         session.setAttribute("user", user);
 
         if ("ADMIN".equalsIgnoreCase(user.getRole())) {
-            response.sendRedirect(request.getContextPath() + "/jsp/adminjsp/Admin_Tongquan.jsp");
+            response.sendRedirect(request.getContextPath() + "/admin/dashboard");
         } else {
             String redirectAfterLogin = (String) session.getAttribute("redirectAfterLogin");
             session.removeAttribute("redirectAfterLogin");
