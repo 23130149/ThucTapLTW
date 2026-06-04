@@ -108,6 +108,11 @@ public class OrderHistoryController extends HttpServlet {
             session.setAttribute("orderMessage", success
                     ? "Đã gửi yêu cầu trả hàng. Cửa hàng sẽ kiểm tra và phản hồi sớm."
                     : "Không thể gửi yêu cầu trả hàng. Chỉ đơn đã hoàn thành mới được trả hàng và cần có lý do.");
+        } else if ("confirmReceived".equals(action)) {
+            success = orderDao.confirmReceivedByUser(orderId, user.getUserId());
+            session.setAttribute("orderMessage", success
+                    ? "Đã xác nhận nhận hàng thành công."
+                    : "Chưa thể xác nhận nhận hàng vì GHN chưa báo đã giao tới bạn.");
         }
 
         String redirect = request.getHeader("Referer");

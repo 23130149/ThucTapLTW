@@ -218,7 +218,12 @@ public class OrderDao extends BaseDao {
             Total_Price     AS totalPrice,
             Status          AS status,
             Order_Code      AS orderCode,
-            Note            AS note
+            Note            AS note,
+            Ghn_Order_Code  AS ghnOrderCode,
+            Ghn_Status      AS ghnStatus,
+            Ghn_Updated_At  AS ghnUpdatedAt,
+            Ghn_Leadtime    AS ghnLeadtime,
+            Ghn_Finish_Date AS ghnFinishDate
         FROM orders
         WHERE Order_Id = :orderId
           AND User_Id = :userId
@@ -671,6 +676,12 @@ public class OrderDao extends BaseDao {
             o.Note AS note,
             o.Total_Price AS totalPrice,
             o.Payment_Status AS paymentStatus,
+            o.Payment_Method_Id AS paymentMethodId,
+            o.Ghn_Order_Code AS ghnOrderCode,
+            o.Ghn_Status AS ghnStatus,
+            o.Ghn_Updated_At AS ghnUpdatedAt,
+            o.Ghn_Leadtime AS ghnLeadtime,
+            o.Ghn_Finish_Date AS ghnFinishDate,
             u.User_Name AS userName,
             COALESCE(SUM(oi.Quantity), 0) AS totalQuantity
         FROM orders o
@@ -690,6 +701,12 @@ public class OrderDao extends BaseDao {
             o.Note,
             o.Total_Price,
             o.Payment_Status,
+            o.Payment_Method_Id,
+            o.Ghn_Order_Code,
+            o.Ghn_Status,
+            o.Ghn_Updated_At,
+            o.Ghn_Leadtime,
+            o.Ghn_Finish_Date,
             u.User_Name
     """;
 
@@ -729,6 +746,73 @@ public class OrderDao extends BaseDao {
                         .bind("orderId", orderId)
                         .execute()
         );
+    }
+
+    public void saveGhnShipping(int orderId, String ghnOrderCode, String ghnStatus,
+                                java.time.LocalDateTime leadtime, java.time.LocalDateTime finishDate) {
+        String sql = """
+        UPDATE orders
+        SET
+            Ghn_Order_Code = :ghnOrderCode,
+            Ghn_Status = :ghnStatus,
+            Ghn_Updated_At = NOW(),
+            Ghn_Leadtime = :leadtime,
+            Ghn_Finish_Date = :finishDate,
+            Status = 'SHIPPED'
+        WHERE Order_Id = :orderId
+    """;
+
+        getJdbi().useHandle(handle ->
+                handle.createUpdate(sql)
+                        .bind("ghnOrderCode", ghnOrderCode)
+                        .bind("ghnStatus", ghnStatus)
+                        .bind("leadtime", leadtime)
+                        .bind("finishDate", finishDate)
+                        .bind("orderId", orderId)
+                        .execute()
+        );
+    }
+
+    public void updateGhnStatus(int orderId, String ghnStatus,
+                                java.time.LocalDateTime leadtime, java.time.LocalDateTime finishDate) {
+        String sql = """
+        UPDATE orders
+        SET
+            Ghn_Status = :ghnStatus,
+            Ghn_Updated_At = NOW(),
+            Ghn_Leadtime = COALESCE(:leadtime, Ghn_Leadtime),
+            Ghn_Finish_Date = COALESCE(:finishDate, Ghn_Finish_Date)
+        WHERE Order_Id = :orderId
+    """;
+
+        getJdbi().useHandle(handle ->
+                handle.createUpdate(sql)
+                        .bind("ghnStatus", ghnStatus)
+                        .bind("leadtime", leadtime)
+                        .bind("finishDate", finishDate)
+                        .bind("orderId", orderId)
+                        .execute()
+        );
+    }
+
+    public boolean confirmReceivedByUser(int orderId, int userId) {
+        String sql = """
+        UPDATE orders
+        SET Status = 'COMPLETED'
+        WHERE Order_Id = :orderId
+          AND User_Id = :userId
+          AND Status = 'SHIPPED'
+          AND Ghn_Status = 'delivered'
+    """;
+
+        int rows = getJdbi().withHandle(handle ->
+                handle.createUpdate(sql)
+                        .bind("orderId", orderId)
+                        .bind("userId", userId)
+                        .execute()
+        );
+
+        return rows > 0;
     }
 
     public boolean markVnpayPaid(String orderCode, String transactionNo, String responseCode) {
@@ -795,6 +879,11 @@ public class OrderDao extends BaseDao {
             Payment_Transaction_No AS paymentTransactionNo,
             Payment_Response_Code AS paymentResponseCode,
             Paid_At AS paidAt,
+            Ghn_Order_Code AS ghnOrderCode,
+            Ghn_Status AS ghnStatus,
+            Ghn_Updated_At AS ghnUpdatedAt,
+            Ghn_Leadtime AS ghnLeadtime,
+            Ghn_Finish_Date AS ghnFinishDate,
             Order_Code AS orderCode
         FROM orders
         WHERE Order_Code = :orderCode
@@ -831,6 +920,12 @@ public class OrderDao extends BaseDao {
             o.Note AS note,
             o.Total_Price AS totalPrice,
             o.Payment_Status AS paymentStatus,
+            o.Payment_Method_Id AS paymentMethodId,
+            o.Ghn_Order_Code AS ghnOrderCode,
+            o.Ghn_Status AS ghnStatus,
+            o.Ghn_Updated_At AS ghnUpdatedAt,
+            o.Ghn_Leadtime AS ghnLeadtime,
+            o.Ghn_Finish_Date AS ghnFinishDate,
             u.User_Name AS userName,
             COALESCE(SUM(oi.Quantity), 0) AS totalQuantity
         FROM orders o
@@ -859,6 +954,12 @@ public class OrderDao extends BaseDao {
             o.Note,
             o.Total_Price,
             o.Payment_Status,
+            o.Payment_Method_Id,
+            o.Ghn_Order_Code,
+            o.Ghn_Status,
+            o.Ghn_Updated_At,
+            o.Ghn_Leadtime,
+            o.Ghn_Finish_Date,
             u.User_Name
         ORDER BY o.Create_At DESC
     """;

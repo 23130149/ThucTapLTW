@@ -8,6 +8,7 @@ import jakarta.servlet.http.*;
 import model.Order;
 import model.OrderItem;
 import model.User;
+import service.GhnService;
 
 import java.io.IOException;
 import java.util.List;
@@ -49,6 +50,17 @@ public class OrderDetailController extends HttpServlet {
         if (order == null) {
             response.sendRedirect(request.getContextPath() + "/OrderHistory");
             return;
+        }
+
+        if (order.getGhnOrderCode() != null && !order.getGhnOrderCode().isBlank()) {
+            try {
+                GhnService.GhnOrderResult result = new GhnService().getOrderDetail(order.getGhnOrderCode());
+                orderDao.updateGhnStatus(orderId, result.getStatus(), result.getLeadtime(), result.getFinishDate());
+                order = orderDao.getOrderByIdAndUser(orderId, user.getUserId());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (IOException ignored) {
+            }
         }
 
         List<OrderItem> items = orderItemDao.getItemsByOrderId(orderId);

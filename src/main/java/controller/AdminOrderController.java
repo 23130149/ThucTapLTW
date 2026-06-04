@@ -2,11 +2,14 @@ package controller;
 
 import dao.OrderDao;
 import dao.OrderItemDao;
+import dao.UserAddressDao;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 import model.Order;
 import model.OrderItem;
+import model.UserAddress;
+import service.GhnService;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,6 +28,12 @@ public class AdminOrderController extends HttpServlet {
             "COMPLETED",
             "CANCELLED",
             "RETURN_REQUESTED",
+            "RETURNED",
+            "RETURN_REJECTED"
+    );
+    private static final Set<String> MANUAL_STATUSES = Set.of(
+            "PROCESSING",
+            "CONFIRMED",
             "RETURNED",
             "RETURN_REJECTED"
     );
@@ -99,6 +108,7 @@ public class AdminOrderController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         OrderDao orderDao = new OrderDao();
+        HttpSession session = request.getSession();
 
         String action = request.getParameter("action");
 
@@ -111,13 +121,68 @@ public class AdminOrderController extends HttpServlet {
                     status = status.trim();
                 }
 
-                if (status != null && VALID_STATUSES.contains(status)) {
+                if ("SHIPPED".equals(status)) {
+                    createGhnOrder(orderId, orderDao, session);
+                } else if (status != null && MANUAL_STATUSES.contains(status)) {
                     orderDao.updateStatus(orderId, status);
                 }
+            } catch (NumberFormatException ignored) {
+            }
+        } else if ("syncGhn".equals(action)) {
+            try {
+                int orderId = Integer.parseInt(request.getParameter("orderId"));
+                syncGhnOrder(orderId, orderDao, session);
             } catch (NumberFormatException ignored) {
             }
         }
 
         response.sendRedirect(request.getContextPath() + "/admin/orders");
+    }
+
+    private void createGhnOrder(int orderId, OrderDao orderDao, HttpSession session) {
+        Order order = orderDao.getOrderById(orderId);
+        if (order == null || !"CONFIRMED".equals(order.getStatus())) {
+            session.setAttribute("adminOrderMessage", "Đơn hàng chưa sẵn sàng để giao cho GHN.");
+            return;
+        }
+
+        if (order.getGhnOrderCode() != null && !order.getGhnOrderCode().isBlank()) {
+            orderDao.updateStatus(orderId, "SHIPPED");
+            session.setAttribute("adminOrderMessage", "Đơn hàng đã có vận đơn GHN.");
+            return;
+        }
+
+        UserAddress address = new UserAddressDao().findById(order.getUserAddressId());
+        List<OrderItem> items = new OrderItemDao().getItemsByOrderId(orderId);
+
+        try {
+            GhnService.GhnOrderResult result = new GhnService().createOrder(order, address, items);
+            orderDao.saveGhnShipping(orderId, result.getOrderCode(), result.getStatus(), result.getLeadtime(), result.getFinishDate());
+            session.setAttribute("adminOrderMessage", "Đã tạo vận đơn GHN " + result.getOrderCode() + ".");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            session.setAttribute("adminOrderMessage", "Không thể tạo vận đơn GHN lúc này.");
+        } catch (IOException e) {
+            session.setAttribute("adminOrderMessage", "GHN chưa nhận vận đơn: " + e.getMessage());
+        }
+    }
+
+    private void syncGhnOrder(int orderId, OrderDao orderDao, HttpSession session) {
+        Order order = orderDao.getOrderById(orderId);
+        if (order == null || order.getGhnOrderCode() == null || order.getGhnOrderCode().isBlank()) {
+            session.setAttribute("adminOrderMessage", "Đơn hàng chưa có mã vận đơn GHN.");
+            return;
+        }
+
+        try {
+            GhnService.GhnOrderResult result = new GhnService().getOrderDetail(order.getGhnOrderCode());
+            orderDao.updateGhnStatus(orderId, result.getStatus(), result.getLeadtime(), result.getFinishDate());
+            session.setAttribute("adminOrderMessage", "Đã cập nhật trạng thái GHN.");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            session.setAttribute("adminOrderMessage", "Không thể cập nhật GHN lúc này.");
+        } catch (IOException e) {
+            session.setAttribute("adminOrderMessage", "Không thể cập nhật GHN: " + e.getMessage());
+        }
     }
 }

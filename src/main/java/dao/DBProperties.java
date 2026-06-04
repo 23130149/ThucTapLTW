@@ -1,6 +1,8 @@
 package dao;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 public class DBProperties {
@@ -8,7 +10,10 @@ public class DBProperties {
 
     static {
         try {
-            prop.load(DBProperties.class.getClassLoader().getResourceAsStream("db.properties"));
+            prop.load(new InputStreamReader(
+                    DBProperties.class.getClassLoader().getResourceAsStream("db.properties"),
+                    StandardCharsets.UTF_8
+            ));
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException(e);

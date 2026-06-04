@@ -29,6 +29,11 @@ public class Order {
     private String paymentTransactionNo;
     private String paymentResponseCode;
     private LocalDateTime paidAt;
+    private String ghnOrderCode;
+    private String ghnStatus;
+    private LocalDateTime ghnUpdatedAt;
+    private LocalDateTime ghnLeadtime;
+    private LocalDateTime ghnFinishDate;
 
     public String getShipName() {
         return shipName;
@@ -92,6 +97,46 @@ public class Order {
 
     public void setPaidAt(LocalDateTime paidAt) {
         this.paidAt = paidAt;
+    }
+
+    public String getGhnOrderCode() {
+        return ghnOrderCode;
+    }
+
+    public void setGhnOrderCode(String ghnOrderCode) {
+        this.ghnOrderCode = ghnOrderCode;
+    }
+
+    public String getGhnStatus() {
+        return ghnStatus;
+    }
+
+    public void setGhnStatus(String ghnStatus) {
+        this.ghnStatus = ghnStatus;
+    }
+
+    public LocalDateTime getGhnUpdatedAt() {
+        return ghnUpdatedAt;
+    }
+
+    public void setGhnUpdatedAt(LocalDateTime ghnUpdatedAt) {
+        this.ghnUpdatedAt = ghnUpdatedAt;
+    }
+
+    public LocalDateTime getGhnLeadtime() {
+        return ghnLeadtime;
+    }
+
+    public void setGhnLeadtime(LocalDateTime ghnLeadtime) {
+        this.ghnLeadtime = ghnLeadtime;
+    }
+
+    public LocalDateTime getGhnFinishDate() {
+        return ghnFinishDate;
+    }
+
+    public void setGhnFinishDate(LocalDateTime ghnFinishDate) {
+        this.ghnFinishDate = ghnFinishDate;
     }
 
     public int getOrderId() {
@@ -180,16 +225,57 @@ public class Order {
     }
 
     public String getEstimatedDeliveryFormatted() {
+        if (ghnLeadtime != null) {
+            return ghnLeadtime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+        }
         if (createAt == null) return "Đang cập nhật";
         return createAt.plusDays(3).format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
     }
 
     public String getDeliveredAtFormatted() {
+        if (ghnFinishDate != null) {
+            return ghnFinishDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+        }
         if (createAt == null) return "Đang cập nhật";
         if ("COMPLETED".equals(status) || "RETURN_REQUESTED".equals(status) || "RETURNED".equals(status)) {
             return createAt.plusDays(4).format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
         }
         return "Chưa giao";
+    }
+
+    public String getGhnStatusLabel() {
+        if (ghnStatus == null || ghnStatus.isBlank()) {
+            return "Chưa tạo vận đơn";
+        }
+        return switch (ghnStatus) {
+            case "ready_to_pick" -> "Đã tạo vận đơn, chờ GHN lấy hàng";
+            case "picking", "money_collect_picking" -> "GHN đang đến lấy hàng";
+            case "picked" -> "GHN đã nhận hàng";
+            case "storing", "sorting", "transporting" -> "GHN đang trung chuyển";
+            case "delivering", "money_collect_delivering" -> "GHN đang giao tới khách";
+            case "delivered" -> "GHN đã giao tới khách";
+            case "delivery_fail" -> "GHN giao hàng chưa thành công";
+            case "waiting_to_return" -> "GHN đang chờ xử lý giao lại";
+            case "return", "return_transporting", "return_sorting", "returning" -> "GHN đang hoàn hàng";
+            case "returned" -> "GHN đã hoàn hàng về cửa hàng";
+            case "return_fail" -> "GHN hoàn hàng chưa thành công";
+            case "cancel" -> "Vận đơn GHN đã hủy";
+            case "damage" -> "Hàng hóa bị hư hỏng";
+            case "lost" -> "Hàng hóa bị thất lạc";
+            case "exception" -> "GHN đang xử lý ngoại lệ";
+            default -> ghnStatus;
+        };
+    }
+
+    public String getGhnUpdatedAtFormatted() {
+        if (ghnUpdatedAt == null) {
+            return "";
+        }
+        return ghnUpdatedAt.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+    }
+
+    public boolean isGhnDelivered() {
+        return "delivered".equals(ghnStatus);
     }
 
     public boolean isCancellable() {

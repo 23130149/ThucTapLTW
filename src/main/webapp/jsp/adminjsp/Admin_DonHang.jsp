@@ -156,6 +156,12 @@
       Từ chối trả <span class="count">${returnRejectedCount}</span>
     </a>
   </div>
+
+  <c:if test="${not empty sessionScope.adminOrderMessage}">
+    <div class="admin-order-message">${sessionScope.adminOrderMessage}</div>
+    <c:remove var="adminOrderMessage" scope="session"/>
+  </c:if>
+
   <div class="search-filter-row">
     <form method="get" action="${pageContext.request.contextPath}/admin/orders" class="search-review-box">
       <c:if test="${not empty currentStatus}">
@@ -188,6 +194,7 @@
         <th>Ngày đặt</th>
         <th>Thanh toán</th>
         <th>Trạng thái</th>
+        <th>GHN</th>
         <th>Thao tác</th>
       </tr>
       </thead>
@@ -195,7 +202,7 @@
       <c:choose>
         <c:when test="${empty orders}">
           <tr>
-            <td colspan="8" class="empty-row">
+            <td colspan="9" class="empty-row">
               Không tìm thấy đơn hàng nào.
             </td>
           </tr>
@@ -310,6 +317,18 @@
               </td>
 
               <td>
+                <c:choose>
+                  <c:when test="${not empty order.ghnOrderCode}">
+                    <strong>${order.ghnOrderCode}</strong>
+                    <div class="ghn-status-text">${order.ghnStatusLabel}</div>
+                  </c:when>
+                  <c:otherwise>
+                    <span class="ghn-status-text">Chưa có vận đơn</span>
+                  </c:otherwise>
+                </c:choose>
+              </td>
+
+              <td>
                 <div class="table-actions">
                   <a href="${pageContext.request.contextPath}/admin/orders?detailId=${order.orderId}&status=${currentStatus}&keyword=${keyword}"
                      class="action-link"
@@ -353,7 +372,7 @@
                       <input type="hidden" name="orderId" value="${order.orderId}">
                       <input type="hidden" name="status" value="SHIPPED">
 
-                      <button type="submit" class="action-btn ship-btn" title="Chuyển sang đang giao">
+                      <button type="submit" class="action-btn ship-btn" title="Tạo vận đơn GHN">
                         <i class="bx bx-package"></i>
                       </button>
                     </form>
@@ -363,12 +382,11 @@
                     <form method="post"
                           action="${pageContext.request.contextPath}/admin/orders"
                           class="inline-form">
-                      <input type="hidden" name="action" value="updateStatus">
+                      <input type="hidden" name="action" value="syncGhn">
                       <input type="hidden" name="orderId" value="${order.orderId}">
-                      <input type="hidden" name="status" value="COMPLETED">
 
-                      <button type="submit" class="action-btn complete-btn" title="Hoàn thành đơn hàng">
-                        <i class="bx bx-check-double"></i>
+                      <button type="submit" class="action-btn ship-btn" title="Cập nhật trạng thái GHN">
+                        <i class="bx bx-refresh"></i>
                       </button>
                     </form>
                   </c:if>
@@ -468,6 +486,21 @@
 
           <p><strong>Ngày đặt:</strong> ${selectedOrder.createAtFormatted}</p>
           <p><strong>Tổng tiền:</strong> ${selectedOrder.totalPriceFormatted}</p>
+
+          <p>
+            <strong>Mã vận đơn GHN:</strong>
+            <c:choose>
+              <c:when test="${not empty selectedOrder.ghnOrderCode}">
+                ${selectedOrder.ghnOrderCode}
+              </c:when>
+              <c:otherwise>Chưa có</c:otherwise>
+            </c:choose>
+          </p>
+
+          <p>
+            <strong>Trạng thái GHN:</strong>
+            ${selectedOrder.ghnStatusLabel}
+          </p>
 
           <p>
             <strong>Ghi chú:</strong>
