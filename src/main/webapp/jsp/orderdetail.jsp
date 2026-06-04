@@ -161,7 +161,7 @@
         <div class="recent-orders-box order-detail-box order-action-panel">
             <h2>Thao tác đơn hàng</h2>
 
-            <c:if test="${order.ghnDelivered && order.status == 'SHIPPED'}">
+            <c:if test="${order.ghnDelivered && order.status == 'DELIVERED'}">
                 <form action="${pageContext.request.contextPath}/OrderHistory" method="post" class="order-action-form">
                     <input type="hidden" name="orderId" value="${order.orderId}">
                     <input type="hidden" name="action" value="confirmReceived">

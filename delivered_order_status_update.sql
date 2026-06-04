@@ -1,0 +1,21 @@
+ALTER TABLE orders
+MODIFY COLUMN Status ENUM(
+    'PENDING',
+    'PENDING_PAYMENT',
+    'PAYMENT_FAILED',
+    'PROCESSING',
+    'CONFIRMED',
+    'SHIPPED',
+    'DELIVERED',
+    'COMPLETED',
+    'CANCELLED',
+    'RETURN_REQUESTED',
+    'RETURNED',
+    'RETURN_REJECTED'
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL;
+
+UPDATE orders
+SET Status = 'DELIVERED'
+WHERE Status = 'SHIPPED'
+  AND Ghn_Status = 'delivered';
+

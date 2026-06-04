@@ -126,6 +126,12 @@
       Đang giao <span class="count">${shippedCount}</span>
     </a>
 
+    <a class="tab-btn ${currentStatus == 'DELIVERED' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/admin/orders?status=DELIVERED&keyword=${keyword}">
+      <i class="bx bx-check-shield"></i>
+      Đã giao <span class="count">${deliveredCount}</span>
+    </a>
+
     <a class="tab-btn ${currentStatus == 'COMPLETED' ? 'active' : ''}"
        href="${pageContext.request.contextPath}/admin/orders?status=COMPLETED&keyword=${keyword}">
       <i class="bx bx-check-double"></i>
@@ -236,6 +242,11 @@
               <c:when test="${order.status == 'SHIPPED'}">
                 <c:set var="statusClass" value="status-shipping"/>
                 <c:set var="statusText" value="Đang giao"/>
+              </c:when>
+
+              <c:when test="${order.status == 'DELIVERED'}">
+                <c:set var="statusClass" value="status-delivered"/>
+                <c:set var="statusText" value="Đã giao"/>
               </c:when>
 
               <c:when test="${order.status == 'COMPLETED'}">

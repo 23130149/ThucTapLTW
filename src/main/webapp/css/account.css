@@ -558,6 +558,11 @@ main.about-us-container {
     color: #11998e;
 }
 
+.order-status.DELIVERED {
+    background: #ecfdf5;
+    color: #047857;
+}
+
 .order-status.COMPLETED {
     background: #e7f7ff;
     color: #087ea4;

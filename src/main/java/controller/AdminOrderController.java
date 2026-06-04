@@ -25,6 +25,7 @@ public class AdminOrderController extends HttpServlet {
             "PROCESSING",
             "CONFIRMED",
             "SHIPPED",
+            "DELIVERED",
             "COMPLETED",
             "CANCELLED",
             "RETURN_REQUESTED",
@@ -93,6 +94,7 @@ public class AdminOrderController extends HttpServlet {
         request.setAttribute("processingCount", oDao.countOrdersByStatus("PROCESSING"));
         request.setAttribute("confirmedCount", oDao.countOrdersByStatus("CONFIRMED"));
         request.setAttribute("shippedCount", oDao.countOrdersByStatus("SHIPPED"));
+        request.setAttribute("deliveredCount", oDao.countOrdersByStatus("DELIVERED"));
         request.setAttribute("completedCount", oDao.countOrdersByStatus("COMPLETED"));
         request.setAttribute("cancelledCount", oDao.countOrdersByStatus("CANCELLED"));
         request.setAttribute("returnRequestedCount", oDao.countOrdersByStatus("RETURN_REQUESTED"));

@@ -28,6 +28,7 @@ public class    FormatUtil {
             case "PENDING": return "Chờ xác nhận";
             case "CONFIRMED": return "Đã xác nhận";
             case "SHIPPED": return "Đang giao";
+            case "DELIVERED": return "Đã giao";
             case "COMPLETED": return "Hoàn thành";
             case "CANCELLED": return "Đã huỷ";
             case "RETURN_REQUESTED": return "Đang yêu cầu trả hàng";
@@ -42,6 +43,7 @@ public class    FormatUtil {
         switch (status) {
             case "COMPLETED": return "✔";
             case "SHIPPED": return "🚚";
+            case "DELIVERED": return "📦";
             case "CANCELLED": return "✖";
             case "RETURN_REQUESTED": return "↩";
             case "RETURNED": return "↩";

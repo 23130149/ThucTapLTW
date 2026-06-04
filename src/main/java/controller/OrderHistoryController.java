@@ -144,7 +144,7 @@ public class OrderHistoryController extends HttpServlet {
     private List<String> toStatuses(String activeStatus) {
         return switch (activeStatus) {
             case "processing" -> Arrays.asList("PENDING", "PROCESSING", "CONFIRMED");
-            case "shipping" -> Collections.singletonList("SHIPPED");
+            case "shipping" -> Arrays.asList("SHIPPED", "DELIVERED");
             case "completed" -> Collections.singletonList("COMPLETED");
             case "cancelled" -> Collections.singletonList("CANCELLED");
             case "returned" -> Arrays.asList("RETURN_REQUESTED", "RETURNED", "RETURN_REJECTED");

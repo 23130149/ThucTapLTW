@@ -237,7 +237,7 @@ public class Order {
             return ghnFinishDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
         }
         if (createAt == null) return "Đang cập nhật";
-        if ("COMPLETED".equals(status) || "RETURN_REQUESTED".equals(status) || "RETURNED".equals(status)) {
+        if ("DELIVERED".equals(status) || "COMPLETED".equals(status) || "RETURN_REQUESTED".equals(status) || "RETURNED".equals(status)) {
             return createAt.plusDays(4).format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
         }
         return "Chưa giao";

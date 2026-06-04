@@ -248,7 +248,7 @@ public class OrderDao extends BaseDao {
         JOIN Order_Items oi ON o.Order_Id = oi.Order_Id
         WHERE o.User_Id = :userId
           AND oi.Product_Id = :productId
-          AND o.Status IN ('CONFIRMED','SHIPPED','COMPLETED')
+          AND o.Status IN ('CONFIRMED','SHIPPED','DELIVERED','COMPLETED')
     """;
 
         return getJdbi().withHandle(handle ->
@@ -325,7 +325,7 @@ public class OrderDao extends BaseDao {
         String sql = """
         SELECT
             SUM(CASE WHEN Status IN ('PENDING', 'PROCESSING', 'CONFIRMED') THEN 1 ELSE 0 END) AS processingCount,
-            SUM(CASE WHEN Status = 'SHIPPED' THEN 1 ELSE 0 END) AS shippingCount,
+            SUM(CASE WHEN Status IN ('SHIPPED', 'DELIVERED') THEN 1 ELSE 0 END) AS shippingCount,
             SUM(CASE WHEN Status = 'COMPLETED' THEN 1 ELSE 0 END) AS completedCount,
             SUM(CASE WHEN Status = 'CANCELLED' THEN 1 ELSE 0 END) AS cancelledCount,
             SUM(CASE WHEN Status IN ('RETURN_REQUESTED', 'RETURNED', 'RETURN_REJECTED') THEN 1 ELSE 0 END) AS returnedCount,
@@ -373,6 +373,7 @@ public class OrderDao extends BaseDao {
 
             if (currentStatus == null
                     || "CANCELLED".equals(currentStatus)
+                    || "DELIVERED".equals(currentStatus)
                     || "COMPLETED".equals(currentStatus)
                     || "RETURN_REQUESTED".equals(currentStatus)
                     || "RETURNED".equals(currentStatus)) {
@@ -473,7 +474,7 @@ public class OrderDao extends BaseDao {
         String sql = """
         SELECT COALESCE(SUM(Total_Price), 0)
         FROM orders
-        WHERE Status IN ('COMPLETED', 'SHIPPED')
+        WHERE Status IN ('COMPLETED', 'DELIVERED', 'SHIPPED')
     """;
 
         return getJdbi().withHandle(handle ->
@@ -495,11 +496,11 @@ public class OrderDao extends BaseDao {
             (
                 SELECT MAX(Create_At)
                 FROM orders
-                WHERE Status IN ('COMPLETED', 'SHIPPED')
+                WHERE Status IN ('COMPLETED', 'DELIVERED', 'SHIPPED')
             ),
             INTERVAL :days DAY
         )
-        AND Status IN ('COMPLETED', 'SHIPPED')
+        AND Status IN ('COMPLETED', 'DELIVERED', 'SHIPPED')
         GROUP BY DATE(Create_At)
         ORDER BY orderDate ASC
     """;
@@ -781,7 +782,11 @@ public class OrderDao extends BaseDao {
             Ghn_Status = :ghnStatus,
             Ghn_Updated_At = NOW(),
             Ghn_Leadtime = COALESCE(:leadtime, Ghn_Leadtime),
-            Ghn_Finish_Date = COALESCE(:finishDate, Ghn_Finish_Date)
+            Ghn_Finish_Date = COALESCE(:finishDate, Ghn_Finish_Date),
+            Status = CASE
+                WHEN :ghnStatus = 'delivered' AND Status = 'SHIPPED' THEN 'DELIVERED'
+                ELSE Status
+            END
         WHERE Order_Id = :orderId
     """;
 
@@ -801,7 +806,7 @@ public class OrderDao extends BaseDao {
         SET Status = 'COMPLETED'
         WHERE Order_Id = :orderId
           AND User_Id = :userId
-          AND Status = 'SHIPPED'
+          AND Status = 'DELIVERED'
           AND Ghn_Status = 'delivered'
     """;
 
