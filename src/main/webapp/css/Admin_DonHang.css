@@ -478,6 +478,16 @@ a {
     color: #4f46e5;
 }
 
+.status-payment {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.status-processing {
+    background: #ecfeff;
+    color: #0891b2;
+}
+
 .status-shipping {
     background: #eff6ff;
     color: #2563eb;
@@ -491,6 +501,16 @@ a {
 .status-cancelled {
     background: #fee2e2;
     color: #dc2626;
+}
+
+.status-return {
+    background: #f5f3ff;
+    color: #7c3aed;
+}
+
+.status-returned {
+    background: #e0f2fe;
+    color: #0369a1;
 }
 
 .payment {
@@ -592,6 +612,16 @@ a {
 
 .complete-btn:hover {
     background: #0f766e;
+    color: white;
+}
+
+.reject-btn {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.reject-btn:hover {
+    background: #dc2626;
     color: white;
 }
 

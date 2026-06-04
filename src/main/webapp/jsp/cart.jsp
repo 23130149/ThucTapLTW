@@ -39,43 +39,34 @@
         <c:remove var="cartSuccess" scope="session"/>
     </c:if>
     <c:choose>
+        <c:when test="${loginRequired}">
+            <div class="cart-login-required">
+                <div class="cart-login-icon">
+                    <i class='bx bx-lock-alt'></i>
+                </div>
+                <h2>Bạn chưa đăng nhập</h2>
+                <p>Cần đăng nhập để xem giỏ hàng và tiếp tục mua sắm.</p>
+                <a href="${pageContext.request.contextPath}/SignIn?redirect=cart" class="cart-login-btn">
+                    Đăng nhập
+                </a>
+            </div>
+        </c:when>
         <c:when test="${empty sessionScope.cart.data}">
             <p>Giỏ Hàng Của Bạn Đang Trống</p>
             <a href="${pageContext.request.contextPath}/product">Tiếp tục mua sắm</a>
         </c:when>
         <c:otherwise>
             <div class="cart-summary-bar">
-                <div class="summary-left">
-                    <div class="summary-title">Tổng tiền ước tính</div>
-
+                <div>
+                    <div class="summary-title">Tổng tiền đã chọn</div>
                     <div class="summary-price" id="selectedTotalTop">
                         <fmt:formatNumber value="${sessionScope.cart.totalPrice}" type="number" maxFractionDigits="0"/> đ
                     </div>
-
                     <div class="summary-note">
                         <span id="selectedQuantityTop">${sessionScope.cart.totalQuantity}</span> sản phẩm đã chọn
                     </div>
                 </div>
-
-                <div class="summary-detail">
-                    <div class="summary-line">
-                        <span>Tổng sản phẩm</span>
-                        <strong id="selectedQuantityBottom">${sessionScope.cart.totalQuantity}</strong>
-                    </div>
-
-                    <div class="summary-line">
-                        <span>Tạm tính</span>
-                        <strong id="selectedSubtotalBottom">
-                            <fmt:formatNumber value="${sessionScope.cart.totalPrice}" type="number" maxFractionDigits="0"/> đ
-                        </strong>
-                    </div>
-                </div>
-
-                <button type="submit"
-                        form="cartSelectionForm"
-                        class="summary-checkout checkout-submit">
-                    Thanh toán
-                </button>
+                <button type="submit" form="cartSelectionForm" class="summary-checkout checkout-submit">Thanh toán</button>
             </div>
 
             <form id="cartSelectionForm" action="${pageContext.request.contextPath}/payment" method="get">
@@ -131,6 +122,35 @@
                 </div>
             </form>
 
+            <div class="cart-total">
+                <h3>Đơn Hàng Của Bạn</h3>
+
+                <div class="line">
+                    <span>Tổng sản phẩm</span>
+                    <span id="selectedQuantityBottom">${sessionScope.cart.totalQuantity}</span>
+                </div>
+
+                <div class="line">
+                    <span>Tạm tính</span>
+                    <span id="selectedSubtotalBottom"><fmt:formatNumber value="${sessionScope.cart.totalPrice}" type="number" maxFractionDigits="0"/> đ</span>
+                </div>
+
+                <div class="line">
+                    <span>Phí vận chuyển</span>
+                    <span class="free">Miễn phí</span>
+                </div>
+
+                <hr>
+
+                <div class="line total">
+                    <span>Tổng cộng</span>
+                    <span id="selectedTotalBottom"><fmt:formatNumber value="${sessionScope.cart.totalPrice}" type="number" maxFractionDigits="0"/> đ</span>
+                </div>
+
+                <button type="submit" form="cartSelectionForm" class="summary-checkout checkout-submit">
+                    Thanh toán
+                </button>
+            </div>
         </c:otherwise>
     </c:choose>
 

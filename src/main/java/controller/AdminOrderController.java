@@ -17,10 +17,16 @@ import java.util.Set;
 public class AdminOrderController extends HttpServlet {
     private static final Set<String> VALID_STATUSES = Set.of(
             "PENDING",
+            "PENDING_PAYMENT",
+            "PAYMENT_FAILED",
+            "PROCESSING",
             "CONFIRMED",
             "SHIPPED",
             "COMPLETED",
-            "CANCELLED"
+            "CANCELLED",
+            "RETURN_REQUESTED",
+            "RETURNED",
+            "RETURN_REJECTED"
     );
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -73,10 +79,16 @@ public class AdminOrderController extends HttpServlet {
         request.setAttribute("currentStatus", status);
         request.setAttribute("allCount", oDao.countOrders());
         request.setAttribute("pendingCount", oDao.countOrdersByStatus("PENDING"));
+        request.setAttribute("pendingPaymentCount", oDao.countOrdersByStatus("PENDING_PAYMENT"));
+        request.setAttribute("paymentFailedCount", oDao.countOrdersByStatus("PAYMENT_FAILED"));
+        request.setAttribute("processingCount", oDao.countOrdersByStatus("PROCESSING"));
         request.setAttribute("confirmedCount", oDao.countOrdersByStatus("CONFIRMED"));
         request.setAttribute("shippedCount", oDao.countOrdersByStatus("SHIPPED"));
         request.setAttribute("completedCount", oDao.countOrdersByStatus("COMPLETED"));
         request.setAttribute("cancelledCount", oDao.countOrdersByStatus("CANCELLED"));
+        request.setAttribute("returnRequestedCount", oDao.countOrdersByStatus("RETURN_REQUESTED"));
+        request.setAttribute("returnedCount", oDao.countOrdersByStatus("RETURNED"));
+        request.setAttribute("returnRejectedCount", oDao.countOrdersByStatus("RETURN_REJECTED"));
 
         request.setAttribute("notificationCount", oDao.countAdminNotifications());
         request.setAttribute("latestNotifications", oDao.getLatestAdminNotifications(5));
