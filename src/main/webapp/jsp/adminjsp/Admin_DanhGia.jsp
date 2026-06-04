@@ -85,6 +85,19 @@
             </a>
         </div>
     </header>
+    <c:if test="${not empty sessionScope.reviewMessage}">
+        <div class="admin-alert success">
+                ${sessionScope.reviewMessage}
+        </div>
+        <c:remove var="reviewMessage" scope="session"/>
+    </c:if>
+
+    <c:if test="${not empty sessionScope.reviewError}">
+        <div class="admin-alert error">
+                ${sessionScope.reviewError}
+        </div>
+        <c:remove var="reviewError" scope="session"/>
+    </c:if>
     <section class="stats-grid">
         <div class="stat-card stat-total">
             <div class="stat-icon"><i class="bx bx-message-square-detail"></i></div>
@@ -170,7 +183,7 @@
                     <option value="1" ${currentRating == 1 ? 'selected' : ''}>1 sao</option>
                 </select>
 
-                <select name="rating" class="filter-select" onchange="this.form.submit()">
+                <select name="status" class="filter-select" onchange="this.form.submit()">
                     <option value="" ${empty currentStatus ? 'selected' : ''}>Tất cả trạng thái</option>
                     <option value="PENDING" ${currentStatus == 'PENDING' ? 'selected' : ''}>Chờ duyệt</option>
                     <option value="APPROVED" ${currentStatus == 'APPROVED' ? 'selected' : ''}>Đã duyệt</option>
@@ -228,7 +241,7 @@
                                 </div>
 
                                 <p class="review-product">
-                                    Sản phẩm: ${review.productName}
+                                    Sản phẩm: <c:out value="${review.productName}"/>
                                 </p>
 
                                 <span class="review-item-date">
@@ -236,15 +249,48 @@
                                 </span>
 
                                 <p class="review-text">
-                                        ${review.comment}
+                                    <c:out value="${review.comment}"/>
                                 </p>
 
+                                <c:if test="${not empty review.shopReply}">
+                                    <div class="shop-response">
+                                        <p class="response-title">
+                                            <i class="bx bx-reply"></i>
+                                            Phản hồi từ shop:
+                                        </p>
+
+                                        <p class="response-text">
+                                            <c:out value="${review.shopReply}"/>
+                                        </p>
+                                    </div>
+                                </c:if>
+
                                 <div class="review-extra">
-                                <span>
-                                    <i class="bx bx-like"></i>
-                                    Hữu ích: ${review.helpfulCount}
-                                </span>
+                                    <span>
+                                        <i class="bx bx-like"></i>
+                                        Hữu ích: ${review.helpfulCount}
+                                    </span>
                                 </div>
+
+                                <form method="post"
+                                      action="${pageContext.request.contextPath}/admin/reviews"
+                                      class="reply-inline-form">
+
+                                    <input type="hidden" name="action" value="reply">
+                                    <input type="hidden" name="reviewId" value="${review.reviewId}">
+                                    <input type="hidden" name="keyword" value="${fn:escapeXml(keyword)}">
+                                    <input type="hidden" name="rating" value="${currentRating}">
+                                    <input type="hidden" name="status" value="${currentStatus}">
+
+                                    <textarea name="replyText"
+                                              placeholder="Nhập phản hồi cho khách hàng..."
+                                              required><c:out value="${review.shopReply}"/></textarea>
+
+                                    <button type="submit" class="reply-btn">
+                                        <i class="bx bx-send"></i>
+                                        Lưu phản hồi
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </c:forEach>
@@ -253,28 +299,5 @@
         </div>
     </section>
 </main>
-<div id="replyModal" class="modal-overlay">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Phản hồi đánh giá</h3>
-            <span class="close-modal" id="closeReply">&times;</span>
-        </div>
-        <div class="modal-body">
-            <p><strong>Khách hàng:</strong> <span id="replyToName"></span></p>
-            <textarea id="replyText" placeholder="Nhập nội dung phản hồi của bạn..."></textarea>
-            <button id="sendReplyBtn" class="btn-save" style="margin-top: 15px;">Gửi phản hồi</button>
-        </div>
-    </div>
-</div>
-<div id="viewModal" class="modal-overlay">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Chi tiết đánh giá</h3>
-            <span class="close-modal" id="closeView">&times;</span>
-        </div>
-        <div id="viewDetailContent" class="modal-body">
-        </div>
-    </div>
-</div>
 </body>
 </html>

@@ -500,32 +500,6 @@ a {
     cursor: not-allowed;
 }
 
-.filter-btn {
-    height: 42px;
-    border: none;
-    border-radius: 10px;
-    background: linear-gradient(to right, #11998e, #38ef7d);
-    color: white;
-    padding: 0 16px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    transition: 0.25s;
-    font-family: inherit;
-}
-
-.filter-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 16px rgba(17, 153, 142, 0.22);
-}
-
-.filter-btn:disabled {
-    opacity: 0.85;
-    cursor: not-allowed;
-}
-
 .review-list-container {
     background: #ffffff;
     padding: 0 20px 20px;
@@ -796,4 +770,93 @@ a {
         align-items: flex-start;
         gap: 4px;
     }
+}
+.admin-alert {
+    margin-bottom: 18px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.admin-alert.success {
+    color: #166534;
+    background: #dcfce7;
+    border: 1px solid #86efac;
+}
+
+.admin-alert.error {
+    color: #991b1b;
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+}
+
+.shop-response {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: #e6fff8;
+    border-left: 4px solid #11998e;
+    border-radius: 10px;
+}
+
+.response-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #11998e;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.response-text {
+    color: #333333;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.reply-inline-form {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.reply-inline-form textarea {
+    width: 100%;
+    min-height: 80px;
+    resize: vertical;
+    border: 1px solid #dfe6e9;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    background: #ffffff;
+}
+
+.reply-inline-form textarea:focus {
+    border-color: #11998e;
+    box-shadow: 0 0 0 3px rgba(17, 153, 142, 0.12);
+}
+
+.reply-btn {
+    align-self: flex-start;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(to right, #11998e, #38ef7d);
+    color: white;
+    padding: 9px 15px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: inherit;
+}
+
+.reply-btn:hover {
+    opacity: 0.9;
 }
