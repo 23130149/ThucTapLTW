@@ -12,7 +12,7 @@ import util.PasswordUtil;
 import java.io.IOException;
 
 @WebServlet("/SignIn")
-public class SignInController extends HttpServlet {
+public class    SignInController extends HttpServlet {
 
     private UserDao userDao;
     private CartDao cartDao;
