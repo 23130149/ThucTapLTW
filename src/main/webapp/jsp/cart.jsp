@@ -57,20 +57,6 @@
                     </div>
                 </div>
 
-                <div class="summary-detail">
-                    <div class="summary-line">
-                        <span>Tổng sản phẩm</span>
-                        <strong id="selectedQuantityBottom">${sessionScope.cart.totalQuantity}</strong>
-                    </div>
-
-                    <div class="summary-line">
-                        <span>Tạm tính</span>
-                        <strong id="selectedSubtotalBottom">
-                            <fmt:formatNumber value="${sessionScope.cart.totalPrice}" type="number" maxFractionDigits="0"/> đ
-                        </strong>
-                    </div>
-                </div>
-
                 <button type="submit"
                         form="cartSelectionForm"
                         class="summary-checkout checkout-submit">

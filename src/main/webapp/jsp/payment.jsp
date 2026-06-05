@@ -29,13 +29,6 @@
 
     <h1 class="page-title">Thanh toán</h1>
 
-    <c:if test="${not empty sessionScope.paymentError}">
-        <div class="payment-alert error">
-            ${sessionScope.paymentError}
-        </div>
-        <c:remove var="paymentError" scope="session"/>
-    </c:if>
-
     <form action="${pageContext.request.contextPath}/payment" method="post" id="checkoutForm">
         <c:forEach items="${cartItems}" var="checkoutItem">
             <input type="hidden" name="productIds" value="${checkoutItem.product.productId}">
@@ -145,11 +138,21 @@
                             </label>
 
                             <label class="method-option">
-                                <input type="radio" name="paymentMethod" value="VNPAY">
+                                <input type="radio" name="paymentMethod" value="BANKING">
                                 <span class="method-icon"><i class='bx bx-qr-scan'></i></span>
                                 <span>
-                                    <span class="method-title">Thanh toán VNPAY QR</span>
-                                    <span class="method-desc">Quét mã QR hoặc thanh toán qua cổng VNPAY</span>
+                                    <span class="method-title">Chuyển khoản ngân hàng</span>
+                                    <span class="method-desc">Sau khi đặt hàng, hệ thống sẽ hiển thị mã QR ngân hàng để thanh toán</span>
+                                </span>
+                                <span class="method-radio"></span>
+                            </label>
+
+                            <label class="method-option">
+                                <input type="radio" name="paymentMethod" value="E_WALLET">
+                                <span class="method-icon"><i class='bx bx-mobile-alt'></i></span>
+                                <span>
+                                    <span class="method-title">Ví điện tử</span>
+                                    <span class="method-desc">Thanh toán qua MoMo, ZaloPay hoặc VNPay</span>
                                 </span>
                                 <span class="method-radio"></span>
                             </label>

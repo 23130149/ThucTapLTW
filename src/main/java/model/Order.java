@@ -23,77 +23,12 @@ public class Order {
     private String shipAddress;
     private String shipName;
     private String shipPhone;
-    private int paymentMethodId;
-    private String paymentStatus;
     private String paymentProvider;
     private String paymentTransactionNo;
     private String paymentResponseCode;
     private LocalDateTime paidAt;
-
-    public String getShipName() {
-        return shipName;
-    }
-
-    public void setShipName(String shipName) {
-        this.shipName = shipName;
-    }
-
-    public String getShipPhone() {
-        return shipPhone;
-    }
-
-    public void setShipPhone(String shipPhone) {
-        this.shipPhone = shipPhone;
-    }
-
-    public int getPaymentMethodId() {
-        return paymentMethodId;
-    }
-
-    public void setPaymentMethodId(int paymentMethodId) {
-        this.paymentMethodId = paymentMethodId;
-    }
-
-    public String getPaymentStatus() {
-        return paymentStatus;
-    }
-
-    public void setPaymentStatus(String paymentStatus) {
-        this.paymentStatus = paymentStatus;
-    }
-
-    public String getPaymentProvider() {
-        return paymentProvider;
-    }
-
-    public void setPaymentProvider(String paymentProvider) {
-        this.paymentProvider = paymentProvider;
-    }
-
-    public String getPaymentTransactionNo() {
-        return paymentTransactionNo;
-    }
-
-    public void setPaymentTransactionNo(String paymentTransactionNo) {
-        this.paymentTransactionNo = paymentTransactionNo;
-    }
-
-    public String getPaymentResponseCode() {
-        return paymentResponseCode;
-    }
-
-    public void setPaymentResponseCode(String paymentResponseCode) {
-        this.paymentResponseCode = paymentResponseCode;
-    }
-
-    public LocalDateTime getPaidAt() {
-        return paidAt;
-    }
-
-    public void setPaidAt(LocalDateTime paidAt) {
-        this.paidAt = paidAt;
-    }
-
+    private int paymentMethodId;
+    private String paymentStatus;
     public int getOrderId() {
         return orderId;
     }
@@ -118,6 +53,21 @@ public class Order {
     }
     public void setShipAddress(String shipAddress) {
         this.shipAddress = shipAddress;
+    }
+    public int getPaymentMethodId() {
+        return paymentMethodId;
+    }
+
+    public void setPaymentMethodId(int paymentMethodId) {
+        this.paymentMethodId = paymentMethodId;
+    }
+
+    public String getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public void setPaymentStatus(String paymentStatus) {
+        this.paymentStatus = paymentStatus;
     }
     public LocalDateTime getCreateAt() {
         return createAt;
@@ -153,7 +103,53 @@ public class Order {
     public String getNote() {
         return note;
     }
+    public String getShipName() {
+        return shipName;
+    }
 
+    public void setShipName(String shipName) {
+        this.shipName = shipName;
+    }
+
+    public String getShipPhone() {
+        return shipPhone;
+    }
+
+    public void setShipPhone(String shipPhone) {
+        this.shipPhone = shipPhone;
+    }
+
+    public String getPaymentProvider() {
+        return paymentProvider;
+    }
+
+    public void setPaymentProvider(String paymentProvider) {
+        this.paymentProvider = paymentProvider;
+    }
+
+    public String getPaymentTransactionNo() {
+        return paymentTransactionNo;
+    }
+
+    public void setPaymentTransactionNo(String paymentTransactionNo) {
+        this.paymentTransactionNo = paymentTransactionNo;
+    }
+
+    public String getPaymentResponseCode() {
+        return paymentResponseCode;
+    }
+
+    public void setPaymentResponseCode(String paymentResponseCode) {
+        this.paymentResponseCode = paymentResponseCode;
+    }
+
+    public LocalDateTime getPaidAt() {
+        return paidAt;
+    }
+
+    public void setPaidAt(LocalDateTime paidAt) {
+        this.paidAt = paidAt;
+    }
     public void setNote(String note) {
         this.note = note;
     }

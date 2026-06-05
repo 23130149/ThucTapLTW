@@ -3,6 +3,8 @@ package dao;
 import model.User;
 
 import java.util.List;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class UserDao extends BaseDao {
 
@@ -246,122 +248,42 @@ public class UserDao extends BaseDao {
 
     public List<User> getAllCustomers() {
         String sql = """
-            SELECT
-                u.User_Id,
-                u.Customer_Code,
-                u.User_Name,
-                u.Phone,
-                u.Email,
-                u.Date_Of_Birth,
-                u.Gender,
-                u.Avatar_Url,
-                u.Bio,
-                u.Create_At,
-                COUNT(o.Order_Id) AS orderCount,
-                COALESCE(SUM(o.Total_Price), 0) AS totalSpend
-            FROM user u
-            LEFT JOIN orders o
-                ON u.User_Id = o.User_Id
-                AND o.Status = 'COMPLETED'
-            WHERE u.Role = 'USER'
-            GROUP BY
-                u.User_Id,
-                u.Customer_Code,
-                u.User_Name,
-                u.Phone,
-                u.Email,
-                u.Date_Of_Birth,
-                u.Gender,
-                u.Avatar_Url,
-                u.Bio,
-                u.Create_At
-            ORDER BY u.Create_At DESC
-        """;
+        SELECT
+            u.User_Id       AS userId,
+            u.Customer_Code AS customerCode,
+            u.User_Name     AS userName,
+            u.Phone         AS phone,
+            u.Email         AS email,
+            u.Date_Of_Birth AS dateOfBirth,
+            u.Gender        AS gender,
+            u.Avatar_Url    AS avatarUrl,
+            u.Bio           AS bio,
+            u.Create_At     AS createAt,
+            COUNT(o.Order_Id) AS orderCount,
+            COALESCE(SUM(o.Total_Price), 0) AS totalSpend
+        FROM user u
+        LEFT JOIN orders o
+            ON u.User_Id = o.User_Id
+            AND o.Status = 'COMPLETED'
+        WHERE u.Role = 'USER'
+        GROUP BY
+            u.User_Id,
+            u.Customer_Code,
+            u.User_Name,
+            u.Phone,
+            u.Email,
+            u.Date_Of_Birth,
+            u.Gender,
+            u.Avatar_Url,
+            u.Bio,
+            u.Create_At
+        ORDER BY u.Create_At DESC
+    """;
 
-        return getJdbi().withHandle(h ->
-                h.createQuery(sql)
-                        .map((rs, ctx) -> {
-                            User u = new User();
-                            u.setUserId(rs.getInt("User_Id"));
-                            u.setCustomerCode(rs.getString("Customer_Code"));
-                            u.setUserName(rs.getString("User_Name"));
-                            u.setPhone(rs.getString("Phone"));
-                            u.setEmail(rs.getString("Email"));
-
-                            if (rs.getDate("Date_Of_Birth") != null) {
-                                u.setDateOfBirth(rs.getDate("Date_Of_Birth").toLocalDate());
-                            }
-
-                            u.setGender(rs.getString("Gender"));
-                            u.setAvatarUrl(rs.getString("Avatar_Url"));
-                            u.setBio(rs.getString("Bio"));
-                            u.setCreateAt(rs.getTimestamp("Create_At").toLocalDateTime());
-                            u.setOrderCount(rs.getInt("orderCount"));
-                            u.setTotalSpend(rs.getBigDecimal("totalSpend"));
-                            return u;
-                        })
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .mapToBean(User.class)
                         .list()
-        );
-    }
-
-    public User getCustomerDetail(int userId) {
-        String sql = """
-            SELECT
-                u.User_Id,
-                u.Customer_Code,
-                u.User_Name,
-                u.Phone,
-                u.Email,
-                u.Date_Of_Birth,
-                u.Gender,
-                u.Avatar_Url,
-                u.Bio,
-                u.Create_At,
-                COUNT(o.Order_Id) AS orderCount,
-                COALESCE(SUM(o.Total_Price), 0) AS totalSpend
-            FROM user u
-            LEFT JOIN orders o
-                ON u.User_Id = o.User_Id
-                AND o.Status = 'COMPLETED'
-            WHERE u.User_Id = :id
-            GROUP BY
-                u.User_Id,
-                u.Customer_Code,
-                u.User_Name,
-                u.Phone,
-                u.Email,
-                u.Date_Of_Birth,
-                u.Gender,
-                u.Avatar_Url,
-                u.Bio,
-                u.Create_At
-        """;
-
-        return getJdbi().withHandle(h ->
-                h.createQuery(sql)
-                        .bind("id", userId)
-                        .map((rs, ctx) -> {
-                            User u = new User();
-                            u.setUserId(rs.getInt("User_Id"));
-                            u.setCustomerCode(rs.getString("Customer_Code"));
-                            u.setUserName(rs.getString("User_Name"));
-                            u.setPhone(rs.getString("Phone"));
-                            u.setEmail(rs.getString("Email"));
-
-                            if (rs.getDate("Date_Of_Birth") != null) {
-                                u.setDateOfBirth(rs.getDate("Date_Of_Birth").toLocalDate());
-                            }
-
-                            u.setGender(rs.getString("Gender"));
-                            u.setAvatarUrl(rs.getString("Avatar_Url"));
-                            u.setBio(rs.getString("Bio"));
-                            u.setCreateAt(rs.getTimestamp("Create_At").toLocalDateTime());
-                            u.setOrderCount(rs.getInt("orderCount"));
-                            u.setTotalSpend(rs.getBigDecimal("totalSpend"));
-                            return u;
-                        })
-                        .findOne()
-                        .orElse(null)
         );
     }
 
@@ -395,19 +317,23 @@ public class UserDao extends BaseDao {
 
     public int countVipCustomers() {
         String sql = """
-            SELECT COUNT(*) FROM (
-                SELECT u.User_Id
-                FROM user u
-                JOIN orders o ON u.User_Id = o.User_Id
-                WHERE u.Role = 'USER'
-                  AND o.Status = 'COMPLETED'
-                GROUP BY u.User_Id
-                HAVING SUM(o.Total_Price) >= 5000000
-            ) vip
-        """;
+        SELECT COUNT(*)
+        FROM (
+            SELECT
+                u.User_Id,
+                COALESCE(SUM(o.Total_Price), 0) AS totalSpend
+            FROM user u
+            LEFT JOIN orders o
+                ON u.User_Id = o.User_Id
+                AND o.Status = 'COMPLETED'
+            WHERE u.Role = 'USER'
+            GROUP BY u.User_Id
+        ) c
+        WHERE c.totalSpend >= 10000000
+    """;
 
-        return getJdbi().withHandle(h ->
-                h.createQuery(sql)
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
                         .mapTo(Integer.class)
                         .one()
         );
@@ -415,34 +341,371 @@ public class UserDao extends BaseDao {
 
     public int countNewCustomersThisMonth() {
         String sql = """
-            SELECT COUNT(*)
-            FROM user
-            WHERE Role = 'USER'
-              AND MONTH(Create_At) = MONTH(CURRENT_DATE())
-              AND YEAR(Create_At) = YEAR(CURRENT_DATE())
-        """;
+        SELECT COUNT(*)
+        FROM user
+        WHERE Role = 'USER'
+          AND MONTH(Create_At) = MONTH(CURRENT_DATE())
+          AND YEAR(Create_At) = YEAR(CURRENT_DATE())
+    """;
 
-        return getJdbi().withHandle(h ->
-                h.createQuery(sql)
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
                         .mapTo(Integer.class)
                         .one()
         );
     }
 
+
     public double getAverageSpendPerCustomer() {
         String sql = """
+        SELECT COALESCE(
+            SUM(CASE WHEN o.Status = 'COMPLETED' THEN o.Total_Price ELSE 0 END)
+            / NULLIF(COUNT(DISTINCT u.User_Id), 0),
+            0
+        )
+        FROM user u
+        LEFT JOIN orders o ON u.User_Id = o.User_Id
+        WHERE u.Role = 'USER'
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .mapTo(Double.class)
+                        .one()
+        );
+    }
+    public List<User> searchCustomers(String keyword) {
+        String sql = """
+        SELECT
+            u.User_Id,
+            u.Customer_Code,
+            u.User_Name,
+            u.Phone,
+            u.Email,
+            u.Date_Of_Birth,
+            u.Gender,
+            u.Avatar_Url,
+            u.Bio,
+            u.Create_At,
+            COUNT(o.Order_Id) AS orderCount,
+            COALESCE(SUM(o.Total_Price), 0) AS totalSpend
+        FROM user u
+        LEFT JOIN orders o
+            ON u.User_Id = o.User_Id
+            AND o.Status = 'COMPLETED'
+        WHERE u.Role = 'USER'
+          AND (
+                :keyword = ''
+                OR LOWER(COALESCE(u.User_Name, '')) LIKE CONCAT('%', LOWER(:keyword), '%')
+                OR COALESCE(u.Phone, '') LIKE CONCAT('%', :keyword, '%')
+                OR LOWER(COALESCE(u.Email, '')) LIKE CONCAT('%', LOWER(:keyword), '%')
+                OR LOWER(COALESCE(u.Customer_Code, '')) LIKE CONCAT('%', LOWER(:keyword), '%')
+          )
+        GROUP BY
+            u.User_Id,
+            u.Customer_Code,
+            u.User_Name,
+            u.Phone,
+            u.Email,
+            u.Date_Of_Birth,
+            u.Gender,
+            u.Avatar_Url,
+            u.Bio,
+            u.Create_At
+        ORDER BY u.Create_At DESC
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("keyword", keyword == null ? "" : keyword.trim())
+                        .map((rs, ctx) -> mapCustomer(rs))
+                        .list()
+        );
+    }
+
+    private User mapCustomer(ResultSet rs) throws SQLException {
+        User user = new User();
+
+        user.setUserId(rs.getInt("User_Id"));
+        user.setCustomerCode(rs.getString("Customer_Code"));
+        user.setUserName(rs.getString("User_Name"));
+        user.setPhone(rs.getString("Phone"));
+        user.setEmail(rs.getString("Email"));
+
+        if (rs.getDate("Date_Of_Birth") != null) {
+            user.setDateOfBirth(rs.getDate("Date_Of_Birth").toLocalDate());
+        }
+
+        user.setGender(rs.getString("Gender"));
+        user.setAvatarUrl(rs.getString("Avatar_Url"));
+        user.setBio(rs.getString("Bio"));
+
+        if (rs.getTimestamp("Create_At") != null) {
+            user.setCreateAt(rs.getTimestamp("Create_At").toLocalDateTime());
+        }
+
+        user.setOrderCount(rs.getInt("orderCount"));
+        user.setTotalSpend(rs.getBigDecimal("totalSpend"));
+
+        return user;
+    }
+    public List<User> filterCustomers(String keyword, String customerType, int minOrders, int maxOrders) {
+        String sql = """
+        SELECT *
+        FROM (
             SELECT
-                COALESCE(SUM(o.Total_Price) / COUNT(DISTINCT u.User_Id), 0)
+                u.User_Id,
+                u.Customer_Code,
+                u.User_Name,
+                u.Phone,
+                u.Email,
+                u.Date_Of_Birth,
+                u.Gender,
+                u.Avatar_Url,
+                u.Bio,
+                u.Create_At,
+                COUNT(o.Order_Id) AS orderCount,
+                COALESCE(SUM(o.Total_Price), 0) AS totalSpend
             FROM user u
             LEFT JOIN orders o
                 ON u.User_Id = o.User_Id
                 AND o.Status = 'COMPLETED'
             WHERE u.Role = 'USER'
-        """;
+            GROUP BY
+                u.User_Id,
+                u.Customer_Code,
+                u.User_Name,
+                u.Phone,
+                u.Email,
+                u.Date_Of_Birth,
+                u.Gender,
+                u.Avatar_Url,
+                u.Bio,
+                u.Create_At
+        ) c
+        WHERE (
+            :keyword = ''
+            OR LOWER(COALESCE(c.User_Name, '')) LIKE CONCAT('%', LOWER(:keyword), '%')
+            OR COALESCE(c.Phone, '') LIKE CONCAT('%', :keyword, '%')
+            OR LOWER(COALESCE(c.Email, '')) LIKE CONCAT('%', LOWER(:keyword), '%')
+            OR LOWER(COALESCE(c.Customer_Code, '')) LIKE CONCAT('%', LOWER(:keyword), '%')
+        )
+        AND (
+            :customerType = ''
+            OR (:customerType = 'vip' AND c.totalSpend >= 10000000)
+            OR (:customerType = 'regular' AND c.totalSpend >= 3000000 AND c.totalSpend < 10000000)
+            OR (:customerType = 'new' AND c.totalSpend < 3000000)
+        )
+        AND (:minOrders < 0 OR c.orderCount >= :minOrders)
+        AND (:maxOrders < 0 OR c.orderCount <= :maxOrders)
+        ORDER BY c.Create_At DESC
+    """;
 
-        return getJdbi().withHandle(h ->
-                h.createQuery(sql)
-                        .mapTo(Double.class)
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("keyword", keyword == null ? "" : keyword.trim())
+                        .bind("customerType", customerType == null ? "" : customerType.trim())
+                        .bind("minOrders", minOrders)
+                        .bind("maxOrders", maxOrders)
+                        .map((rs, ctx) -> mapCustomer(rs))
+                        .list()
+        );
+    }
+    public User getCustomerDetail(int userId) {
+        String sql = """
+        SELECT
+            u.User_Id,
+            u.Customer_Code,
+            u.User_Name,
+            u.Phone,
+            u.Email,
+            u.Date_Of_Birth,
+            u.Gender,
+            u.Avatar_Url,
+            u.Bio,
+            u.Create_At,
+            COUNT(o.Order_Id) AS orderCount,
+            COALESCE(SUM(o.Total_Price), 0) AS totalSpend
+        FROM user u
+        LEFT JOIN orders o
+            ON u.User_Id = o.User_Id
+            AND o.Status = 'COMPLETED'
+        WHERE u.User_Id = :id
+          AND u.Role = 'USER'
+        GROUP BY
+            u.User_Id,
+            u.Customer_Code,
+            u.User_Name,
+            u.Phone,
+            u.Email,
+            u.Date_Of_Birth,
+            u.Gender,
+            u.Avatar_Url,
+            u.Bio,
+            u.Create_At
+        LIMIT 1
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("id", userId)
+                        .map((rs, ctx) -> mapCustomer(rs))
+                        .findOne()
+                        .orElse(null)
+        );
+    }
+
+    public void deleteCustomer(int userId) {
+        getJdbi().useTransaction(handle -> {
+            handle.createUpdate("DELETE FROM favorite_products WHERE User_Id = :id")
+                    .bind("id", userId)
+                    .execute();
+
+            handle.createUpdate("DELETE FROM reviews WHERE User_Id = :id")
+                    .bind("id", userId)
+                    .execute();
+
+            handle.createUpdate("DELETE FROM contact WHERE User_Id = :id")
+                    .bind("id", userId)
+                    .execute();
+
+            handle.createUpdate("DELETE FROM user_address WHERE User_Id = :id")
+                    .bind("id", userId)
+                    .execute();
+
+            handle.createUpdate("DELETE FROM user WHERE User_Id = :id AND Role = 'USER'")
+                    .bind("id", userId)
+                    .execute();
+        });
+    }
+    public List<User> filterCustomers(String keyword,
+                                      String customerType,
+                                      int minOrders,
+                                      int maxOrders,
+                                      int page,
+                                      int pageSize) {
+
+        String sql = """
+        SELECT *
+        FROM (
+            SELECT
+                u.User_Id,
+                u.Customer_Code,
+                u.User_Name,
+                u.Phone,
+                u.Email,
+                u.Date_Of_Birth,
+                u.Gender,
+                u.Avatar_Url,
+                u.Bio,
+                u.Create_At,
+                COUNT(o.Order_Id) AS orderCount,
+                COALESCE(SUM(o.Total_Price), 0) AS totalSpend
+            FROM user u
+            LEFT JOIN orders o
+                ON u.User_Id = o.User_Id
+                AND o.Status = 'COMPLETED'
+            WHERE u.Role = 'USER'
+            GROUP BY
+                u.User_Id,
+                u.Customer_Code,
+                u.User_Name,
+                u.Phone,
+                u.Email,
+                u.Date_Of_Birth,
+                u.Gender,
+                u.Avatar_Url,
+                u.Bio,
+                u.Create_At
+        ) c
+        WHERE (
+            :keyword = ''
+            OR LOWER(COALESCE(c.User_Name, '')) LIKE CONCAT('%', LOWER(:keyword), '%')
+            OR COALESCE(c.Phone, '') LIKE CONCAT('%', :keyword, '%')
+            OR LOWER(COALESCE(c.Email, '')) LIKE CONCAT('%', LOWER(:keyword), '%')
+            OR LOWER(COALESCE(c.Customer_Code, '')) LIKE CONCAT('%', LOWER(:keyword), '%')
+        )
+        AND (
+            :customerType = ''
+            OR (:customerType = 'vip' AND c.totalSpend >= 10000000)
+            OR (:customerType = 'regular' AND c.totalSpend >= 3000000 AND c.totalSpend < 10000000)
+            OR (:customerType = 'new' AND c.totalSpend < 3000000)
+        )
+        AND (:minOrders < 0 OR c.orderCount >= :minOrders)
+        AND (:maxOrders < 0 OR c.orderCount <= :maxOrders)
+        ORDER BY c.Create_At DESC
+        LIMIT :limit OFFSET :offset
+    """;
+
+        int safePage = Math.max(page, 1);
+        int safePageSize = Math.max(pageSize, 1);
+        int offset = (safePage - 1) * safePageSize;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("keyword", keyword == null ? "" : keyword.trim())
+                        .bind("customerType", customerType == null ? "" : customerType.trim())
+                        .bind("minOrders", minOrders)
+                        .bind("maxOrders", maxOrders)
+                        .bind("limit", safePageSize)
+                        .bind("offset", offset)
+                        .map((rs, ctx) -> mapCustomer(rs))
+                        .list()
+        );
+    }
+
+    public int countFilteredCustomers(String keyword,
+                                      String customerType,
+                                      int minOrders,
+                                      int maxOrders) {
+
+        String sql = """
+        SELECT COUNT(*)
+        FROM (
+            SELECT
+                u.User_Id,
+                COUNT(o.Order_Id) AS orderCount,
+                COALESCE(SUM(o.Total_Price), 0) AS totalSpend,
+                u.User_Name,
+                u.Phone,
+                u.Email,
+                u.Customer_Code
+            FROM user u
+            LEFT JOIN orders o
+                ON u.User_Id = o.User_Id
+                AND o.Status = 'COMPLETED'
+            WHERE u.Role = 'USER'
+            GROUP BY
+                u.User_Id,
+                u.User_Name,
+                u.Phone,
+                u.Email,
+                u.Customer_Code
+        ) c
+        WHERE (
+            :keyword = ''
+            OR LOWER(COALESCE(c.User_Name, '')) LIKE CONCAT('%', LOWER(:keyword), '%')
+            OR COALESCE(c.Phone, '') LIKE CONCAT('%', :keyword, '%')
+            OR LOWER(COALESCE(c.Email, '')) LIKE CONCAT('%', LOWER(:keyword), '%')
+            OR LOWER(COALESCE(c.Customer_Code, '')) LIKE CONCAT('%', LOWER(:keyword), '%')
+        )
+        AND (
+            :customerType = ''
+            OR (:customerType = 'vip' AND c.totalSpend >= 10000000)
+            OR (:customerType = 'regular' AND c.totalSpend >= 3000000 AND c.totalSpend < 10000000)
+            OR (:customerType = 'new' AND c.totalSpend < 3000000)
+        )
+        AND (:minOrders < 0 OR c.orderCount >= :minOrders)
+        AND (:maxOrders < 0 OR c.orderCount <= :maxOrders)
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("keyword", keyword == null ? "" : keyword.trim())
+                        .bind("customerType", customerType == null ? "" : customerType.trim())
+                        .bind("minOrders", minOrders)
+                        .bind("maxOrders", maxOrders)
+                        .mapTo(Integer.class)
                         .one()
         );
     }

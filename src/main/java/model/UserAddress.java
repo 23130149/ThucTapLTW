@@ -8,6 +8,9 @@ public class UserAddress {
     private String province;
     private String district;
     private String street;
+    private Integer provinceId;
+    private Integer districtId;
+    private String wardCode;
 
     public int getUserAddressId() {
         return userAddressId;
@@ -55,5 +58,29 @@ public class UserAddress {
 
     public void setStreet(String street) {
         this.street = street;
+    }
+
+    public Integer getProvinceId() {
+        return provinceId;
+    }
+
+    public void setProvinceId(Integer provinceId) {
+        this.provinceId = provinceId;
+    }
+
+    public Integer getDistrictId() {
+        return districtId;
+    }
+
+    public void setDistrictId(Integer districtId) {
+        this.districtId = districtId;
+    }
+
+    public String getWardCode() {
+        return wardCode;
+    }
+
+    public void setWardCode(String wardCode) {
+        this.wardCode = wardCode;
     }
 }

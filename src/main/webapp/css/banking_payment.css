@@ -1,0 +1,159 @@
+* {
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    margin: 0;
+    background: #fafafa;
+}
+
+.banking-payment-page {
+    width: 90%;
+    margin: 40px auto;
+}
+
+.banking-heading {
+    margin-bottom: 24px;
+}
+
+.banking-heading h1 {
+    margin: 0 0 8px;
+    font-size: 30px;
+    color: #172033;
+}
+
+.banking-heading p {
+    margin: 0;
+    color: #667085;
+}
+
+.banking-card {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 32px;
+    background: #ffffff;
+    border: 1px solid #d9f3ed;
+    border-radius: 22px;
+    padding: 28px;
+    box-shadow: 0 14px 35px rgba(17, 153, 142, 0.10);
+}
+
+.qr-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.qr-box {
+    width: 100%;
+    max-width: 320px;
+    min-height: 320px;
+    border: 1px dashed #11998e;
+    border-radius: 20px;
+    background: #f0fff8;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.qr-box img {
+    width: 100%;
+    height: auto;
+    border-radius: 16px;
+    background: #ffffff;
+}
+
+.qr-placeholder {
+    display: none;
+    min-height: 270px;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+    color: #11998e;
+    font-weight: 700;
+}
+
+.qr-placeholder i {
+    font-size: 54px;
+}
+
+.banking-info h2 {
+    margin: 0 0 18px;
+    color: #11998e;
+    font-size: 22px;
+}
+
+.info-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 13px 0;
+    border-bottom: 1px solid #eef2f2;
+}
+
+.info-line span {
+    color: #667085;
+}
+
+.info-line strong {
+    color: #172033;
+    text-align: right;
+}
+
+.info-line .amount {
+    color: #ff4b2b;
+    font-size: 18px;
+}
+
+.bank-note {
+    margin-top: 20px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: #f0fff8;
+    color: #11998e;
+    font-weight: 600;
+    line-height: 1.6;
+}
+
+.bank-actions {
+    margin-top: 24px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.btn-primary,
+.btn-secondary {
+    padding: 12px 22px;
+    border-radius: 999px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-primary {
+    background: #11998e;
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #11998e, #38ef7d);
+}
+
+.btn-secondary {
+    background: #ffffff;
+    color: #11998e;
+    border: 1px solid #11998e;
+}
+
+@media (max-width: 900px) {
+    .banking-card {
+        grid-template-columns: 1fr;
+    }
+}
