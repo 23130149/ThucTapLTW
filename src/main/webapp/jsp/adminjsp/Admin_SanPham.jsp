@@ -38,23 +38,51 @@
     <header class="header">
         <h2>Quản lý sản phẩm</h2>
         <div class="user-info">
-            <span class="notification-badge">
+        <div class="notification-wrapper">
+            <a href="${pageContext.request.contextPath}/admin/notifications" class="notification-btn">
                 <i class="bx bx-bell"></i>
-            </span>
-            <div class="profile-admin">
+                <c:if test="${notificationCount > 0}">
+                    <span class="notification-count">${notificationCount}</span>
+                </c:if>
+            </a>
+            <div class="notification-dropdown">
+                <h4>Thông báo Admin</h4>
+                <c:choose>
+                    <c:when test="${empty latestNotifications}">
+                        <p class="empty-notification">Không có thông báo mới</p>
+                    </c:when>
+                    <c:otherwise>
+                        <c:forEach items="${latestNotifications}" var="n">
+                            <a href="${pageContext.request.contextPath}${n.url}" class="notification-item">
+                                <span class="notification-type">${n.type}</span>
+                                <p>${n.message}</p>
+                            </a>
+                        </c:forEach>
+                    </c:otherwise>
+                </c:choose>
+            </div>
+        </div>
+        <a href="${pageContext.request.contextPath}/admin/setting" class="profile-admin">
                 <span class="admin-avatar">
                     <c:choose>
                         <c:when test="${not empty sessionScope.user.userName}">
-                            ${fn:substring(sessionScope.user.userName,0,1)}
+                            ${fn:substring(sessionScope.user.userName, 0, 1)}
                         </c:when>
                         <c:otherwise>A</c:otherwise>
                     </c:choose>
                 </span>
-                <div>
-                    <p class="user-name">${sessionScope.user.userName}</p>
-                    <small class="user-role">Quản trị viên</small>
-                </div>
+            <div>
+                <p class="user-name">
+                    <c:choose>
+                        <c:when test="${not empty sessionScope.user.userName}">
+                            ${sessionScope.user.userName}
+                        </c:when>
+                        <c:otherwise>Admin</c:otherwise>
+                    </c:choose>
+                </p>
+                <small class="user-role">Quản trị viên</small>
             </div>
+        </a>
         </div>
     </header>
     <div class="stats-grid">
@@ -107,7 +135,7 @@
             <option value="">Tất cả trạng thái</option>
             <option value="instock" ${param.status == 'instock' ? 'selected' : ''}>Còn hàng</option>
             <option value="lowstock" ${param.status == 'lowstock' ? 'selected' : ''}>Sắp hết</option>
-            <option value="outstock" ${param.status == 'outstock' ? 'selected' : ''}>Hết hàng</option>
+            <option value="outofstock" ${param.status == 'outofstock' ? 'selected' : ''}>Hết hàng</option>
         </select>
         <select name="priceRange" class="filter-select">
             <option value="">Tất cả giá</option>
@@ -148,7 +176,14 @@
                 <td class="img-col">
                     <c:choose>
                         <c:when test="${not empty p.imageUrl}">
-                            <img src="${p.imageUrl}" alt="${p.productName}" width="50">
+                            <c:choose>
+                                <c:when test="${fn:startsWith(p.imageUrl, 'http://') or fn:startsWith(p.imageUrl, 'https://')}">
+                                    <img src="${p.imageUrl}" alt="${p.productName}" width="50">
+                                </c:when>
+                                <c:otherwise>
+                                    <img src="${pageContext.request.contextPath}${p.imageUrl}" alt="${p.productName}" width="50">
+                                </c:otherwise>
+                            </c:choose>
                         </c:when>
                         <c:otherwise>
                             <img src="${pageContext.request.contextPath}/images/no-image.png"
@@ -286,78 +321,118 @@
     </div>
 </div>
 <script>
-    document.querySelectorAll(".filter-select").forEach(function (sel) {
-        sel.addEventListener("change", function () { this.form.submit(); });
+    const contextPath = "${pageContext.request.contextPath}";
+
+    document.querySelectorAll("#filterForm .filter-select").forEach(function (sel) {
+        sel.addEventListener("change", function () {
+            document.getElementById("filterForm").submit();
+        });
     });
+
     const modal = document.getElementById("productModal");
     const productForm = document.getElementById("productForm");
     const modalTitle = document.querySelector(".modal-header h3");
+
     document.getElementById("openModalBtn").onclick = function () {
         modal.style.display = "flex";
         productForm.reset();
         clearImagePreview();
+
         modalTitle.innerText = "Thêm sản phẩm mới";
         document.getElementById("modalAction").value = "add";
         document.getElementById("prodId").value = "";
     };
-    function closeModal() { modal.style.display = "none"; }
+
+    function closeModal() {
+        modal.style.display = "none";
+    }
 
     window.addEventListener("click", function (e) {
-        if (e.target === modal) closeModal();
+        if (e.target === modal) {
+            closeModal();
+        }
     });
+
+    function getImageSrc(imageUrl) {
+        if (!imageUrl) {
+            return "";
+        }
+
+        if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+            return imageUrl;
+        }
+
+        if (imageUrl.startsWith("/")) {
+            return contextPath + imageUrl;
+        }
+
+        return contextPath + "/" + imageUrl;
+    }
 
     function openEditModal(btn) {
         modal.style.display = "flex";
         modalTitle.innerText = "Cập nhật sản phẩm";
+
         document.getElementById("modalAction").value = "update";
         document.getElementById("prodId").value = btn.dataset.id;
-        document.getElementById("prodName").value = btn.dataset.name;
-        document.getElementById("prodPrice").value = btn.dataset.price;
-        document.getElementById("prodStock").value = btn.dataset.stock;
-        document.getElementById("prodCategory").value = btn.dataset.category;
-        document.getElementById("prodDescription").value = btn.dataset.description;
-        document.getElementById("prodImageUrl").value    = btn.dataset.image || "";
+        document.getElementById("prodName").value = btn.dataset.name || "";
+        document.getElementById("prodPrice").value = btn.dataset.price || "";
+        document.getElementById("prodStock").value = btn.dataset.stock || "";
+        document.getElementById("prodCategory").value = btn.dataset.category || "";
+        document.getElementById("prodDescription").value = btn.dataset.description || "";
+        document.getElementById("prodImageUrl").value = btn.dataset.image || "";
 
         if (btn.dataset.image) {
-            document.getElementById("imagePreview").src              = btn.dataset.image;
+            document.getElementById("imagePreview").src = getImageSrc(btn.dataset.image);
             document.getElementById("imagePreviewWrap").style.display = "block";
         } else {
             clearImagePreview();
         }
     }
+
     function previewImage(input) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
+
             reader.onload = function (e) {
-                document.getElementById("imagePreview").src              = e.target.result;
+                document.getElementById("imagePreview").src = e.target.result;
                 document.getElementById("imagePreviewWrap").style.display = "block";
                 document.getElementById("prodImageUrl").value = "";
             };
+
             reader.readAsDataURL(input.files[0]);
         }
     }
 
     function clearImagePreview() {
-        document.getElementById("imagePreview").src              = "";
+        document.getElementById("imagePreview").src = "";
         document.getElementById("imagePreviewWrap").style.display = "none";
     }
+
     productForm.addEventListener("submit", function (e) {
         const name = document.getElementById("prodName").value.trim();
         const price = parseFloat(document.getElementById("prodPrice").value);
         const stock = parseInt(document.getElementById("prodStock").value);
+
         if (name === "") {
             alert("Tên sản phẩm không được để trống!");
-            e.preventDefault(); return;
+            e.preventDefault();
+            return;
         }
+
         if (isNaN(price) || price <= 0) {
             alert("Giá sản phẩm phải lớn hơn 0!");
-            e.preventDefault(); return;
+            e.preventDefault();
+            return;
         }
+
         if (isNaN(stock) || stock < 0) {
             alert("Số lượng kho không hợp lệ!");
-            e.preventDefault(); return;
+            e.preventDefault();
+            return;
         }
     });
+
     <c:if test="${not empty editProduct}">
     window.addEventListener("DOMContentLoaded", function () {
         modal.style.display = "flex";
@@ -373,7 +448,7 @@
         document.getElementById("prodImageUrl").value = "${editProduct.imageUrl}";
 
         if ("${editProduct.imageUrl}" !== "") {
-            document.getElementById("imagePreview").src = "${editProduct.imageUrl}";
+            document.getElementById("imagePreview").src = getImageSrc("${editProduct.imageUrl}");
             document.getElementById("imagePreviewWrap").style.display = "block";
         }
     });

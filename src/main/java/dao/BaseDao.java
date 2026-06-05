@@ -1,9 +1,6 @@
 package dao;
 
-import com.mysql.cj.jdbc.MysqlDataSource;
 import org.jdbi.v3.core.Jdbi;
-
-import java.sql.SQLException;
 
 public class BaseDao {
     private Jdbi jdbi;
@@ -14,19 +11,19 @@ public class BaseDao {
     }
 
     private void makeConnect() {
-        MysqlDataSource dataSource = new MysqlDataSource();
-        dataSource.setURL("jdbc:mysql://" + DBProperties.getDbHost() + ":" + DBProperties.getDbPort() + "/" + DBProperties.getDbName());
-        dataSource.setUser(DBProperties.getUsername());
-        dataSource.setPassword(DBProperties.getPassword());
         try {
-            dataSource.setUseCompression(true);
-            dataSource.setAutoReconnect(true);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("MySQL JDBC driver not found", e);
         }
 
-        jdbi = Jdbi.create(dataSource);
+        String url = "jdbc:mysql://"
+                + DBProperties.getDbHost()
+                + ":"
+                + DBProperties.getDbPort()
+                + "/"
+                + DBProperties.getDbName();
 
+        jdbi = Jdbi.create(url, DBProperties.getUsername(), DBProperties.getPassword());
     }
 }

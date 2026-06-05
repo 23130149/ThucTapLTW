@@ -20,9 +20,9 @@ public class ViewCart extends HttpServlet {
 
         if (user == null) {
             session = request.getSession(true);
-            session.setAttribute("loginMessage", "Vui lòng đăng nhập để xem giỏ hàng.");
             session.setAttribute("redirectAfterLogin", "cart");
-            response.sendRedirect(request.getContextPath() + "/SignIn");
+            request.setAttribute("loginRequired", true);
+            request.getRequestDispatcher("/jsp/cart.jsp").forward(request, response);
             return;
         }
 

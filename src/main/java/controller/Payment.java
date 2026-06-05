@@ -12,12 +12,12 @@ import jakarta.servlet.http.*;
 import model.Order;
 import model.User;
 import model.UserAddress;
+import service.GhnService;
+import service.VnpayService;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -26,8 +26,12 @@ import java.util.Set;
 @WebServlet(name = "Payment", value = "/payment")
 public class Payment extends HttpServlet {
 
+    private static final int PAYMENT_METHOD_COD_ID = 1;
+    private static final int PAYMENT_METHOD_VNPAY_ID = 3;
+
     private final UserAddressDao addressDao = new UserAddressDao();
     private final CartDao cartDao = new CartDao();
+    private final GhnService ghnService = new GhnService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -149,17 +153,12 @@ public class Payment extends HttpServlet {
             return;
         }
 
+        String paymentMethod = normalizePaymentMethod(request.getParameter("paymentMethod"));
+        boolean useVnpay = "VNPAY".equals(paymentMethod);
+
         BigDecimal totalPrice = calculateTotalPrice(selectedItems);
         BigDecimal shippingFee = calculateShippingFee(addr);
         BigDecimal grandTotal = totalPrice.add(shippingFee);
-
-        String paymentMethod = request.getParameter("paymentMethod");
-        if (paymentMethod == null || paymentMethod.trim().isEmpty()) {
-            paymentMethod = "COD";
-        }
-
-        paymentMethod = paymentMethod.trim().toUpperCase();
-        boolean bankingPayment = "BANKING".equals(paymentMethod) || "BANK_TRANSFER".equals(paymentMethod);
 
         String shipAddress = buildShipAddress(addr);
 
@@ -167,16 +166,15 @@ public class Payment extends HttpServlet {
         order.setUserId(user.getUserId());
         order.setUserAddressId(addressId);
         order.setNote(getOrderNote(request));
-        order.setStatus("PENDING");
+        order.setStatus(useVnpay ? "PENDING_PAYMENT" : "PENDING");
         order.setOrderCode("DH" + System.currentTimeMillis());
         order.setTotalPrice(grandTotal);
         order.setShipAddress(shipAddress);
-        order.setShipName(safe(request.getParameter("receiverName")));
-        order.setShipPhone(safe(request.getParameter("receiverPhone")));
-
-        order.setPaymentMethodId(bankingPayment ? 2 : 1);
+        order.setShipName(getTrimmedParameter(request, "receiverName"));
+        order.setShipPhone(getTrimmedParameter(request, "receiverPhone"));
+        order.setPaymentMethodId(useVnpay ? PAYMENT_METHOD_VNPAY_ID : PAYMENT_METHOD_COD_ID);
         order.setPaymentStatus("UNPAID");
-        order.setPaymentProvider(null);
+        order.setPaymentProvider(useVnpay ? "VNPAY" : null);
 
         OrderDao orderDao = new OrderDao();
         int orderId = orderDao.insertAndReturnId(order);
@@ -187,8 +185,9 @@ public class Payment extends HttpServlet {
             return;
         }
 
-        OrderItemDao orderItemDao = new OrderItemDao();
+        order.setOrderId(orderId);
 
+        OrderItemDao orderItemDao = new OrderItemDao();
         Set<Integer> paidProductIds = new HashSet<>();
 
         for (CartItem item : selectedItems) {
@@ -196,16 +195,20 @@ public class Payment extends HttpServlet {
             paidProductIds.add(item.getProduct().getProductId());
         }
 
+        if (useVnpay) {
+            session.setAttribute("pendingVnpayOrderCode", order.getOrderCode());
+            session.setAttribute("pendingVnpayProductIds", paidProductIds);
+            session.setAttribute("checkoutProductIds", paidProductIds);
+
+            VnpayService vnpayService = new VnpayService();
+            String paymentUrl = vnpayService.createPaymentUrl(order, request);
+            response.sendRedirect(paymentUrl);
+            return;
+        }
+
         cartDao.removeProducts(user.getUserId(), paidProductIds);
         session.removeAttribute("checkoutProductIds");
         session.setAttribute("cart", cartDao.getCartByUserId(user.getUserId()));
-
-        if (bankingPayment) {
-            session.setAttribute("orderSuccess", "Đơn hàng đã được tạo. Vui lòng quét mã QR để chuyển khoản.");
-            String encodedOrderCode = URLEncoder.encode(order.getOrderCode(), StandardCharsets.UTF_8);
-            response.sendRedirect(request.getContextPath() + "/banking-payment?orderCode=" + encodedOrderCode);
-            return;
-        }
 
         session.setAttribute("orderSuccess", "Đặt hàng thành công!");
 
@@ -282,6 +285,24 @@ public class Payment extends HttpServlet {
         return selectedIds;
     }
 
+    private String normalizePaymentMethod(String paymentMethod) {
+        if (paymentMethod == null || paymentMethod.trim().isEmpty()) {
+            return "COD";
+        }
+
+        String value = paymentMethod.trim().toUpperCase();
+        if ("VNPAY".equals(value)) {
+            return "VNPAY";
+        }
+
+        return "COD";
+    }
+
+    private String getTrimmedParameter(HttpServletRequest request, String name) {
+        String value = request.getParameter(name);
+        return value == null ? null : value.trim();
+    }
+
     private BigDecimal calculateTotalPrice(List<CartItem> items) {
         BigDecimal total = BigDecimal.ZERO;
 
@@ -318,6 +339,16 @@ public class Payment extends HttpServlet {
     }
 
     private BigDecimal calculateShippingFee(UserAddress address) {
+        if (address != null && address.getDistrictId() != null && address.getWardCode() != null && !address.getWardCode().isBlank()) {
+            try {
+                return ghnService.calculateFee(address.getDistrictId(), address.getWardCode());
+            } catch (IOException | InterruptedException e) {
+                if (e instanceof InterruptedException) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+
         String shipAddress = buildShipAddress(address);
         double distanceKm = estimateDistanceKm(shipAddress);
         return calculateFeeByDistance(distanceKm);

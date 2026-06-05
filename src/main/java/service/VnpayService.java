@@ -36,9 +36,6 @@ public class VnpayService {
         params.put("vnp_CreateDate", now.format(formatter));
         params.put("vnp_ExpireDate", expire.format(formatter));
 
-        // Ép VNPAY mở luồng QR. Nếu muốn người dùng tự chọn phương thức, hãy xóa dòng này.
-      //  params.put("vnp_BankCode", "VNPAYQR");
-
         String hashData = VnpayUtil.buildQuery(params, true);
         String secureHash = VnpayUtil.hmacSHA512(VnpayConfig.HASH_SECRET, hashData);
         String query = VnpayUtil.buildQuery(params, true);

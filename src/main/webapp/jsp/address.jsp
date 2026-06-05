@@ -117,6 +117,9 @@
 
       <form action="${pageContext.request.contextPath}/Address" method="post">
         <input type="hidden" name="userAddressId" value="${address.userAddressId}" />
+        <input type="hidden" name="provinceId" id="provinceIdInput" value="${address.provinceId}" />
+        <input type="hidden" name="districtId" id="districtIdInput" value="${address.districtId}" />
+        <input type="hidden" name="wardCode" id="wardCodeInput" value="${address.wardCode}" />
 
         <div class="form-grid">
           <div class="form-group">
@@ -237,7 +240,7 @@
     function fillWards() {
       const province = provinceSelect.value;
       const district = districtSelect.value;
-      const wards = province && district ? (addressData[province][district] || []) : [];
+      const wards = province && district ? ((addressData[province] || {})[district] || []) : [];
       fillSelect(wardSelect, wards, "Chọn Phường/Xã");
       wardSelect.disabled = wards.length === 0;
     }
@@ -254,6 +257,144 @@
       provinceSelect.addEventListener("change", fillDistricts);
       districtSelect.addEventListener("change", fillWards);
     }
+  });
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const provinceSelect = document.getElementById("provinceSelect");
+    const districtSelect = document.getElementById("districtSelect");
+    const wardSelect = document.getElementById("wardSelect");
+    const provinceIdInput = document.getElementById("provinceIdInput");
+    const districtIdInput = document.getElementById("districtIdInput");
+    const wardCodeInput = document.getElementById("wardCodeInput");
+
+    if (!provinceSelect || !districtSelect || !wardSelect) {
+      return;
+    }
+
+    const currentProvince = provinceSelect.dataset.current || "";
+    const currentDistrictText = districtSelect.dataset.current || "";
+    const currentProvinceId = provinceIdInput.value || "";
+    const currentDistrictId = districtIdInput.value || "";
+    const currentWardCode = wardCodeInput.value || "";
+
+    function getData(url) {
+      return fetch(url, { headers: { "Accept": "application/json" } })
+        .then(res => {
+          if (!res.ok) throw new Error("GHN request failed");
+          return res.json();
+        })
+        .then(json => json.data || []);
+    }
+
+    function setOptions(select, placeholder, items, valueKey, textKey, selectedValue) {
+      select.innerHTML = '<option value="">' + placeholder + '</option>';
+      items.forEach(item => {
+        const option = document.createElement("option");
+        const value = String(item[valueKey] || "");
+        option.value = item[textKey] || "";
+        option.textContent = item[textKey] || "";
+        option.dataset.ghnValue = value;
+        if (value && value === String(selectedValue || "")) {
+          option.selected = true;
+        }
+        select.appendChild(option);
+      });
+    }
+
+    function syncProvince() {
+      const option = provinceSelect.selectedOptions[0];
+      provinceIdInput.value = option ? (option.dataset.ghnValue || "") : "";
+    }
+
+    function syncDistrict() {
+      const option = districtSelect.selectedOptions[0];
+      districtIdInput.value = option ? (option.dataset.ghnValue || "") : "";
+    }
+
+    function syncWard() {
+      const option = wardSelect.selectedOptions[0];
+      wardCodeInput.value = option ? (option.dataset.ghnValue || "") : "";
+    }
+
+    function loadDistricts(selectedDistrictId) {
+      syncProvince();
+      districtIdInput.value = "";
+      wardCodeInput.value = "";
+      districtSelect.disabled = true;
+      wardSelect.disabled = true;
+      districtSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
+      wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+
+      if (!provinceIdInput.value) {
+        return Promise.resolve();
+      }
+
+      return getData("${pageContext.request.contextPath}/api/ghn/locations?type=district&provinceId=" + encodeURIComponent(provinceIdInput.value))
+        .then(items => {
+          setOptions(districtSelect, "Chọn Quận/Huyện", items, "DistrictID", "DistrictName", selectedDistrictId);
+          districtSelect.disabled = false;
+          syncDistrict();
+        });
+    }
+
+    function loadWards(selectedWardCode) {
+      syncDistrict();
+      wardCodeInput.value = "";
+      wardSelect.disabled = true;
+      wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+
+      if (!districtIdInput.value) {
+        return Promise.resolve();
+      }
+
+      return getData("${pageContext.request.contextPath}/api/ghn/locations?type=ward&districtId=" + encodeURIComponent(districtIdInput.value))
+        .then(items => {
+          setOptions(wardSelect, "Chọn Phường/Xã", items, "WardCode", "WardName", selectedWardCode);
+          wardSelect.disabled = false;
+          syncWard();
+        });
+    }
+
+    getData("${pageContext.request.contextPath}/api/ghn/locations?type=province")
+      .then(items => {
+        setOptions(provinceSelect, "Chọn Tỉnh/Thành phố", items, "ProvinceID", "ProvinceName", currentProvinceId);
+
+        if (!currentProvinceId && currentProvince) {
+          Array.from(provinceSelect.options).forEach(option => {
+            if (option.value === currentProvince) {
+              option.selected = true;
+            }
+          });
+        }
+
+        syncProvince();
+        return loadDistricts(currentDistrictId);
+      })
+      .then(() => {
+        if (!currentDistrictId && currentDistrictText) {
+          Array.from(districtSelect.options).forEach(option => {
+            if (currentDistrictText.includes(option.value)) {
+              option.selected = true;
+            }
+          });
+          syncDistrict();
+        }
+
+        return loadWards(currentWardCode);
+      })
+      .catch(() => {});
+
+    provinceSelect.addEventListener("change", function () {
+      loadDistricts("").catch(() => {});
+    });
+
+    districtSelect.addEventListener("change", function () {
+      loadWards("").catch(() => {});
+    });
+
+    wardSelect.addEventListener("change", syncWard);
   });
 </script>
 

@@ -16,6 +16,8 @@ public class Review {
     private Integer helpfulCount;
     private boolean likedByCurrentUser;
     private List<ReviewReply> replies = new ArrayList<>();
+    private String productName;
+    private String shopReply;
 
     public Integer getReviewId() {
         return reviewId;
@@ -103,5 +105,20 @@ public class Review {
 
     public void setReplies(List<ReviewReply> replies) {
         this.replies = replies;
+    }
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public String getShopReply() {
+        return shopReply;
+    }
+
+    public void setShopReply(String shopReply) {
+        this.shopReply = shopReply;
     }
 }
