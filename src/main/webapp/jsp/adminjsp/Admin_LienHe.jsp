@@ -1,12 +1,13 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <title>Admin - Liên hệ</title>
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/Admin_DanhMuc.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/Admin_LienHe.css">
 </head>
 <body>
 <aside class="sliderbar">
@@ -32,18 +33,51 @@
 </aside>
 <main class="main-content">
     <header class="header">
-        <h2>Liên hệ</h2>
-        <form class="search-customer-box" method="get" action="${pageContext.request.contextPath}/admin/contacts">
-            <i class="bx bx-search"></i>
-            <input type="text" name="keyword" value="${keyword}" placeholder="Tìm tên, email hoặc chủ đề">
-        </form>
+        <h2>Quản lý liên hệ</h2>
         <div class="user-info">
-            <span class="notification-badge"><i class="bx bx-bell"></i></span>
+            <div class="notification-wrapper">
+                <a href="${pageContext.request.contextPath}/admin/notifications" class="notification-btn">
+                    <i class="bx bx-bell"></i>
+                    <c:if test="${notificationCount > 0}">
+                        <span class="notification-count">${notificationCount}</span>
+                    </c:if>
+                </a>
+                <div class="notification-dropdown">
+                    <h4>Thông báo Admin</h4>
+                    <c:choose>
+                        <c:when test="${empty latestNotifications}">
+                            <p class="empty-notification">Không có thông báo mới</p>
+                        </c:when>
+                        <c:otherwise>
+                            <c:forEach items="${latestNotifications}" var="n">
+                                <a href="${pageContext.request.contextPath}${n.url}" class="notification-item">
+                                    <span class="notification-type">${n.type}</span>
+                                    <p>${n.message}</p>
+                                </a>
+                            </c:forEach>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
+            </div>
             <a href="${pageContext.request.contextPath}/admin/setting" class="profile-admin">
-                <span class="admin-avatar">A</span>
-                <div class="user-details">
-                    <span class="user-name">Admin</span>
-                    <span class="user-role">Quản trị viên</span>
+                <span class="admin-avatar">
+                    <c:choose>
+                        <c:when test="${not empty sessionScope.user.userName}">
+                            ${fn:substring(sessionScope.user.userName, 0, 1)}
+                        </c:when>
+                        <c:otherwise>A</c:otherwise>
+                    </c:choose>
+                </span>
+                <div>
+                    <p class="user-name">
+                        <c:choose>
+                            <c:when test="${not empty sessionScope.user.userName}">
+                                ${sessionScope.user.userName}
+                            </c:when>
+                            <c:otherwise>Admin</c:otherwise>
+                        </c:choose>
+                    </p>
+                    <small class="user-role">Quản trị viên</small>
                 </div>
             </a>
         </div>
