@@ -3,7 +3,6 @@ package dao;
 import model.Contact;
 
 import java.util.List;
-import java.sql.Connection;
 
 public class ContactDao extends BaseDao {
 
@@ -36,7 +35,9 @@ public class ContactDao extends BaseDao {
             Phone          AS phone,
             Subject        AS subject,
             Message        AS message,
-            User_Id        AS userId
+            User_Id        AS userId,
+            Create_At      AS createAt,
+            Update_At      AS updateAt
         FROM contact
         ORDER BY Create_At DESC
     """;
@@ -65,16 +66,17 @@ public class ContactDao extends BaseDao {
         );
     }
     public List<Contact> search(String keyword) {
-
         String sql = """
         SELECT
-            Contact_Id    AS contactId,
-            Contact_Name  AS contactName,
-            Contact_Email AS contactEmail,
-            Phone         AS phone,
-            Subject       AS subject,
-            Message       AS message,
-            User_Id       AS userId
+            Contact_Id     AS contactId,
+            Contact_Name   AS contactName,
+            Contact_Email  AS contactEmail,
+            Phone          AS phone,
+            Subject        AS subject,
+            Message        AS message,
+            User_Id        AS userId,
+            Create_At      AS createAt,
+            Update_At      AS updateAt
         FROM contact
         WHERE
             Contact_Name LIKE :kw
@@ -88,6 +90,30 @@ public class ContactDao extends BaseDao {
                         .bind("kw", "%" + keyword + "%")
                         .mapToBean(Contact.class)
                         .list()
+        );
+    }
+    public Contact findById(int contactId) {
+        String sql = """
+        SELECT
+            Contact_Id     AS contactId,
+            Contact_Name   AS contactName,
+            Contact_Email  AS contactEmail,
+            Phone          AS phone,
+            Subject        AS subject,
+            Message        AS message,
+            User_Id        AS userId,
+            Create_At      AS createAt,
+            Update_At      AS updateAt
+        FROM contact
+        WHERE Contact_Id = :contactId
+    """;
+
+        return getJdbi().withHandle(h ->
+                h.createQuery(sql)
+                        .bind("contactId", contactId)
+                        .mapToBean(Contact.class)
+                        .findOne()
+                        .orElse(null)
         );
     }
 
