@@ -701,6 +701,7 @@ public class OrderDao extends BaseDao {
                         .orElse(null)
         );
     }
+
     public int countOrdersByStatus(String status) {
         String sql = """
         SELECT COUNT(*)
@@ -872,6 +873,41 @@ public class OrderDao extends BaseDao {
                         .bind("status", finalStatus)
                         .mapToBean(Order.class)
                         .list()
+        );
+    }
+    public Order getOrderByCodeAndUser(String orderCode, int userId) {
+        String sql = """
+        SELECT
+            Order_Id AS orderId,
+            User_Id AS userId,
+            User_Address_Id AS userAddressId,
+            Payment_Method_Id AS paymentMethodId,
+            Note AS note,
+            Status AS status,
+            Create_At AS createAt,
+            Total_Price AS totalPrice,
+            Payment_Status AS paymentStatus,
+            Payment_Provider AS paymentProvider,
+            Payment_Transaction_No AS paymentTransactionNo,
+            Payment_Response_Code AS paymentResponseCode,
+            Paid_At AS paidAt,
+            Order_Code AS orderCode,
+            ship_name AS shipName,
+            ship_phone AS shipPhone,
+            ship_address AS shipAddress
+        FROM orders
+        WHERE Order_Code = :orderCode
+          AND User_Id = :userId
+        LIMIT 1
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("orderCode", orderCode)
+                        .bind("userId", userId)
+                        .mapToBean(Order.class)
+                        .findOne()
+                        .orElse(null)
         );
     }
 }
