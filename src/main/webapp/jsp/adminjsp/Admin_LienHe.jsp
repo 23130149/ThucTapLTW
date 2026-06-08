@@ -89,39 +89,129 @@
             <span class="summary-detail">Tin nhắn từ khách hàng</span>
         </div>
     </div>
-    <div class="table-container">
+    <section class="table-container">
         <table class="data-table">
             <thead>
             <tr>
+                <th>ID</th>
                 <th>Khách hàng</th>
                 <th>Email</th>
                 <th>Số điện thoại</th>
                 <th>Chủ đề</th>
                 <th>Nội dung</th>
+                <th>Ngày gửi</th>
+                <th>Thao tác</th>
             </tr>
             </thead>
             <tbody>
             <c:choose>
                 <c:when test="${empty contacts}">
                     <tr>
-                        <td colspan="5">Chưa có liên hệ</td>
+                        <td colspan="8" class="empty-row">Chưa có liên hệ</td>
                     </tr>
                 </c:when>
                 <c:otherwise>
-                    <c:forEach var="contact" items="${contacts}">
+                    <c:forEach items="${contacts}" var="contact">
                         <tr>
-                            <td>${contact.contactName}</td>
-                            <td>${contact.contactEmail}</td>
-                            <td>${contact.phone}</td>
-                            <td>${contact.subject}</td>
-                            <td>${contact.message}</td>
+                            <td>
+                                <strong>#${contact.contactId}</strong>
+                            </td>
+
+                            <td>
+                                <c:out value="${contact.contactName}" />
+                            </td>
+
+                            <td>
+                                <c:out value="${contact.contactEmail}" />
+                            </td>
+
+                            <td>
+                                <c:out value="${contact.phone}" />
+                            </td>
+
+                            <td>
+                                <c:out value="${contact.subject}" />
+                            </td>
+
+                            <td class="message-cell">
+                                <c:out value="${contact.message}" />
+                            </td>
+
+                            <td>
+                                    ${contact.createAtFormatted}
+                            </td>
+
+                            <td>
+                                <div class="action-group">
+                                    <a href="${pageContext.request.contextPath}/admin/contacts?detailId=${contact.contactId}"
+                                       class="action-btn view-btn"
+                                       title="Xem chi tiết">
+                                        <i class="bx bx-show-alt"></i>
+                                    </a>
+                                </div>
+                            </td>
                         </tr>
                     </c:forEach>
                 </c:otherwise>
             </c:choose>
             </tbody>
         </table>
-    </div>
+    </section>
+    <c:if test="${not empty selectedContact}">
+        <div class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Chi tiết liên hệ #${selectedContact.contactId}</h3>
+
+                    <a href="${pageContext.request.contextPath}/admin/contacts" class="close-modal">
+                        &times;
+                    </a>
+                </div>
+
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span>Họ tên</span>
+                        <strong>
+                            <c:out value="${selectedContact.contactName}" />
+                        </strong>
+                    </div>
+
+                    <div class="detail-item">
+                        <span>Email</span>
+                        <strong>
+                            <c:out value="${selectedContact.contactEmail}" />
+                        </strong>
+                    </div>
+
+                    <div class="detail-item">
+                        <span>Số điện thoại</span>
+                        <strong>
+                            <c:out value="${selectedContact.phone}" />
+                        </strong>
+                    </div>
+
+                    <div class="detail-item">
+                        <span>Ngày gửi</span>
+                        <strong>${selectedContact.createAtFormatted}</strong>
+                    </div>
+                </div>
+
+                <div class="message-detail-box">
+                    <span>Chủ đề</span>
+                    <p>
+                        <c:out value="${selectedContact.subject}" />
+                    </p>
+                </div>
+
+                <div class="message-detail-box">
+                    <span>Nội dung khách hàng</span>
+                    <p>
+                        <c:out value="${selectedContact.message}" />
+                    </p>
+                </div>
+            </div>
+        </div>
+    </c:if>
 </main>
 </body>
 </html>

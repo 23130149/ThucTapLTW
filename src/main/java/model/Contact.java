@@ -1,4 +1,6 @@
 package model;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Contact {
     private int contactId;
@@ -8,6 +10,8 @@ public class Contact {
     private String subject;
     private String message;
     private Integer userId;
+    private LocalDateTime createAt;
+    private LocalDateTime updateAt;
 
     public int getContactId() {
         return contactId;
@@ -63,6 +67,26 @@ public class Contact {
 
     public void setUserId(Integer userId) {
         this.userId = userId;
+    }
+    public LocalDateTime getCreateAt() {
+        return createAt;
+    }
+
+    public void setCreateAt(LocalDateTime createAt) {
+        this.createAt = createAt;
+    }
+
+    public LocalDateTime getUpdateAt() {
+        return updateAt;
+    }
+
+    public void setUpdateAt(LocalDateTime updateAt) {
+        this.updateAt = updateAt;
+    }
+
+    public String getCreateAtFormatted() {
+        if (createAt == null) return "Chưa cập nhật";
+        return createAt.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
     }
 }
 
