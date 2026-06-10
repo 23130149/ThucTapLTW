@@ -83,10 +83,48 @@
         </div>
     </header>
     <div class="summary-grid">
-        <div class="summary-card">
-            <p>Tổng liên hệ</p>
-            <span class="summary-value">${totalContacts}</span>
-            <span class="summary-detail">Tin nhắn từ khách hàng</span>
+        <div class="summary-card total">
+            <div class="summary-icon">
+                <i class="bx bx-envelope"></i>
+            </div>
+            <div>
+                <p>Tổng liên hệ</p>
+                <span class="summary-value">${totalContacts}</span>
+                <span class="summary-detail growth">Tin nhắn từ khách hàng</span>
+            </div>
+        </div>
+
+        <div class="summary-card new">
+            <div class="summary-icon">
+                <i class="bx bx-time-five"></i>
+            </div>
+            <div>
+                <p>Chưa xử lý</p>
+                <span class="summary-value">${newContacts}</span>
+                <span class="summary-detail">Liên hệ mới</span>
+            </div>
+        </div>
+
+        <div class="summary-card processing">
+            <div class="summary-icon">
+                <i class="bx bx-loader-circle"></i>
+            </div>
+            <div>
+                <p>Đang xử lý</p>
+                <span class="summary-value">${processingContacts}</span>
+                <span class="summary-detail">Đang theo dõi</span>
+            </div>
+        </div>
+
+        <div class="summary-card done">
+            <div class="summary-icon">
+                <i class="bx bx-check-circle"></i>
+            </div>
+            <div>
+                <p>Đã xử lý</p>
+                <span class="summary-value">${doneContacts}</span>
+                <span class="summary-detail growth">Đã hoàn tất</span>
+            </div>
         </div>
     </div>
     <section class="table-container">
@@ -99,6 +137,7 @@
                 <th>Số điện thoại</th>
                 <th>Chủ đề</th>
                 <th>Nội dung</th>
+                <th>Trạng thái</th>
                 <th>Ngày gửi</th>
                 <th>Thao tác</th>
             </tr>
@@ -107,7 +146,7 @@
             <c:choose>
                 <c:when test="${empty contacts}">
                     <tr>
-                        <td colspan="8" class="empty-row">Chưa có liên hệ</td>
+                        <td colspan="9" class="empty-row">Chưa có liên hệ</td>
                     </tr>
                 </c:when>
                 <c:otherwise>
@@ -136,7 +175,11 @@
                             <td class="message-cell">
                                 <c:out value="${contact.message}" />
                             </td>
-
+                            <td>
+                                <span class="status-badge status-${contact.statusClass}">
+                                        ${contact.statusLabel}
+                                </span>
+                            </td>
                             <td>
                                     ${contact.createAtFormatted}
                             </td>
@@ -148,6 +191,16 @@
                                        title="Xem chi tiết">
                                         <i class="bx bx-show-alt"></i>
                                     </a>
+                                    <form method="post" action="${pageContext.request.contextPath}/admin/contacts" class="status-form">
+                                        <input type="hidden" name="action" value="updateStatus">
+                                        <input type="hidden" name="contactId" value="${contact.contactId}">
+
+                                        <select name="status" class="small-status-select" onchange="this.form.submit()">
+                                            <option value="NEW" ${contact.status == 'NEW' ? 'selected' : ''}>Chưa xử lý</option>
+                                            <option value="PROCESSING" ${contact.status == 'PROCESSING' ? 'selected' : ''}>Đang xử lý</option>
+                                            <option value="DONE" ${contact.status == 'DONE' ? 'selected' : ''}>Đã xử lý</option>
+                                        </select>
+                                    </form>
                                 </div>
                             </td>
                         </tr>
@@ -166,6 +219,11 @@
                     <a href="${pageContext.request.contextPath}/admin/contacts" class="close-modal">
                         &times;
                     </a>
+                </div>
+                <div class="detail-status-row">
+                    <span class="status-badge status-${selectedContact.statusClass}">
+                            ${selectedContact.statusLabel}
+                    </span>
                 </div>
 
                 <div class="detail-grid">

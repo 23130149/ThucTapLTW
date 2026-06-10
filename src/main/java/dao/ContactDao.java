@@ -10,9 +10,9 @@ public class ContactDao extends BaseDao {
 
         String sql = """
             INSERT INTO contact
-            (Contact_Name, Contact_Email, Phone, Subject, Message, User_Id, Create_At, Update_At)
+            (Contact_Name, Contact_Email, Phone, Subject, Message, User_Id, Status, Create_At, Update_At)
             VALUES
-            (:name, :email, :phone, :subject, :message, :userId, NOW(), NOW())
+            (:name, :email, :phone, :subject, :message, :userId, 'NEW', NOW(), NOW())
         """;
 
         getJdbi().withHandle(handle ->
@@ -37,7 +37,8 @@ public class ContactDao extends BaseDao {
             Message        AS message,
             User_Id        AS userId,
             Create_At      AS createAt,
-            Update_At      AS updateAt
+            Update_At      AS updateAt,
+            COALESCE(Status, 'NEW') AS status
         FROM contact
         ORDER BY Create_At DESC
     """;
@@ -76,7 +77,8 @@ public class ContactDao extends BaseDao {
             Message        AS message,
             User_Id        AS userId,
             Create_At      AS createAt,
-            Update_At      AS updateAt
+            Update_At      AS updateAt,
+            COALESCE(Status, 'NEW') AS status
         FROM contact
         WHERE
             Contact_Name LIKE :kw
@@ -103,7 +105,8 @@ public class ContactDao extends BaseDao {
             Message        AS message,
             User_Id        AS userId,
             Create_At      AS createAt,
-            Update_At      AS updateAt
+            Update_At      AS updateAt,
+            COALESCE(Status, 'NEW') AS status
         FROM contact
         WHERE Contact_Id = :contactId
     """;
@@ -116,5 +119,34 @@ public class ContactDao extends BaseDao {
                         .orElse(null)
         );
     }
+    public int countByStatus(String status) {
+        String sql = """
+        SELECT COUNT(*)
+        FROM contact
+        WHERE COALESCE(Status, 'NEW') = :status
+    """;
 
+        return getJdbi().withHandle(h ->
+                h.createQuery(sql)
+                        .bind("status", status)
+                        .mapTo(int.class)
+                        .one()
+        );
+    }
+
+    public void updateStatus(int contactId, String status) {
+        String sql = """
+        UPDATE contact
+        SET Status = :status,
+            Update_At = NOW()
+        WHERE Contact_Id = :contactId
+    """;
+
+        getJdbi().withHandle(h ->
+                h.createUpdate(sql)
+                        .bind("status", status)
+                        .bind("contactId", contactId)
+                        .execute()
+        );
+    }
 }
