@@ -149,4 +149,53 @@ public class ContactDao extends BaseDao {
                         .execute()
         );
     }
+    public List<Contact> findContacts(String keyword, String status) {
+        StringBuilder sql = new StringBuilder("""
+        SELECT
+            Contact_Id     AS contactId,
+            Contact_Name   AS contactName,
+            Contact_Email  AS contactEmail,
+            Phone          AS phone,
+            Subject        AS subject,
+            Message        AS message,
+            User_Id        AS userId,
+            Create_At      AS createAt,
+            Update_At      AS updateAt,
+            COALESCE(Status, 'NEW') AS status
+        FROM contact
+        WHERE 1 = 1
+    """);
+
+        if (keyword != null && !keyword.isBlank()) {
+            sql.append("""
+            AND (
+                Contact_Name LIKE :keyword
+                OR Contact_Email LIKE :keyword
+                OR Phone LIKE :keyword
+                OR Subject LIKE :keyword
+                OR Message LIKE :keyword
+            )
+        """);
+        }
+
+        if (status != null && !status.isBlank()) {
+            sql.append(" AND COALESCE(Status, 'NEW') = :status ");
+        }
+
+        sql.append(" ORDER BY Create_At DESC ");
+
+        return getJdbi().withHandle(h -> {
+            var query = h.createQuery(sql.toString());
+
+            if (keyword != null && !keyword.isBlank()) {
+                query.bind("keyword", "%" + keyword.trim() + "%");
+            }
+
+            if (status != null && !status.isBlank()) {
+                query.bind("status", status.trim());
+            }
+
+            return query.mapToBean(Contact.class).list();
+        });
+    }
 }

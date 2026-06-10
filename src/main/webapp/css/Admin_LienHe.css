@@ -564,6 +564,103 @@ a {
     margin-bottom: 16px;
 }
 
+.contact-search-filter-row {
+    background: white;
+    margin-bottom: 18px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.search-contact-box {
+    flex: 1;
+    min-width: 320px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    background: #f7f9fc;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 0 14px;
+    transition: 0.3s;
+}
+
+.search-contact-box:focus-within {
+    border-color: #38ef7d;
+    box-shadow: 0 0 0 3px rgba(17, 153, 142, 0.12);
+}
+
+.search-contact-box i {
+    color: #888;
+    font-size: 18px;
+    margin-right: 8px;
+}
+
+.search-contact-box input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: inherit;
+}
+
+.filter-select {
+    height: 42px;
+    min-width: 160px;
+    padding: 0 12px;
+    border: 1px solid #dfe6e9;
+    border-radius: 10px;
+    background: white;
+    outline: none;
+    font-family: inherit;
+}
+
+.filter-button-icon {
+    height: 42px;
+    padding: 0 16px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    background: white;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.25s;
+    font-family: inherit;
+}
+
+.filter-button-icon:hover {
+    color: #11998e;
+    border-color: #38ef7d;
+    background: #ecfdf5;
+}
+
+.reset-filter-btn {
+    height: 42px;
+    border-radius: 10px;
+    padding: 0 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: 600;
+    background: white;
+    color: #555;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.reset-filter-btn:hover {
+    background: #f7f9fc;
+    color: #333;
+    border-color: #ccc;
+}
+
 @media (max-width: 1200px) {
     .summary-grid {
         grid-template-columns: repeat(2, 1fr);

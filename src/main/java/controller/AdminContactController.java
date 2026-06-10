@@ -17,6 +17,12 @@ public class AdminContactController extends HttpServlet {
         ContactDao ctDao = new ContactDao();
         OrderDao oDao = new OrderDao();
 
+        String keyword = request.getParameter("keyword");
+        String status = request.getParameter("status");
+
+        keyword = keyword == null ? "" : keyword.trim();
+        status = status == null ? "" : status.trim();
+
         String detailIdRaw = request.getParameter("detailId");
         Contact selectedContact = null;
 
@@ -28,7 +34,7 @@ public class AdminContactController extends HttpServlet {
             }
         }
 
-        List<Contact> contacts = ctDao.findAll();
+        List<Contact> contacts = ctDao.findContacts(keyword, status);
 
         request.setAttribute("contacts", contacts);
         request.setAttribute("selectedContact", selectedContact);
@@ -36,6 +42,8 @@ public class AdminContactController extends HttpServlet {
         request.setAttribute("newContacts", ctDao.countByStatus("NEW"));
         request.setAttribute("processingContacts", ctDao.countByStatus("PROCESSING"));
         request.setAttribute("doneContacts", ctDao.countByStatus("DONE"));
+        request.setAttribute("keyword", keyword);
+        request.setAttribute("currentStatus", status);
         request.setAttribute("notificationCount", oDao.countAdminNotifications());
         request.setAttribute("latestNotifications", oDao.getLatestAdminNotifications(5));
 
