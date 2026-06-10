@@ -33,6 +33,9 @@ public class AdminContactController extends HttpServlet {
         request.setAttribute("contacts", contacts);
         request.setAttribute("selectedContact", selectedContact);
         request.setAttribute("totalContacts", ctDao.count());
+        request.setAttribute("newContacts", ctDao.countByStatus("NEW"));
+        request.setAttribute("processingContacts", ctDao.countByStatus("PROCESSING"));
+        request.setAttribute("doneContacts", ctDao.countByStatus("DONE"));
         request.setAttribute("notificationCount", oDao.countAdminNotifications());
         request.setAttribute("latestNotifications", oDao.getLatestAdminNotifications(5));
 
@@ -42,6 +45,29 @@ public class AdminContactController extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+
+        ContactDao contactDao = new ContactDao();
+        String action = request.getParameter("action");
+
+        if ("updateStatus".equals(action)) {
+            try {
+                int contactId = Integer.parseInt(request.getParameter("contactId"));
+                String status = normalizeStatus(request.getParameter("status"));
+                contactDao.updateStatus(contactId, status);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
         response.sendRedirect(request.getContextPath() + "/admin/contacts");
+    }
+    private String normalizeStatus(String status) {
+        if (status == null) return "NEW";
+
+        return switch (status.trim()) {
+            case "PROCESSING" -> "PROCESSING";
+            case "DONE" -> "DONE";
+            default -> "NEW";
+        };
     }
 }

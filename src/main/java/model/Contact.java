@@ -12,6 +12,7 @@ public class Contact {
     private Integer userId;
     private LocalDateTime createAt;
     private LocalDateTime updateAt;
+    private String status;
 
     public int getContactId() {
         return contactId;
@@ -87,6 +88,29 @@ public class Contact {
     public String getCreateAtFormatted() {
         if (createAt == null) return "Chưa cập nhật";
         return createAt.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+    }
+    public String getStatus() {
+        return status == null || status.isBlank() ? "NEW" : status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getStatusLabel() {
+        return switch (getStatus()) {
+            case "PROCESSING" -> "Đang xử lý";
+            case "DONE" -> "Đã xử lý";
+            default -> "Chưa xử lý";
+        };
+    }
+
+    public String getStatusClass() {
+        return switch (getStatus()) {
+            case "PROCESSING" -> "processing";
+            case "DONE" -> "done";
+            default -> "new";
+        };
     }
 }
 
