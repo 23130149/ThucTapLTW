@@ -13,6 +13,8 @@ public class Contact {
     private LocalDateTime createAt;
     private LocalDateTime updateAt;
     private String status;
+    private String reply;
+    private LocalDateTime replyAt;
 
     public int getContactId() {
         return contactId;
@@ -111,6 +113,26 @@ public class Contact {
             case "DONE" -> "done";
             default -> "new";
         };
+    }
+    public String getReply() {
+        return reply;
+    }
+
+    public void setReply(String reply) {
+        this.reply = reply;
+    }
+
+    public LocalDateTime getReplyAt() {
+        return replyAt;
+    }
+
+    public void setReplyAt(LocalDateTime replyAt) {
+        this.replyAt = replyAt;
+    }
+
+    public String getReplyAtFormatted() {
+        if (replyAt == null) return "Chưa phản hồi";
+        return replyAt.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
     }
 }
 

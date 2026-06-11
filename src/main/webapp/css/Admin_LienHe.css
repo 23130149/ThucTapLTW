@@ -661,6 +661,74 @@ a {
     border-color: #ccc;
 }
 
+.reply-detail-box {
+    margin-top: 16px;
+    padding: 16px;
+    border-radius: 16px;
+    background: #ecfdf5;
+    border: 1px solid #bbf7d0;
+}
+
+.reply-detail-box span {
+    display: block;
+    font-size: 13px;
+    color: #11998e;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.reply-detail-box p {
+    color: #2d3436;
+    margin: 0;
+    white-space: pre-wrap;
+}
+
+.reply-form {
+    margin-top: 18px;
+}
+
+.reply-form label {
+    display: block;
+    font-weight: 700;
+    color: #2d3436;
+    margin-bottom: 8px;
+}
+
+.reply-form textarea {
+    width: 100%;
+    border: 1px solid #dfe6e9;
+    border-radius: 14px;
+    padding: 14px;
+    font-family: inherit;
+    outline: none;
+    resize: vertical;
+}
+
+.reply-form textarea:focus {
+    border-color: #38ef7d;
+    box-shadow: 0 0 0 3px rgba(17, 153, 142, 0.12);
+}
+
+.reply-submit-btn {
+    margin-top: 12px;
+    height: 42px;
+    padding: 0 18px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(to right, #11998e, #38ef7d);
+    color: white;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.reply-submit-btn:hover {
+    opacity: 0.9;
+}
+
 @media (max-width: 1200px) {
     .summary-grid {
         grid-template-columns: repeat(2, 1fr);
