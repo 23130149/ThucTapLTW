@@ -256,18 +256,26 @@
                                             <i class="bx bx-show-alt"></i>
                                         </a>
 
-                                        <form method="post"
-                                              action="${pageContext.request.contextPath}/admin/customers"
-                                              class="delete-form"
-                                              onsubmit="return confirm('Bạn có chắc muốn xóa khách hàng này không?');">
+                                        <c:choose>
+                                            <c:when test="${fn:contains(sessionScope.permissionCodesText, ',MANAGE_CUSTOMER,')}">
+                                                <form method="post"
+                                                      action="${pageContext.request.contextPath}/admin/customers"
+                                                      class="delete-form"
+                                                      onsubmit="return confirm('Bạn có chắc muốn xóa khách hàng này không?');">
 
-                                            <input type="hidden" name="action" value="delete">
-                                            <input type="hidden" name="userId" value="${customer.userId}">
+                                                    <input type="hidden" name="action" value="delete">
+                                                    <input type="hidden" name="userId" value="${customer.userId}">
 
-                                            <button type="submit" class="action-btn delete-btn" title="Xóa">
-                                                <i class="bx bx-trash"></i>
-                                            </button>
-                                        </form>
+                                                    <button type="submit" class="action-btn delete-btn" title="Xóa">
+                                                        <i class="bx bx-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </c:when>
+
+                                            <c:otherwise>
+                                                <span class="no-permission-text">Chỉ xem</span>
+                                            </c:otherwise>
+                                        </c:choose>
                                     </div>
                                 </td>
                             </tr>

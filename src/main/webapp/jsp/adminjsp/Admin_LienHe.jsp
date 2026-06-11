@@ -208,26 +208,36 @@
                                            title="Xem chi tiết">
                                             <i class="bx bx-show-alt"></i>
                                         </a>
-                                        <form method="post" action="${pageContext.request.contextPath}/admin/contacts"
-                                              onsubmit="return confirm('Bạn có chắc muốn xóa liên hệ này không?')">
-                                            <input type="hidden" name="action" value="delete">
-                                            <input type="hidden" name="contactId" value="${contact.contactId}">
-                                            <button type="submit" class="action-btn delete-btn" title="Xóa">
-                                                <i class="bx bx-trash"></i>
-                                            </button>
-                                        </form>
-                                        <form method="post" action="${pageContext.request.contextPath}/admin/contacts" class="status-form">
-                                            <input type="hidden" name="action" value="updateStatus">
-                                            <input type="hidden" name="contactId" value="${contact.contactId}">
-                                            <input type="hidden" name="keyword" value="${keyword}">
-                                            <input type="hidden" name="currentStatus" value="${currentStatus}">
 
-                                            <select name="status" class="small-status-select" onchange="this.form.submit()">
-                                                <option value="NEW" ${contact.status == 'NEW' ? 'selected' : ''}>Chưa xử lý</option>
-                                                <option value="PROCESSING" ${contact.status == 'PROCESSING' ? 'selected' : ''}>Đang xử lý</option>
-                                                <option value="DONE" ${contact.status == 'DONE' ? 'selected' : ''}>Đã xử lý</option>
-                                            </select>
-                                        </form>
+                                        <c:choose>
+                                            <c:when test="${fn:contains(sessionScope.permissionCodesText, ',MANAGE_CONTACT,')}">
+                                                <form method="post" action="${pageContext.request.contextPath}/admin/contacts"
+                                                      onsubmit="return confirm('Bạn có chắc muốn xóa liên hệ này không?')">
+                                                    <input type="hidden" name="action" value="delete">
+                                                    <input type="hidden" name="contactId" value="${contact.contactId}">
+                                                    <button type="submit" class="action-btn delete-btn" title="Xóa">
+                                                        <i class="bx bx-trash"></i>
+                                                    </button>
+                                                </form>
+
+                                                <form method="post" action="${pageContext.request.contextPath}/admin/contacts" class="status-form">
+                                                    <input type="hidden" name="action" value="updateStatus">
+                                                    <input type="hidden" name="contactId" value="${contact.contactId}">
+                                                    <input type="hidden" name="keyword" value="${keyword}">
+                                                    <input type="hidden" name="currentStatus" value="${currentStatus}">
+
+                                                    <select name="status" class="small-status-select" onchange="this.form.submit()">
+                                                        <option value="NEW" ${contact.status == 'NEW' ? 'selected' : ''}>Chưa xử lý</option>
+                                                        <option value="PROCESSING" ${contact.status == 'PROCESSING' ? 'selected' : ''}>Đang xử lý</option>
+                                                        <option value="DONE" ${contact.status == 'DONE' ? 'selected' : ''}>Đã xử lý</option>
+                                                    </select>
+                                                </form>
+                                            </c:when>
+
+                                            <c:otherwise>
+                                                <span class="no-permission-text">Chỉ xem</span>
+                                            </c:otherwise>
+                                        </c:choose>
                                     </div>
                                 </td>
                             </tr>
@@ -305,17 +315,25 @@
                         </div>
                     </c:if>
 
-                    <form method="post" action="${pageContext.request.contextPath}/admin/contacts" class="reply-form">
-                        <input type="hidden" name="action" value="reply">
-                        <input type="hidden" name="contactId" value="${selectedContact.contactId}">
+                    <c:choose>
+                        <c:when test="${fn:contains(sessionScope.permissionCodesText, ',MANAGE_CONTACT,')}">
+                            <form method="post" action="${pageContext.request.contextPath}/admin/contacts" class="reply-form">
+                                <input type="hidden" name="action" value="reply">
+                                <input type="hidden" name="contactId" value="${selectedContact.contactId}">
 
-                        <label>Phản hồi khách hàng</label>
-                        <textarea name="reply" rows="5" placeholder="Nhập nội dung phản hồi..."><c:out value="${selectedContact.reply}" /></textarea>
+                                <label>Phản hồi khách hàng</label>
+                                <textarea name="reply" rows="5" placeholder="Nhập nội dung phản hồi..."><c:out value="${selectedContact.reply}" /></textarea>
 
-                        <button type="submit" class="reply-submit-btn">
-                            <i class="bx bx-send"></i>Lưu phản hồi
-                        </button>
-                    </form>
+                                <button type="submit" class="reply-submit-btn">
+                                    <i class="bx bx-send"></i>Lưu phản hồi
+                                </button>
+                            </form>
+                        </c:when>
+
+                    <c:otherwise>
+                        <span class="no-permission-text">Chỉ xem</span>
+                    </c:otherwise>
+                </c:choose>
                 </div>
             </div>
         </c:if>
