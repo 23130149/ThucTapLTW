@@ -5,22 +5,38 @@
 
 body {
     margin: 0;
-    background: #fafafa;
+    background: #f8fafc;
+    color: #172033;
 }
 
-.banking-payment-page {
+.banking-page {
     width: 90%;
     margin: 40px auto;
+}
+
+.banking-container {
+    max-width: 1100px;
+    margin: 0 auto;
 }
 
 .banking-heading {
     margin-bottom: 24px;
 }
 
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #11998e;
+    font-weight: 700;
+    text-decoration: none;
+    margin-bottom: 12px;
+}
+
 .banking-heading h1 {
     margin: 0 0 8px;
-    font-size: 30px;
-    color: #172033;
+    font-size: 32px;
+    font-weight: 800;
 }
 
 .banking-heading p {
@@ -30,55 +46,38 @@ body {
 
 .banking-card {
     display: grid;
-    grid-template-columns: 360px 1fr;
+    grid-template-columns: 380px 1fr;
     gap: 32px;
     background: #ffffff;
     border: 1px solid #d9f3ed;
     border-radius: 22px;
-    padding: 28px;
-    box-shadow: 0 14px 35px rgba(17, 153, 142, 0.10);
-}
-
-.qr-section {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    padding: 30px;
+    box-shadow: 0 16px 34px rgba(17, 153, 142, 0.12);
 }
 
 .qr-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+}
+
+.bank-qr {
     width: 100%;
     max-width: 320px;
     min-height: 320px;
-    border: 1px dashed #11998e;
-    border-radius: 20px;
-    background: #f0fff8;
-    padding: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.qr-box img {
-    width: 100%;
-    height: auto;
-    border-radius: 16px;
+    object-fit: contain;
+    border-radius: 18px;
+    border: 1px solid #e5e7eb;
     background: #ffffff;
+    padding: 14px;
 }
 
-.qr-placeholder {
-    display: none;
-    min-height: 270px;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 12px;
+.qr-note {
+    font-size: 13px;
+    color: #667085;
     text-align: center;
-    color: #11998e;
-    font-weight: 700;
-}
-
-.qr-placeholder i {
-    font-size: 54px;
 }
 
 .banking-info h2 {
@@ -87,69 +86,70 @@ body {
     font-size: 22px;
 }
 
-.info-line {
+.info-row {
     display: flex;
     justify-content: space-between;
-    gap: 20px;
-    padding: 13px 0;
+    gap: 18px;
+    padding: 14px 0;
     border-bottom: 1px solid #eef2f2;
 }
 
-.info-line span {
+.info-row span {
     color: #667085;
 }
 
-.info-line strong {
-    color: #172033;
+.info-row strong {
     text-align: right;
 }
 
-.info-line .amount {
+.amount {
     color: #ff4b2b;
-    font-size: 18px;
+    font-size: 20px;
 }
 
-.bank-note {
+.warning-box {
     margin-top: 20px;
+    display: flex;
+    gap: 10px;
     padding: 14px 16px;
     border-radius: 14px;
     background: #f0fff8;
     color: #11998e;
     font-weight: 600;
-    line-height: 1.6;
 }
 
-.bank-actions {
-    margin-top: 24px;
+.action-row {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
+    margin-top: 24px;
 }
 
-.btn-primary,
-.btn-secondary {
-    padding: 12px 22px;
-    border-radius: 999px;
-    font-weight: 700;
-    text-decoration: none;
+.primary-btn,
+.secondary-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    min-width: 150px;
+    padding: 12px 20px;
+    border-radius: 999px;
+    text-decoration: none;
+    font-weight: 800;
 }
 
-.btn-primary {
+.primary-btn {
     background: #11998e;
     color: #ffffff;
 }
 
-.btn-primary:hover {
+.primary-btn:hover {
     background: linear-gradient(135deg, #11998e, #38ef7d);
 }
 
-.btn-secondary {
-    background: #ffffff;
+.secondary-btn {
     color: #11998e;
     border: 1px solid #11998e;
+    background: #ffffff;
 }
 
 @media (max-width: 900px) {

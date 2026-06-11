@@ -128,7 +128,7 @@ main.about-us-container {
 }
 
 .status-delivered {
-    color: #4caf50;
+    color: #c2410c;
     font-weight: 600;
 }
 
@@ -291,7 +291,6 @@ main.about-us-container {
     margin-top: 4px;
 }
 
-/* Address page only */
 
 .address-box {
     background: #fff;
@@ -504,7 +503,6 @@ main.about-us-container {
     text-decoration: none;
 }
 
-/* Order history */
 
 .order-history-box {
     background: #fff;
@@ -538,12 +536,14 @@ main.about-us-container {
 
 .order-status {
     display: inline-flex;
+    max-width: 360px;
     padding: 6px 12px;
     border-radius: 999px;
     font-size: 13px;
     font-weight: 600;
     background: #eee;
     color: #555;
+    line-height: 1.35;
 }
 
 .order-status.PROCESSING,
@@ -558,9 +558,14 @@ main.about-us-container {
     color: #11998e;
 }
 
+.order-status.DELIVERED {
+    background: #fff7ed;
+    color: #c2410c;
+}
+
 .order-status.COMPLETED {
-    background: #e7f7ff;
-    color: #087ea4;
+    background: #e8fff3;
+    color: #11998e;
 }
 
 .order-status.CANCELLED {
@@ -597,7 +602,6 @@ main.about-us-container {
     color: #fff;
 }
 
-/* Account and profile dashboard */
 
 .account-dashboard,
 .profile-dashboard {
@@ -835,7 +839,6 @@ main.about-us-container {
     font-size: 18px;
 }
 
-/* Pagination */
 
 .pagination {
     display: flex;
@@ -867,7 +870,6 @@ main.about-us-container {
     border-color: #11998e;
 }
 
-/* Responsive */
 
 @media (max-width: 768px) {
     main.about-us-container {
@@ -947,7 +949,6 @@ main.about-us-container {
     }
 }
 
-/* ===== Account improvement patch ===== */
 .admin-switch-card {
     background: linear-gradient(135deg, #f6fffb, #fff7fb);
     border-color: #ffd6e4;
@@ -1176,6 +1177,43 @@ main.about-us-container {
     min-width: 230px;
 }
 
+.order-received-form {
+    margin-top: 8px;
+}
+
+.order-confirm-note {
+    margin: 0 0 14px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: #fff7ed;
+    color: #9a3412;
+    border: 1px solid #fed7aa;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.btn-confirm-received {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    background: linear-gradient(135deg, #11998e, #38ef7d);
+    color: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 18px rgba(17, 153, 142, 0.22);
+}
+
+.btn-confirm-received:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(17, 153, 142, 0.3);
+}
+
 .order-inline-action {
     margin-top: 8px;
 }
@@ -1334,7 +1372,6 @@ main.about-us-container {
 .address-box .form-group-full {
     grid-column: 1 / -1;
 }
-/* ===== Order detail product list ===== */
 
 .order-products-heading {
     display: flex;

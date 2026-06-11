@@ -62,16 +62,19 @@
            data-auto_prompt="false">
       </div>
 
-      <div class="g_id_signin"
-           data-type="standard"
-           data-size="large"
-           data-theme="outline"
-           data-text="signin_with"
-           data-shape="rectangular"
-           data-logo_alignment="left">
+      <div class="google-btn-wrap">
+        <div class="g_id_signin"
+             data-type="standard"
+             data-size="large"
+             data-theme="outline"
+             data-text="signin_with"
+             data-shape="rectangular"
+             data-width="340"
+             data-logo_alignment="left">
+        </div>
       </div>
 
-      <a href="https://www.facebook.com/v18.0/dialog/oauth?client_id=958762956904556&redirect_uri=http://localhost:8080/projectwar/login-facebook&scope=public_profile"
+      <a href="${pageContext.request.contextPath}/login-facebook"
          class="social-btn fb">
         <i class='bx bxl-facebook-circle'></i>
         <span>Đăng nhập bằng Facebook</span>

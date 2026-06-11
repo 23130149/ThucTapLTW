@@ -145,6 +145,16 @@
                             </label>
 
                             <label class="method-option">
+                                <input type="radio" name="paymentMethod" value="BANKING">
+                                <span class="method-icon"><i class='bx bx-building-house'></i></span>
+                                <span>
+                                    <span class="method-title">Chuyển khoản ngân hàng</span>
+                                    <span class="method-desc">Sau khi đặt hàng, hệ thống sẽ hiển thị mã QR ngân hàng để bạn quét thanh toán</span>
+                                </span>
+                                <span class="method-radio"></span>
+                            </label>
+
+                            <label class="method-option">
                                 <input type="radio" name="paymentMethod" value="VNPAY">
                                 <span class="method-icon"><i class='bx bx-qr-scan'></i></span>
                                 <span>
