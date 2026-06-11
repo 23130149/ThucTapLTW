@@ -208,6 +208,14 @@
                                            title="Xem chi tiết">
                                             <i class="bx bx-show-alt"></i>
                                         </a>
+                                        <form method="post" action="${pageContext.request.contextPath}/admin/contacts"
+                                              onsubmit="return confirm('Bạn có chắc muốn xóa liên hệ này không?')">
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="contactId" value="${contact.contactId}">
+                                            <button type="submit" class="action-btn delete-btn" title="Xóa">
+                                                <i class="bx bx-trash"></i>
+                                            </button>
+                                        </form>
                                         <form method="post" action="${pageContext.request.contextPath}/admin/contacts" class="status-form">
                                             <input type="hidden" name="action" value="updateStatus">
                                             <input type="hidden" name="contactId" value="${contact.contactId}">
