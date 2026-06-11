@@ -1,6 +1,7 @@
 package controller;
 
 import dao.FavoriteDao;
+import dao.OrderDao;
 import dao.ProductDao;
 import dao.ReviewDao;
 import jakarta.servlet.*;
@@ -22,6 +23,7 @@ public class ProductDetailController extends HttpServlet {
         ProductDao pDao = new ProductDao();
         FavoriteDao favoriteDao = new FavoriteDao();
         ReviewDao rDao = new ReviewDao();
+        OrderDao orderDao = new OrderDao();
         String idParam = request.getParameter("id");
 
         if (idParam == null) {
@@ -46,17 +48,26 @@ public class ProductDetailController extends HttpServlet {
         List<ProductImage> productImages = pDao.getImagesByProductId(productId);
         List<Product> relatedProducts = pDao.getRelatedProducts(product.getCategoryId(), product.getProductId(), 4);
 
-        List<Review> reviews = rDao.getReviewsByProductId(productId, null, null);
-        double avgRating = rDao.getAverageRating(productId);
-        int reviewCount = rDao.countReviews(productId);
-
         HttpSession session = request.getSession(false);
+        Integer currentUserId = null;
+        boolean isLoggedIn = false;
+        boolean canReview = false;
+
         if (session != null && session.getAttribute("user") != null) {
             User user = (User) session.getAttribute("user");
+            currentUserId = user.getUserId();
+            isLoggedIn = true;
+
             Set<Integer> favoriteIds = favoriteDao.getFavoriteProductIds(user.getUserId());
             product.setFavorite(favoriteIds.contains(product.getProductId()));
             relatedProducts.forEach(p -> p.setFavorite(favoriteIds.contains(p.getProductId())));
+
+            canReview = orderDao.hasUserPurchasedProduct(user.getUserId(), productId);
         }
+
+        List<Review> reviews = rDao.getReviewsByProductId(productId, null, currentUserId);
+        double avgRating = rDao.getAverageRating(productId);
+        int reviewCount = rDao.countReviews(productId);
 
         request.setAttribute("product", product);
         request.setAttribute("productImages", productImages);
@@ -64,6 +75,8 @@ public class ProductDetailController extends HttpServlet {
         request.setAttribute("reviews", reviews);
         request.setAttribute("avgRating", avgRating);
         request.setAttribute("reviewCount", reviewCount);
+        request.setAttribute("isLoggedIn", isLoggedIn);
+        request.setAttribute("canReview", canReview);
         request.getRequestDispatcher("/jsp/productDetail.jsp").forward(request, response);
     }
 

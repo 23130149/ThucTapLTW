@@ -239,8 +239,8 @@ public class OrderDao extends BaseDao {
 
         String sql = """
         SELECT COUNT(*)
-        FROM Orders o
-        JOIN Order_Items oi ON o.Order_Id = oi.Order_Id
+        FROM orders o
+        JOIN order_items oi ON o.Order_Id = oi.Order_Id
         WHERE o.User_Id = :userId
           AND oi.Product_Id = :productId
           AND o.Status IN ('CONFIRMED','SHIPPED','COMPLETED')
