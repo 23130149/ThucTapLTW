@@ -13,7 +13,6 @@ import model.Order;
 import model.User;
 import model.UserAddress;
 import service.GhnService;
-import service.VnpayService;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -27,6 +26,7 @@ import java.util.Set;
 public class Payment extends HttpServlet {
 
     private static final int PAYMENT_METHOD_COD_ID = 1;
+    private static final int PAYMENT_METHOD_BANKING_ID = 2;
     private static final int PAYMENT_METHOD_VNPAY_ID = 3;
 
     private final UserAddressDao addressDao = new UserAddressDao();
@@ -154,6 +154,7 @@ public class Payment extends HttpServlet {
         }
 
         String paymentMethod = normalizePaymentMethod(request.getParameter("paymentMethod"));
+        boolean useBanking = "BANKING".equals(paymentMethod);
         boolean useVnpay = "VNPAY".equals(paymentMethod);
 
         BigDecimal totalPrice = calculateTotalPrice(selectedItems);
@@ -172,9 +173,18 @@ public class Payment extends HttpServlet {
         order.setShipAddress(shipAddress);
         order.setShipName(getTrimmedParameter(request, "receiverName"));
         order.setShipPhone(getTrimmedParameter(request, "receiverPhone"));
-        order.setPaymentMethodId(useVnpay ? PAYMENT_METHOD_VNPAY_ID : PAYMENT_METHOD_COD_ID);
+        if (useVnpay) {
+            order.setPaymentMethodId(PAYMENT_METHOD_VNPAY_ID);
+            order.setPaymentProvider("VNPAY");
+        } else if (useBanking) {
+            order.setPaymentMethodId(PAYMENT_METHOD_BANKING_ID);
+            order.setPaymentProvider(null);
+        } else {
+            order.setPaymentMethodId(PAYMENT_METHOD_COD_ID);
+            order.setPaymentProvider(null);
+        }
+
         order.setPaymentStatus("UNPAID");
-        order.setPaymentProvider(useVnpay ? "VNPAY" : null);
 
         OrderDao orderDao = new OrderDao();
         int orderId = orderDao.insertAndReturnId(order);
@@ -209,6 +219,12 @@ public class Payment extends HttpServlet {
         cartDao.removeProducts(user.getUserId(), paidProductIds);
         session.removeAttribute("checkoutProductIds");
         session.setAttribute("cart", cartDao.getCartByUserId(user.getUserId()));
+
+        if (useBanking) {
+            session.setAttribute("orderSuccess", "Đơn hàng đã được tạo. Vui lòng quét mã QR để chuyển khoản.");
+            response.sendRedirect(request.getContextPath() + "/banking-payment?orderCode=" + order.getOrderCode());
+            return;
+        }
 
         session.setAttribute("orderSuccess", "Đặt hàng thành công!");
 
@@ -291,6 +307,10 @@ public class Payment extends HttpServlet {
         }
 
         String value = paymentMethod.trim().toUpperCase();
+        if ("BANKING".equals(value) || "BANK_TRANSFER".equals(value)) {
+            return "BANKING";
+        }
+
         if ("VNPAY".equals(value)) {
             return "VNPAY";
         }

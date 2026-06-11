@@ -24,7 +24,7 @@ public class BankingPaymentController extends HttpServlet {
         HttpSession session = request.getSession(false);
 
         if (session == null || session.getAttribute("user") == null) {
-            response.sendRedirect(request.getContextPath() + "/SignIn?redirect=banking-payment");
+            response.sendRedirect(request.getContextPath() + "/SignIn?redirect=payment");
             return;
         }
 

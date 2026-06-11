@@ -252,8 +252,8 @@ public class OrderDao extends BaseDao {
 
         String sql = """
         SELECT COUNT(*)
-        FROM Orders o
-        JOIN Order_Items oi ON o.Order_Id = oi.Order_Id
+        FROM orders o
+        JOIN order_items oi ON o.Order_Id = oi.Order_Id
         WHERE o.User_Id = :userId
           AND oi.Product_Id = :productId
           AND o.Status IN ('CONFIRMED','SHIPPED','DELIVERED','COMPLETED')
@@ -935,6 +935,44 @@ public class OrderDao extends BaseDao {
                         .orElse(null)
         );
     }
+
+
+    public Order getOrderByCodeAndUser(String orderCode, int userId) {
+        String sql = """
+        SELECT
+            Order_Id AS orderId,
+            User_Id AS userId,
+            User_Address_Id AS userAddressId,
+            Payment_Method_Id AS paymentMethodId,
+            Ship_Address AS shipAddress,
+            ship_name AS shipName,
+            ship_phone AS shipPhone,
+            Note AS note,
+            Status AS status,
+            Create_At AS createAt,
+            Total_Price AS totalPrice,
+            Payment_Status AS paymentStatus,
+            Payment_Provider AS paymentProvider,
+            Payment_Transaction_No AS paymentTransactionNo,
+            Payment_Response_Code AS paymentResponseCode,
+            Paid_At AS paidAt,
+            Order_Code AS orderCode
+        FROM orders
+        WHERE Order_Code = :orderCode
+          AND User_Id = :userId
+        LIMIT 1
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("orderCode", orderCode)
+                        .bind("userId", userId)
+                        .mapToBean(Order.class)
+                        .findOne()
+                        .orElse(null)
+        );
+    }
+
     public List<Order> getAdminOrders(String keyword, String status) {
         if (keyword == null) {
             keyword = "";
