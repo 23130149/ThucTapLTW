@@ -120,7 +120,6 @@
             </form>
         </c:if>
 
-        <!-- ================= STEP 2: NHẬP OTP + XÁC NHẬN ================= -->
         <c:if test="${step == 'OTP_SENT'}">
             <form action="${pageContext.request.contextPath}/ChangePassword"
                   method="post">

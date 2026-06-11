@@ -10,6 +10,8 @@ import jakarta.servlet.http.*;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -32,19 +34,28 @@ public class FacebookAuth extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String code = request.getParameter("code");
-
-        if (code == null) {
+        String error = request.getParameter("error");
+        if (error != null) {
+            HttpSession session = request.getSession();
+            session.setAttribute("loginMessage", "Không thể đăng nhập Facebook. Vui lòng thử tài khoản khác hoặc liên hệ quản trị viên.");
             response.sendRedirect(request.getContextPath() + "/SignIn");
             return;
         }
 
+        String code = request.getParameter("code");
+
+        if (code == null) {
+            response.sendRedirect(buildLoginUrl(request));
+            return;
+        }
+
         try {
+            String redirectUri = buildRedirectUri(request);
             String tokenUrl = "https://graph.facebook.com/v18.0/oauth/access_token"
                     + "?client_id=" + APP_ID
-                    + "&redirect_uri=" + REDIRECT_URI
+                    + "&redirect_uri=" + encode(redirectUri)
                     + "&client_secret=" + APP_SECRET
-                    + "&code=" + code;
+                    + "&code=" + encode(code);
 
             String tokenResponse = getResponse(tokenUrl);
             JsonObject tokenJson = JsonParser.parseString(tokenResponse).getAsJsonObject();
@@ -68,7 +79,9 @@ public class FacebookAuth extends HttpServlet {
             }
 
             if (email == null) {
-                response.getWriter().println("Facebook account does not provide email!");
+                HttpSession session = request.getSession();
+                session.setAttribute("loginMessage", "Tài khoản Facebook không cung cấp email.");
+                response.sendRedirect(request.getContextPath() + "/SignIn");
                 return;
             }
 
@@ -90,8 +103,31 @@ public class FacebookAuth extends HttpServlet {
 
         } catch (Exception e) {
             e.printStackTrace();
-            response.getWriter().println("Login Facebook failed!");
+            HttpSession session = request.getSession();
+            session.setAttribute("loginMessage", "Đăng nhập Facebook không thành công. Vui lòng thử lại.");
+            response.sendRedirect(request.getContextPath() + "/SignIn");
         }
+    }
+
+    private String buildLoginUrl(HttpServletRequest request) {
+        String redirectUri = buildRedirectUri(request);
+        return "https://www.facebook.com/v18.0/dialog/oauth"
+                + "?client_id=" + APP_ID
+                + "&redirect_uri=" + encode(redirectUri)
+                + "&scope=public_profile,email"
+                + "&auth_type=reauthenticate";
+    }
+
+    private String buildRedirectUri(HttpServletRequest request) {
+        return request.getScheme() + "://"
+                + request.getServerName()
+                + ":" + request.getServerPort()
+                + request.getContextPath()
+                + "/login-facebook";
+    }
+
+    private String encode(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 
     private String getResponse(String urlStr) throws IOException {

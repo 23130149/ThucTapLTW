@@ -46,7 +46,7 @@
       </a>
       <a class="tab-btn ${activeStatus == 'completed' ? 'active' : ''}"
          href="${pageContext.request.contextPath}/OrderHistory?status=completed">
-        Đã giao <span>${statusCounts.completed}</span>
+        Hoàn thành <span>${statusCounts.completed}</span>
       </a>
       <a class="tab-btn ${activeStatus == 'cancelled' ? 'active' : ''}"
          href="${pageContext.request.contextPath}/OrderHistory?status=cancelled">
@@ -88,8 +88,7 @@
               <td>${util:formatMoney(order.totalPrice)}</td>
               <td>
                 <span class="order-status ${order.status}">
-                  ${util:orderStatusIcon(order.status)}
-                  ${util:orderStatusLabel(order.status)}
+                  ${order.statusLabel}
                 </span>
               </td>
               <td class="order-actions-cell">
@@ -97,6 +96,18 @@
                    href="${pageContext.request.contextPath}/OrderDetail?orderId=${order.orderId}">
                   Xem chi tiết
                 </a>
+
+                <c:if test="${order.status == 'DELIVERED' && order.ghnDelivered}">
+                  <form action="${pageContext.request.contextPath}/OrderHistory" method="post" class="order-received-form">
+                    <input type="hidden" name="orderId" value="${order.orderId}">
+                    <input type="hidden" name="action" value="confirmReceived">
+                    <button type="submit" class="btn-confirm-received"
+                            onclick="return confirm('Xác nhận bạn đã nhận được đơn hàng này?')">
+                      <i class='bx bx-check'></i>
+                      Tôi đã nhận hàng
+                    </button>
+                  </form>
+                </c:if>
 
                 <c:if test="${order.cancellable}">
                   <details class="order-inline-action">

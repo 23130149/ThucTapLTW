@@ -459,8 +459,8 @@ a {
 }
 
 .status {
-    min-width: 112px;
-    padding: 6px 12px;
+    min-width: 128px;
+    padding: 7px 13px;
     border-radius: 999px;
     font-size: 12px;
     font-weight: 700;
@@ -491,6 +491,11 @@ a {
 .status-shipping {
     background: #eff6ff;
     color: #2563eb;
+}
+
+.status-delivered {
+    background: #fff7ed;
+    color: #c2410c;
 }
 
 .status-completed {
@@ -542,28 +547,39 @@ a {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-wrap: wrap;
 }
 
-.action-link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.action-icon {
-    width: 34px;
-    height: 34px;
+.action-link,
+.action-btn {
+    min-height: 34px;
     border-radius: 8px;
-    color: #475569;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
+    gap: 6px;
+    padding: 0 11px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
     transition: 0.25s;
 }
 
-.action-icon:hover {
+.action-link {
+    color: #475569;
+    background: #f8fafc;
+    border: 1px solid #d8e0ea;
+}
+
+.action-link i,
+.action-btn i {
+    font-size: 17px;
+}
+
+.action-link:hover {
     background: #ecfdf5;
+    border-color: #16a085;
     color: #16a085;
 }
 
@@ -573,16 +589,8 @@ a {
 }
 
 .action-btn {
-    width: 34px;
-    height: 34px;
     border: none;
-    border-radius: 8px;
     cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    transition: 0.25s;
 }
 
 .confirm-btn {
@@ -612,6 +620,16 @@ a {
 
 .complete-btn:hover {
     background: #0f766e;
+    color: white;
+}
+
+.paid-btn {
+    background: #fef3c7;
+    color: #a16207;
+}
+
+.paid-btn:hover {
+    background: #ca8a04;
     color: white;
 }
 
@@ -745,6 +763,35 @@ a {
     right: 25px;
     bottom: 25px;
     z-index: 10000;
+}
+
+.admin-order-message {
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    border: 1px solid #a7f3d0;
+    border-radius: 8px;
+    background: #ecfdf5;
+    color: #047857;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.ghn-code,
+.ghn-status {
+    display: block;
+    margin-top: 6px;
+}
+
+.ghn-code {
+    color: #0f766e;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.ghn-status {
+    color: #53657d;
+    font-size: 12px;
+    line-height: 1.35;
 }
 
 @media (max-width: 1100px) {

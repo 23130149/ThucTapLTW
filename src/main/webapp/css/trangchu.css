@@ -439,7 +439,6 @@
     }
 }
 
-/* Search suggestions - keep this here because trangchu.css is loaded after header_footer.css */
 .search-form.search-suggest-ready {
     position: relative;
     overflow: visible !important;
