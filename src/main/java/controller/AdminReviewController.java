@@ -29,9 +29,17 @@ public class AdminReviewController extends HttpServlet {
         List<Review> reviews = rDao.getAdminReviews(keyword, rating, status);
         Map<Integer, Integer> ratingCounts = rDao.countAllReviewsByRating();
 
+        for (int i = 1; i <= 5; i++) {
+            ratingCounts.putIfAbsent(i, 0);
+        }
+
         int totalReviews = rDao.countAllReviews();
         int pendingCount = rDao.countReviewsByStatus("PENDING");
         int fiveStarCount = ratingCounts.getOrDefault(5, 0);
+        int fourStarCount = ratingCounts.getOrDefault(4, 0);
+        int threeStarCount = ratingCounts.getOrDefault(3, 0);
+        int twoStarCount = ratingCounts.getOrDefault(2, 0);
+        int oneStarCount = ratingCounts.getOrDefault(1, 0);
         int fiveStarRate = totalReviews == 0 ? 0 : (int) Math.round(fiveStarCount * 100.0 / totalReviews);
 
         request.setAttribute("notificationCount", oDao.countAdminNotifications());
@@ -44,6 +52,11 @@ public class AdminReviewController extends HttpServlet {
         request.setAttribute("totalReviews", totalReviews);
         request.setAttribute("averageRating", rDao.getAverageRatingAll());
         request.setAttribute("pendingCount", pendingCount);
+        request.setAttribute("fiveStarCount", fiveStarCount);
+        request.setAttribute("fourStarCount", fourStarCount);
+        request.setAttribute("threeStarCount", threeStarCount);
+        request.setAttribute("twoStarCount", twoStarCount);
+        request.setAttribute("oneStarCount", oneStarCount);
         request.setAttribute("fiveStarRate", fiveStarRate);
         request.setAttribute("ratingCounts", ratingCounts);
 
