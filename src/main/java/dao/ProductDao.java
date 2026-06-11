@@ -31,7 +31,7 @@ public class ProductDao extends BaseDao {
                 SELECT oi.product_id, SUM(oi.quantity) AS sold
                 FROM order_items oi
                 JOIN orders o ON oi.order_id = o.order_id
-                WHERE o.status IN ('CONFIRMED', 'PROCESSING', 'SHIPPED', 'COMPLETED')
+                WHERE o.status IN ('CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'COMPLETED')
                 GROUP BY oi.product_id
             ) s ON s.product_id = p.product_id
             WHERE 1=1
@@ -74,7 +74,7 @@ public class ProductDao extends BaseDao {
         FROM products p
         JOIN order_items oi ON p.Product_Id = oi.Product_Id
         JOIN orders o ON oi.Order_Id = o.Order_Id
-        WHERE o.Status IN ('COMPLETED', 'SHIPPED')
+        WHERE o.Status IN ('COMPLETED', 'DELIVERED', 'SHIPPED')
         GROUP BY 
             p.Product_Id,
             p.Product_Name,

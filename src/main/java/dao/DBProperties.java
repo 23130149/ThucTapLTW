@@ -1,14 +1,20 @@
 package dao;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 public class DBProperties {
     private static Properties prop = new Properties();
 
     static {
-        try {
-            prop.load(DBProperties.class.getClassLoader().getResourceAsStream("db.properties"));
+        try (InputStream input = DBProperties.class.getClassLoader().getResourceAsStream("db.properties")) {
+            if (input == null) {
+                throw new RuntimeException("db.properties not found");
+            }
+            prop.load(new InputStreamReader(input, StandardCharsets.UTF_8));
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException(e);

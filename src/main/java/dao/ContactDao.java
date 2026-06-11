@@ -3,7 +3,6 @@ package dao;
 import model.Contact;
 
 import java.util.List;
-import java.sql.Connection;
 
 public class ContactDao extends BaseDao {
 
