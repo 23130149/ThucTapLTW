@@ -38,7 +38,9 @@ public class ContactDao extends BaseDao {
             User_Id        AS userId,
             Create_At      AS createAt,
             Update_At      AS updateAt,
-            COALESCE(Status, 'NEW') AS status
+            COALESCE(Status, 'NEW') AS status,
+            Reply AS reply,
+            Reply_At AS replyAt
         FROM contact
         ORDER BY Create_At DESC
     """;
@@ -78,7 +80,9 @@ public class ContactDao extends BaseDao {
             User_Id        AS userId,
             Create_At      AS createAt,
             Update_At      AS updateAt,
-            COALESCE(Status, 'NEW') AS status
+            COALESCE(Status, 'NEW') AS status,
+            Reply AS reply,
+            Reply_At AS replyAt
         FROM contact
         WHERE
             Contact_Name LIKE :kw
@@ -106,7 +110,9 @@ public class ContactDao extends BaseDao {
             User_Id        AS userId,
             Create_At      AS createAt,
             Update_At      AS updateAt,
-            COALESCE(Status, 'NEW') AS status
+            COALESCE(Status, 'NEW') AS status,
+            Reply AS reply,
+            Reply_At AS replyAt
         FROM contact
         WHERE Contact_Id = :contactId
     """;
@@ -161,7 +167,9 @@ public class ContactDao extends BaseDao {
             User_Id        AS userId,
             Create_At      AS createAt,
             Update_At      AS updateAt,
-            COALESCE(Status, 'NEW') AS status
+            COALESCE(Status, 'NEW') AS status,
+            Reply AS reply,
+            Reply_At AS replyAt
         FROM contact
         WHERE 1 = 1
     """);
@@ -197,5 +205,22 @@ public class ContactDao extends BaseDao {
 
             return query.mapToBean(Contact.class).list();
         });
+    }
+    public void replyContact(int contactId, String reply) {
+        String sql = """
+        UPDATE contact
+        SET Reply = :reply,
+            Reply_At = NOW(),
+            Status = 'DONE',
+            Update_At = NOW()
+        WHERE Contact_Id = :contactId
+    """;
+
+        getJdbi().withHandle(h ->
+                h.createUpdate(sql)
+                        .bind("reply", reply)
+                        .bind("contactId", contactId)
+                        .execute()
+        );
     }
 }

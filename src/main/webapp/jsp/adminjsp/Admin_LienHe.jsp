@@ -1,6 +1,6 @@
-    <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-    <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-    <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
     <!DOCTYPE html>
     <html lang="vi">
     <head>
@@ -239,10 +239,11 @@
                             &times;
                         </a>
                     </div>
+
                     <div class="detail-status-row">
-                        <span class="status-badge status-${selectedContact.statusClass}">
-                                ${selectedContact.statusLabel}
-                        </span>
+                <span class="status-badge status-${selectedContact.statusClass}">
+                        ${selectedContact.statusLabel}
+                </span>
                     </div>
 
                     <div class="detail-grid">
@@ -286,6 +287,27 @@
                             <c:out value="${selectedContact.message}" />
                         </p>
                     </div>
+
+                    <c:if test="${not empty selectedContact.reply}">
+                        <div class="reply-detail-box">
+                            <span>Phản hồi của shop - ${selectedContact.replyAtFormatted}</span>
+                            <p>
+                                <c:out value="${selectedContact.reply}" />
+                            </p>
+                        </div>
+                    </c:if>
+
+                    <form method="post" action="${pageContext.request.contextPath}/admin/contacts" class="reply-form">
+                        <input type="hidden" name="action" value="reply">
+                        <input type="hidden" name="contactId" value="${selectedContact.contactId}">
+
+                        <label>Phản hồi khách hàng</label>
+                        <textarea name="reply" rows="5" placeholder="Nhập nội dung phản hồi..."><c:out value="${selectedContact.reply}" /></textarea>
+
+                        <button type="submit" class="reply-submit-btn">
+                            <i class="bx bx-send"></i>Lưu phản hồi
+                        </button>
+                    </form>
                 </div>
             </div>
         </c:if>
