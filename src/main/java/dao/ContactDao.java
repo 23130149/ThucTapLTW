@@ -3,7 +3,6 @@ package dao;
 import model.Contact;
 
 import java.util.List;
-import java.sql.Connection;
 
 public class ContactDao extends BaseDao {
 
@@ -11,9 +10,9 @@ public class ContactDao extends BaseDao {
 
         String sql = """
             INSERT INTO contact
-            (Contact_Name, Contact_Email, Phone, Subject, Message, User_Id, Create_At, Update_At)
+            (Contact_Name, Contact_Email, Phone, Subject, Message, User_Id, Status, Create_At, Update_At)
             VALUES
-            (:name, :email, :phone, :subject, :message, :userId, NOW(), NOW())
+            (:name, :email, :phone, :subject, :message, :userId, 'NEW', NOW(), NOW())
         """;
 
         getJdbi().withHandle(handle ->
@@ -36,7 +35,12 @@ public class ContactDao extends BaseDao {
             Phone          AS phone,
             Subject        AS subject,
             Message        AS message,
-            User_Id        AS userId
+            User_Id        AS userId,
+            Create_At      AS createAt,
+            Update_At      AS updateAt,
+            COALESCE(Status, 'NEW') AS status,
+            Reply AS reply,
+            Reply_At AS replyAt
         FROM contact
         ORDER BY Create_At DESC
     """;
@@ -65,16 +69,20 @@ public class ContactDao extends BaseDao {
         );
     }
     public List<Contact> search(String keyword) {
-
         String sql = """
         SELECT
-            Contact_Id    AS contactId,
-            Contact_Name  AS contactName,
-            Contact_Email AS contactEmail,
-            Phone         AS phone,
-            Subject       AS subject,
-            Message       AS message,
-            User_Id       AS userId
+            Contact_Id     AS contactId,
+            Contact_Name   AS contactName,
+            Contact_Email  AS contactEmail,
+            Phone          AS phone,
+            Subject        AS subject,
+            Message        AS message,
+            User_Id        AS userId,
+            Create_At      AS createAt,
+            Update_At      AS updateAt,
+            COALESCE(Status, 'NEW') AS status,
+            Reply AS reply,
+            Reply_At AS replyAt
         FROM contact
         WHERE
             Contact_Name LIKE :kw
@@ -90,5 +98,129 @@ public class ContactDao extends BaseDao {
                         .list()
         );
     }
+    public Contact findById(int contactId) {
+        String sql = """
+        SELECT
+            Contact_Id     AS contactId,
+            Contact_Name   AS contactName,
+            Contact_Email  AS contactEmail,
+            Phone          AS phone,
+            Subject        AS subject,
+            Message        AS message,
+            User_Id        AS userId,
+            Create_At      AS createAt,
+            Update_At      AS updateAt,
+            COALESCE(Status, 'NEW') AS status,
+            Reply AS reply,
+            Reply_At AS replyAt
+        FROM contact
+        WHERE Contact_Id = :contactId
+    """;
 
+        return getJdbi().withHandle(h ->
+                h.createQuery(sql)
+                        .bind("contactId", contactId)
+                        .mapToBean(Contact.class)
+                        .findOne()
+                        .orElse(null)
+        );
+    }
+    public int countByStatus(String status) {
+        String sql = """
+        SELECT COUNT(*)
+        FROM contact
+        WHERE COALESCE(Status, 'NEW') = :status
+    """;
+
+        return getJdbi().withHandle(h ->
+                h.createQuery(sql)
+                        .bind("status", status)
+                        .mapTo(int.class)
+                        .one()
+        );
+    }
+
+    public void updateStatus(int contactId, String status) {
+        String sql = """
+        UPDATE contact
+        SET Status = :status,
+            Update_At = NOW()
+        WHERE Contact_Id = :contactId
+    """;
+
+        getJdbi().withHandle(h ->
+                h.createUpdate(sql)
+                        .bind("status", status)
+                        .bind("contactId", contactId)
+                        .execute()
+        );
+    }
+    public List<Contact> findContacts(String keyword, String status) {
+        StringBuilder sql = new StringBuilder("""
+        SELECT
+            Contact_Id     AS contactId,
+            Contact_Name   AS contactName,
+            Contact_Email  AS contactEmail,
+            Phone          AS phone,
+            Subject        AS subject,
+            Message        AS message,
+            User_Id        AS userId,
+            Create_At      AS createAt,
+            Update_At      AS updateAt,
+            COALESCE(Status, 'NEW') AS status,
+            Reply AS reply,
+            Reply_At AS replyAt
+        FROM contact
+        WHERE 1 = 1
+    """);
+
+        if (keyword != null && !keyword.isBlank()) {
+            sql.append("""
+            AND (
+                Contact_Name LIKE :keyword
+                OR Contact_Email LIKE :keyword
+                OR Phone LIKE :keyword
+                OR Subject LIKE :keyword
+                OR Message LIKE :keyword
+            )
+        """);
+        }
+
+        if (status != null && !status.isBlank()) {
+            sql.append(" AND COALESCE(Status, 'NEW') = :status ");
+        }
+
+        sql.append(" ORDER BY Create_At DESC ");
+
+        return getJdbi().withHandle(h -> {
+            var query = h.createQuery(sql.toString());
+
+            if (keyword != null && !keyword.isBlank()) {
+                query.bind("keyword", "%" + keyword.trim() + "%");
+            }
+
+            if (status != null && !status.isBlank()) {
+                query.bind("status", status.trim());
+            }
+
+            return query.mapToBean(Contact.class).list();
+        });
+    }
+    public void replyContact(int contactId, String reply) {
+        String sql = """
+        UPDATE contact
+        SET Reply = :reply,
+            Reply_At = NOW(),
+            Status = 'DONE',
+            Update_At = NOW()
+        WHERE Contact_Id = :contactId
+    """;
+
+        getJdbi().withHandle(h ->
+                h.createUpdate(sql)
+                        .bind("reply", reply)
+                        .bind("contactId", contactId)
+                        .execute()
+        );
+    }
 }
