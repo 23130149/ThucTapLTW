@@ -84,6 +84,10 @@
       </a>
     </div>
   </header>
+  <c:if test="${not empty sessionScope.adminOrderMessage}">
+    <div class="admin-order-message">${sessionScope.adminOrderMessage}</div>
+    <c:remove var="adminOrderMessage" scope="session"/>
+  </c:if>
   <div class="order-status-tabs">
     <a class="tab-btn ${empty currentStatus ? 'active' : ''}"
        href="${pageContext.request.contextPath}/admin/orders?keyword=${keyword}">
@@ -125,6 +129,12 @@
        href="${pageContext.request.contextPath}/admin/orders?status=SHIPPED&keyword=${keyword}">
       <i class="bx bx-package"></i>
       Đang giao <span class="count">${shippedCount}</span>
+    </a>
+
+    <a class="tab-btn ${currentStatus == 'DELIVERED' ? 'active' : ''}"
+       href="${pageContext.request.contextPath}/admin/orders?status=DELIVERED&keyword=${keyword}">
+      <i class="bx bx-check-shield"></i>
+      Chờ xác nhận <span class="count">${deliveredCount}</span>
     </a>
 
     <a class="tab-btn ${currentStatus == 'COMPLETED' ? 'active' : ''}"
@@ -232,6 +242,11 @@
                 <c:set var="statusText" value="Đang giao"/>
               </c:when>
 
+              <c:when test="${order.status == 'DELIVERED'}">
+                <c:set var="statusClass" value="status-delivered"/>
+                <c:set var="statusText" value="GHN đã giao"/>
+              </c:when>
+
               <c:when test="${order.status == 'COMPLETED'}">
                 <c:set var="statusClass" value="status-completed"/>
                 <c:set var="statusText" value="Hoàn thành"/>
@@ -292,7 +307,7 @@
               <td>
                 <c:choose>
                   <c:when test="${order.paymentStatus == 'PAID'}">
-                    <span class="payment payment-paid">Đã thanh toán</span>
+                    <span class="payment payment-paid">Đã thu tiền</span>
                   </c:when>
 
                   <c:when test="${order.paymentStatus == 'FAILED'}">
@@ -300,13 +315,20 @@
                   </c:when>
 
                   <c:otherwise>
-                    <span class="payment payment-unpaid">Chưa thanh toán</span>
+                    <span class="payment payment-unpaid">Chưa thu tiền</span>
                   </c:otherwise>
                 </c:choose>
               </td>
 
               <td>
+                <c:if test="${order.status == 'CONFIRMED' && not empty order.ghnOrderCode}">
+                  <c:set var="statusText" value="Đang chuẩn bị hàng"/>
+                </c:if>
                 <span class="status ${statusClass}">${statusText}</span>
+                <c:if test="${not empty order.ghnOrderCode}">
+                  <strong class="ghn-code">${order.ghnOrderCode}</strong>
+                  <small class="ghn-status">${order.ghnStatusLabel}</small>
+                </c:if>
               </td>
 
               <td>
@@ -314,7 +336,8 @@
                   <a href="${pageContext.request.contextPath}/admin/orders?detailId=${order.orderId}&status=${currentStatus}&keyword=${keyword}"
                      class="action-link"
                      title="Xem chi tiết">
-                    <i class="bx bx-show-alt action-icon"></i>
+                    <i class="bx bx-show-alt"></i>
+                    <span>Xem</span>
                   </a>
 
                   <c:if test="${order.status == 'PENDING'}">
@@ -327,6 +350,7 @@
 
                       <button type="submit" class="action-btn confirm-btn" title="Chuyển sang đang xử lý">
                         <i class="bx bx-check"></i>
+                        <span>Xử lý</span>
                       </button>
                     </form>
                   </c:if>
@@ -341,38 +365,52 @@
 
                       <button type="submit" class="action-btn confirm-btn" title="Xác nhận đơn hàng">
                         <i class="bx bx-check-circle"></i>
+                        <span>Xác nhận</span>
                       </button>
                     </form>
                   </c:if>
 
-                  <c:if test="${order.status == 'CONFIRMED'}">
+                  <c:if test="${order.status == 'CONFIRMED' && empty order.ghnOrderCode}">
                     <form method="post"
                           action="${pageContext.request.contextPath}/admin/orders"
                           class="inline-form">
-                      <input type="hidden" name="action" value="updateStatus">
+                      <input type="hidden" name="action" value="createGhn">
                       <input type="hidden" name="orderId" value="${order.orderId}">
-                      <input type="hidden" name="status" value="SHIPPED">
 
-                      <button type="submit" class="action-btn ship-btn" title="Chuyển sang đang giao">
+                      <button type="submit" class="action-btn ship-btn" title="Tạo vận đơn GHN">
                         <i class="bx bx-package"></i>
+                        <span>Tạo GHN</span>
                       </button>
                     </form>
                   </c:if>
 
-                  <c:if test="${order.status == 'SHIPPED'}">
+                  <c:if test="${not empty order.ghnOrderCode && order.status == 'CONFIRMED'}">
                     <form method="post"
                           action="${pageContext.request.contextPath}/admin/orders"
                           class="inline-form">
-                      <input type="hidden" name="action" value="updateStatus">
+                      <input type="hidden" name="action" value="syncGhn">
                       <input type="hidden" name="orderId" value="${order.orderId}">
-                      <input type="hidden" name="status" value="COMPLETED">
 
-                      <button type="submit" class="action-btn complete-btn" title="Hoàn thành đơn hàng">
-                        <i class="bx bx-check-double"></i>
+                      <button type="submit" class="action-btn ship-btn" title="Giao hàng cho GHN">
+                        <i class="bx bx-send"></i>
+                        <span>Giao GHN</span>
                       </button>
                     </form>
                   </c:if>
 
+                  <c:if test="${not empty order.ghnOrderCode && order.status == 'SHIPPED'}">
+                    <form method="post"
+                          action="${pageContext.request.contextPath}/admin/orders"
+                          class="inline-form">
+                      <input type="hidden" name="action" value="syncGhn">
+                      <input type="hidden" name="orderId" value="${order.orderId}">
+
+                      <button type="submit" class="action-btn complete-btn" title="Cập nhật trạng thái vận chuyển">
+                        <i class="bx bx-refresh"></i>
+                        <span>Cập nhật</span>
+                      </button>
+                    </form>
+                  </c:if>
                   <c:if test="${order.status == 'RETURN_REQUESTED'}">
                     <form method="post"
                           action="${pageContext.request.contextPath}/admin/orders"
@@ -383,6 +421,7 @@
 
                       <button type="submit" class="action-btn complete-btn" title="Xác nhận đã trả hàng">
                         <i class="bx bx-check-double"></i>
+                        <span>Đã trả</span>
                       </button>
                     </form>
 
@@ -395,6 +434,21 @@
 
                       <button type="submit" class="action-btn reject-btn" title="Từ chối trả hàng">
                         <i class="bx bx-x"></i>
+                        <span>Từ chối</span>
+                      </button>
+                    </form>
+                  </c:if>
+
+                  <c:if test="${order.paymentMethodId == 1 && order.paymentStatus != 'PAID' && (order.status == 'DELIVERED' || order.status == 'COMPLETED')}">
+                    <form method="post"
+                          action="${pageContext.request.contextPath}/admin/orders"
+                          class="inline-form">
+                      <input type="hidden" name="action" value="markCashPaid">
+                      <input type="hidden" name="orderId" value="${order.orderId}">
+
+                      <button type="submit" class="action-btn paid-btn" title="Xác nhận đã thu tiền mặt">
+                        <i class="bx bx-money"></i>
+                        <span>Đã thu tiền</span>
                       </button>
                     </form>
                   </c:if>
@@ -470,6 +524,16 @@
           <p><strong>Tổng tiền:</strong> ${selectedOrder.totalPriceFormatted}</p>
 
           <p>
+            <strong>Mã vận đơn GHN:</strong>
+            <c:choose>
+              <c:when test="${not empty selectedOrder.ghnOrderCode}">${selectedOrder.ghnOrderCode}</c:when>
+              <c:otherwise>Chưa tạo vận đơn</c:otherwise>
+            </c:choose>
+          </p>
+
+          <p><strong>Trạng thái GHN:</strong> ${selectedOrder.ghnStatusLabel}</p>
+
+          <p>
             <strong>Ghi chú:</strong>
             <c:choose>
               <c:when test="${not empty selectedOrder.note}">
@@ -483,7 +547,7 @@
             <strong>Thanh toán:</strong>
             <c:choose>
               <c:when test="${selectedOrder.paymentStatus == 'PAID'}">
-                Đã thanh toán
+                Đã thu tiền
               </c:when>
 
               <c:when test="${selectedOrder.paymentStatus == 'FAILED'}">
@@ -491,7 +555,7 @@
               </c:when>
 
               <c:otherwise>
-                Chưa thanh toán
+                Chưa thu tiền
               </c:otherwise>
             </c:choose>
           </p>

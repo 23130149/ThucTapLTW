@@ -255,6 +255,7 @@
                                     ${o.status == 'PENDING' ? 'status-pending' :
                                       o.status == 'COMPLETED' ? 'status-completed' :
                                       o.status == 'SHIPPED' ? 'status-shipping' :
+                                      o.status == 'DELIVERED' ? 'status-delivered' :
                                       o.status == 'CONFIRMED' ? 'status-confirmed' : ''}">
                                         ${o.status}
                                 </span>

@@ -33,8 +33,7 @@
         <div>
             <span>Trạng thái</span>
             <strong class="order-status ${order.status}">
-                ${util:orderStatusIcon(order.status)}
-                ${util:orderStatusLabel(order.status)}
+                ${order.statusLabel}
             </strong>
         </div>
         <div>
@@ -58,6 +57,19 @@
             <tr>
                 <th>Ngày giao</th>
                 <td>${order.deliveredAtFormatted}</td>
+            </tr>
+            <tr>
+                <th>Mã vận đơn GHN</th>
+                <td>
+                    <c:choose>
+                        <c:when test="${empty order.ghnOrderCode}">Chưa tạo vận đơn</c:when>
+                        <c:otherwise>${order.ghnOrderCode}</c:otherwise>
+                    </c:choose>
+                </td>
+            </tr>
+            <tr>
+                <th>Trạng thái GHN</th>
+                <td>${order.ghnStatusLabel}</td>
             </tr>
             <tr>
                 <th>Địa chỉ nhận hàng</th>
@@ -139,9 +151,24 @@
     </table>
 </div>
 
-    <c:if test="${order.cancellable || order.returnable}">
+    <c:if test="${order.cancellable || order.returnable || (order.status == 'DELIVERED' && order.ghnDelivered)}">
         <div class="recent-orders-box order-detail-box order-action-panel">
             <h2>Thao tác đơn hàng</h2>
+
+            <c:if test="${order.status == 'DELIVERED' && order.ghnDelivered}">
+                <p class="order-confirm-note">
+                    Đơn hàng đã được giao. Nếu sau 5 ngày bạn chưa xác nhận, shop sẽ tự xác nhận đơn hàng đã hoàn tất.
+                </p>
+                <form action="${pageContext.request.contextPath}/OrderHistory" method="post" class="order-action-form">
+                    <input type="hidden" name="orderId" value="${order.orderId}">
+                    <input type="hidden" name="action" value="confirmReceived">
+                    <button type="submit" class="btn-account-primary"
+                            onclick="return confirm('Xác nhận bạn đã nhận được đơn hàng này?')">
+                        <i class='bx bx-check'></i>
+                        Tôi đã nhận hàng
+                    </button>
+                </form>
+            </c:if>
 
             <c:if test="${order.cancellable}">
                 <form action="${pageContext.request.contextPath}/OrderHistory" method="post" class="order-action-form">

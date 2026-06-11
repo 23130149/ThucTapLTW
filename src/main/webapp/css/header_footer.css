@@ -62,7 +62,6 @@
     }
 }
 
-/* Search suggestions */
 .search-form.search-suggest-ready {
     position: relative;
     overflow: visible !important;
@@ -176,7 +175,6 @@
     font-size: 14px;
 }
 
-/* ===== Unified toast colors ===== */
 .hh-toast-success,
 .hh-toast-cart {
     background: linear-gradient(135deg,#11998e,#38ef7d);
@@ -190,7 +188,6 @@
     background: linear-gradient(135deg,#ff4b2b,#ff416c);
 }
 
-/* ===== Footer hardening for pages that used old footer markup ===== */
 .hh-footer {
     clear: both;
     width: 100%;

@@ -579,6 +579,11 @@ a {
     color: #2196f3;
 }
 
+.status-delivered {
+    background: #ecfdf5;
+    color: #047857;
+}
+
 .status-confirmed {
     background: #eef2ff;
     color: #4f46e5;

@@ -154,8 +154,7 @@
               <td>${util:formatMoney(order.totalPrice)}</td>
               <td>
                 <span class="order-status ${order.status}">
-                  ${util:orderStatusIcon(order.status)}
-                  ${util:orderStatusLabel(order.status)}
+                  ${order.statusLabel}
                 </span>
               </td>
               <td>

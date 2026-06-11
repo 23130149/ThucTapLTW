@@ -108,6 +108,11 @@ public class OrderHistoryController extends HttpServlet {
             session.setAttribute("orderMessage", success
                     ? "Đã gửi yêu cầu trả hàng. Cửa hàng sẽ kiểm tra và phản hồi sớm."
                     : "Không thể gửi yêu cầu trả hàng. Chỉ đơn đã hoàn thành mới được trả hàng và cần có lý do.");
+        } else if ("confirmReceived".equals(action)) {
+            success = orderDao.confirmReceivedByUser(orderId, user.getUserId());
+            session.setAttribute("orderMessage", success
+                    ? "Đã xác nhận nhận hàng. Đơn hàng đã hoàn thành."
+                    : "Chưa thể xác nhận nhận hàng vì GHN chưa báo đã giao.");
         }
 
         String redirect = request.getHeader("Referer");
@@ -139,7 +144,7 @@ public class OrderHistoryController extends HttpServlet {
     private List<String> toStatuses(String activeStatus) {
         return switch (activeStatus) {
             case "processing" -> Arrays.asList("PENDING", "PROCESSING", "CONFIRMED");
-            case "shipping" -> Collections.singletonList("SHIPPED");
+            case "shipping" -> Arrays.asList("SHIPPED", "DELIVERED");
             case "completed" -> Collections.singletonList("COMPLETED");
             case "cancelled" -> Collections.singletonList("CANCELLED");
             case "returned" -> Arrays.asList("RETURN_REQUESTED", "RETURNED", "RETURN_REJECTED");
