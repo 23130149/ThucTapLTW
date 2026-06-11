@@ -145,19 +145,36 @@
         <div class="rating-breakdown-card">
             <h3>Biểu đồ số sao</h3>
 
-            <c:forEach var="row" begin="1" end="5">
-                <c:set var="star" value="${6 - row}"/>
-                <c:set var="count" value="${ratingCounts[star]}"/>
+            <c:forEach var="star" begin="1" end="5">
+                <c:set var="realStar" value="${6 - star}"/>
+
+                <c:choose>
+                    <c:when test="${realStar == 5}">
+                        <c:set var="count" value="${fiveStarCount}"/>
+                    </c:when>
+                    <c:when test="${realStar == 4}">
+                        <c:set var="count" value="${fourStarCount}"/>
+                    </c:when>
+                    <c:when test="${realStar == 3}">
+                        <c:set var="count" value="${threeStarCount}"/>
+                    </c:when>
+                    <c:when test="${realStar == 2}">
+                        <c:set var="count" value="${twoStarCount}"/>
+                    </c:when>
+                    <c:otherwise>
+                        <c:set var="count" value="${oneStarCount}"/>
+                    </c:otherwise>
+                </c:choose>
+
+                <c:set var="percent" value="${totalReviews == 0 ? 0 : count * 100 / totalReviews}"/>
 
                 <div class="rating-bar-item">
-                <span class="rating-star-label">
-                    ${star}<i class="bx bxs-star"></i>
-                </span>
+                    <span class="rating-star-label">
+                        ${realStar}<i class="bx bxs-star"></i>
+                    </span>
 
                     <div class="progress-bar-container">
-                        <div class="progress-bar"
-                             style="width: ${totalReviews == 0 ? 0 : count * 100 / totalReviews}%">
-                        </div>
+                        <div class="progress-bar" style="width: ${percent}%"></div>
                     </div>
 
                     <span class="rating-count">${count} đánh giá</span>
@@ -272,25 +289,33 @@
                                     </span>
                                 </div>
 
-                                <form method="post"
-                                      action="${pageContext.request.contextPath}/admin/reviews"
-                                      class="reply-inline-form">
+                                <c:choose>
+                                    <c:when test="${fn:contains(sessionScope.permissionCodesText, ',MANAGE_REVIEW,')}">
+                                        <form method="post"
+                                              action="${pageContext.request.contextPath}/admin/reviews"
+                                              class="reply-inline-form">
 
-                                    <input type="hidden" name="action" value="reply">
-                                    <input type="hidden" name="reviewId" value="${review.reviewId}">
-                                    <input type="hidden" name="keyword" value="${fn:escapeXml(keyword)}">
-                                    <input type="hidden" name="rating" value="${currentRating}">
-                                    <input type="hidden" name="status" value="${currentStatus}">
+                                            <input type="hidden" name="action" value="reply">
+                                            <input type="hidden" name="reviewId" value="${review.reviewId}">
+                                            <input type="hidden" name="keyword" value="${fn:escapeXml(keyword)}">
+                                            <input type="hidden" name="rating" value="${currentRating}">
+                                            <input type="hidden" name="status" value="${currentStatus}">
 
-                                    <textarea name="replyText"
-                                              placeholder="Nhập phản hồi cho khách hàng..."
-                                              required><c:out value="${review.shopReply}"/></textarea>
+                                            <textarea name="replyText"
+                                                      placeholder="Nhập phản hồi cho khách hàng..."
+                                                      required><c:out value="${review.shopReply}"/></textarea>
 
-                                    <button type="submit" class="reply-btn">
-                                        <i class="bx bx-send"></i>
-                                        Lưu phản hồi
-                                    </button>
-                                </form>
+                                            <button type="submit" class="reply-btn">
+                                                <i class="bx bx-send"></i>
+                                                Lưu phản hồi
+                                            </button>
+                                        </form>
+                                    </c:when>
+
+                                    <c:otherwise>
+                                        <span class="no-permission-text">Chỉ xem</span>
+                                    </c:otherwise>
+                                </c:choose>
                             </div>
                         </div>
                     </c:forEach>
