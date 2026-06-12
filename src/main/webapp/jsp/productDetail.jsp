@@ -7,6 +7,7 @@
 <html lang="en">
 <head>
   <link rel="stylesheet"
+        href="${pageContext.request.contextPath}/css/chitietsp.css?v=10">
         href="${pageContext.request.contextPath}/css/chitietsp.css?v=11">
   <meta charset="UTF-8">
   <title>${product.productName}</title>

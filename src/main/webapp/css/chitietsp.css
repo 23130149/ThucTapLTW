@@ -940,6 +940,30 @@ input {
     transition: 0.2s ease;
 }
 
+}
+
+.review-list .review-label {
+    display: block;
+    margin: 16px 0 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.review-list .star-rating {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.review-list .star-rating i {
+    font-size: 30px;
+    color: #d0d5dd;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
 .review-list .star-rating i:hover,
 .review-list .star-rating i.active,
 .review-list .star-rating i.bxs-star {

@@ -83,6 +83,21 @@ public class AdminReviewController extends HttpServlet {
             } else {
                 request.getSession().setAttribute("reviewError", "Vui lòng nhập nội dung phản hồi");
             }
+        } else if ("approve".equals(action) || "hide".equals(action)) {
+            int reviewId = parseInt(request.getParameter("reviewId"), 0);
+            String newStatus = "approve".equals(action) ? "APPROVED" : "HIDDEN";
+
+            if (reviewId > 0) {
+                rDao.updateReviewStatus(reviewId, newStatus);
+                request.getSession().setAttribute(
+                        "reviewMessage",
+                        "APPROVED".equals(newStatus)
+                                ? "Đã duyệt đánh giá và hiển thị trên trang sản phẩm"
+                                : "Đã ẩn đánh giá khỏi trang sản phẩm"
+                );
+            } else {
+                request.getSession().setAttribute("reviewError", "Không tìm thấy đánh giá cần xử lý");
+            }
         }
 
         response.sendRedirect(buildReviewRedirect(request));
