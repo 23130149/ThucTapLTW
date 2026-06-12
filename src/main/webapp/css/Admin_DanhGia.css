@@ -813,6 +813,72 @@ a {
     line-height: 1.5;
 }
 
+.review-action-row {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.review-status-form {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: inline-flex;
+}
+
+.review-action-btn {
+    min-height: 36px;
+    border: none !important;
+    outline: none !important;
+    border-radius: 999px !important;
+    padding: 9px 16px !important;
+    font-family: inherit;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    cursor: pointer;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    line-height: 1;
+    text-decoration: none;
+    transition: 0.25s ease;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.10);
+}
+
+.review-action-btn i {
+    font-size: 17px;
+    line-height: 1;
+}
+
+.review-action-btn:hover {
+    transform: translateY(-2px);
+}
+
+.approve-btn {
+    color: #ffffff !important;
+    background: linear-gradient(135deg, #11998e, #38ef7d) !important;
+}
+
+.approve-btn:hover {
+    box-shadow: 0 12px 24px rgba(17, 153, 142, 0.28);
+}
+
+.hide-btn {
+    color: #b42318 !important;
+    background: #fff1f0 !important;
+    border: 1px solid #ffd1cc !important;
+}
+
+.hide-btn:hover {
+    color: #ffffff !important;
+    background: linear-gradient(135deg, #ff6b6b, #ff8a65) !important;
+    border-color: transparent !important;
+    box-shadow: 0 12px 24px rgba(255, 107, 107, 0.24);
+}
+
+
 .reply-inline-form {
     margin-top: 14px;
     display: flex;

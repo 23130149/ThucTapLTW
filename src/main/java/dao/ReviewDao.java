@@ -409,6 +409,29 @@ public class ReviewDao extends BaseDao {
         return result;
     }
 
+    public void updateReviewStatus(int reviewId, String status) {
+        String normalizedStatus = status == null ? "" : status.trim().toUpperCase();
+
+        if (!"PENDING".equals(normalizedStatus)
+                && !"APPROVED".equals(normalizedStatus)
+                && !"HIDDEN".equals(normalizedStatus)) {
+            return;
+        }
+
+        String sql = """
+                UPDATE reviews
+                SET Status = :status
+                WHERE Review_Id = :reviewId
+                """;
+
+        getJdbi().useHandle(handle ->
+                handle.createUpdate(sql)
+                        .bind("reviewId", reviewId)
+                        .bind("status", normalizedStatus)
+                        .execute()
+        );
+    }
+
     public void updateShopReply(int reviewId, String replyText) {
         String sql = """
                 UPDATE reviews
