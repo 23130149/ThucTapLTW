@@ -274,3 +274,19 @@ tbody tr:hover {
 .delete {
     color: white;
 }
+.admin-alert {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.admin-alert.error {
+    background: #fff1f1;
+    color: #b42318;
+    border: 1px solid #fecdca;
+}

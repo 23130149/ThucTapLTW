@@ -38,7 +38,7 @@
     <h2>Quản lý đơn hàng</h2>
     <div class="user-info">
       <div class="notification-wrapper">
-        <a href="${pageContext.request.contextPath}/admin/notifications" class="notification-btn">
+        <a href="javascript:void(0)" class="notification-btn">
           <i class="bx bx-bell"></i>
           <c:if test="${notificationCount > 0}">
             <span class="notification-count">${notificationCount}</span>
@@ -46,10 +46,12 @@
         </a>
         <div class="notification-dropdown">
           <h4>Thông báo Admin</h4>
+
           <c:choose>
             <c:when test="${empty latestNotifications}">
               <p class="empty-notification">Không có thông báo mới</p>
             </c:when>
+
             <c:otherwise>
               <c:forEach items="${latestNotifications}" var="n">
                 <a href="${pageContext.request.contextPath}${n.url}" class="notification-item">
@@ -84,6 +86,15 @@
       </a>
     </div>
   </header>
+    <c:choose>
+        <c:when test="${accessDenied}">
+            <div class="admin-alert error">
+                <i class="bx bx-error-circle"></i>
+                    ${accessDeniedMessage}
+            </div>
+        </c:when>
+
+        <c:otherwise>
   <c:if test="${not empty sessionScope.adminOrderMessage}">
     <div class="admin-order-message">${sessionScope.adminOrderMessage}</div>
     <c:remove var="adminOrderMessage" scope="session"/>
@@ -472,8 +483,10 @@
       </tbody>
     </table>
   </div>
+</c:otherwise>
+</c:choose>
 </main>
-
+<c:if test="${not accessDenied}">
 <c:if test="${not empty selectedOrder}">
   <div id="orderDetailModal" class="modal" style="display: flex;">
     <div class="modal-content">
@@ -617,6 +630,39 @@
 </c:if>
 
 <div id="toast-container"></div>
+</c:if>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const wrappers = document.querySelectorAll(".notification-wrapper");
 
+    wrappers.forEach(function (wrapper) {
+      const button = wrapper.querySelector(".notification-btn");
+      const dropdown = wrapper.querySelector(".notification-dropdown");
+
+      button.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        wrappers.forEach(function (item) {
+          if (item !== wrapper) {
+            item.classList.remove("active");
+          }
+        });
+
+        wrapper.classList.toggle("active");
+      });
+
+      dropdown.addEventListener("click", function (event) {
+        event.stopPropagation();
+      });
+    });
+
+    document.addEventListener("click", function () {
+      wrappers.forEach(function (wrapper) {
+        wrapper.classList.remove("active");
+      });
+    });
+  });
+</script>
 </body>
 </html>

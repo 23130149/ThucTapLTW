@@ -43,7 +43,7 @@ public class AdminReviewController extends HttpServlet {
         int fiveStarRate = totalReviews == 0 ? 0 : (int) Math.round(fiveStarCount * 100.0 / totalReviews);
 
         request.setAttribute("notificationCount", oDao.countAdminNotifications());
-        request.setAttribute("latestNotifications", oDao.getLatestAdminNotifications(5));
+        request.setAttribute("latestNotifications", oDao.getLatestAdminNotifications(20));
 
         request.setAttribute("reviews", reviews);
         request.setAttribute("keyword", keyword);

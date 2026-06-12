@@ -68,7 +68,7 @@ public class AdminProductController extends HttpServlet {
         request.setAttribute("editProduct", editProduct);
 
         request.setAttribute("notificationCount", oDao.countAdminNotifications());
-        request.setAttribute("latestNotifications", oDao.getLatestAdminNotifications(5));
+        request.setAttribute("latestNotifications", oDao.getLatestAdminNotifications(20));
 
         request.getRequestDispatcher("/jsp/adminjsp/Admin_SanPham.jsp").forward(request, response);
     }

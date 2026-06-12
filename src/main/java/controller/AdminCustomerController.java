@@ -67,7 +67,7 @@ public class AdminCustomerController extends HttpServlet {
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("notificationCount", oDao.countAdminNotifications());
-        request.setAttribute("latestNotifications", latestNotifications);
+        request.setAttribute("latestNotifications", oDao.getLatestAdminNotifications(20));
 
         request.getRequestDispatcher("/jsp/adminjsp/Admin_KhachHang.jsp").forward(request, response);
     }

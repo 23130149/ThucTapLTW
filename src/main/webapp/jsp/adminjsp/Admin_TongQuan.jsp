@@ -38,13 +38,9 @@
 <main class="main-content">
     <header class="header">
         <h2>Tổng quan</h2>
-        <div class="search-box">
-            <input type="text" placeholder="Tìm kiếm...">
-            <button><i class="bx bx-search"></i></button>
-        </div>
         <div class="user-info">
             <div class="notification-wrapper">
-                <a href="${pageContext.request.contextPath}/admin/notifications" class="notification-btn">
+                <a href="javascript:void(0)" class="notification-btn">
                     <i class="bx bx-bell"></i>
                     <c:if test="${notificationCount > 0}">
                         <span class="notification-count">${notificationCount}</span>
@@ -52,10 +48,12 @@
                 </a>
                 <div class="notification-dropdown">
                     <h4>Thông báo Admin</h4>
+
                     <c:choose>
                         <c:when test="${empty latestNotifications}">
                             <p class="empty-notification">Không có thông báo mới</p>
                         </c:when>
+
                         <c:otherwise>
                             <c:forEach items="${latestNotifications}" var="n">
                                 <a href="${pageContext.request.contextPath}${n.url}" class="notification-item">
@@ -280,9 +278,41 @@
     </div>
 </main>
 <script>
-    function changeRange(range) {
+        function changeRange(range) {
         window.location.href = '${pageContext.request.contextPath}/admin/dashboard?range=' + range;
     }
+
+        document.addEventListener("DOMContentLoaded", function () {
+        const wrappers = document.querySelectorAll(".notification-wrapper");
+
+        wrappers.forEach(function (wrapper) {
+        const button = wrapper.querySelector(".notification-btn");
+        const dropdown = wrapper.querySelector(".notification-dropdown");
+
+        button.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        wrappers.forEach(function (item) {
+        if (item !== wrapper) {
+        item.classList.remove("active");
+    }
+    });
+
+        wrapper.classList.toggle("active");
+    });
+
+        dropdown.addEventListener("click", function (event) {
+        event.stopPropagation();
+    });
+    });
+
+        document.addEventListener("click", function () {
+        wrappers.forEach(function (wrapper) {
+        wrapper.classList.remove("active");
+    });
+    });
+    });
 </script>
 </body>
 </html>
