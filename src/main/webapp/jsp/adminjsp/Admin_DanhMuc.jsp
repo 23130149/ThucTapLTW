@@ -107,9 +107,12 @@
             <i class="bx bx-search"></i>
             <input type="text" name="keyword" value="${keyword}" placeholder="Tìm kiếm danh mục...">
         </form>
-        <button type="button" class="add-category-btn" onclick="openAddCategoryModal()">
-            <i class="bx bx-plus"></i>Thêm danh mục
-        </button>
+        <c:if test="${fn:contains(sessionScope.permissionCodesText, ',MANAGE_CATEGORY,')}">
+            <button type="button" class="btn-add" onclick="openAddCategoryModal()">
+                <i class="bx bx-plus"></i>
+                Thêm danh mục
+            </button>
+        </c:if>
     </div>
 
     <div class="order-table-container">
@@ -136,17 +139,26 @@
                             <td>${category.name}</td>
                             <td>${category.productCount}</td>
                             <td>
-                                <button type="button"
-                                        class="action-btn edit-category-btn"
-                                        data-id="${category.categoryId}"
-                                        data-name="${category.name}"
-                                        data-image="${category.imageUrl}">
-                                    <i class="bx bx-edit action-icon"></i>
-                                </button>
-                                <a href="${pageContext.request.contextPath}/admin/category?action=delete&id=${category.categoryId}"
-                                   onclick="return confirm('Bạn có chắc muốn xóa danh mục này không?')">
-                                    <i class="bx bx-trash action-icon"></i>
-                                </a>
+                                <c:choose>
+                                    <c:when test="${fn:contains(sessionScope.permissionCodesText, ',MANAGE_CATEGORY,')}">
+                                        <button type="button"
+                                                class="action-btn edit-category-btn"
+                                                data-id="${category.categoryId}"
+                                                data-name="${category.name}"
+                                                data-image="${category.imageUrl}">
+                                            <i class="bx bx-edit action-icon"></i>
+                                        </button>
+
+                                        <a href="${pageContext.request.contextPath}/admin/category?action=delete&id=${category.categoryId}"
+                                           onclick="return confirm('Bạn có chắc muốn xóa danh mục này không?')">
+                                            <i class="bx bx-trash action-icon"></i>
+                                        </a>
+                                    </c:when>
+
+                                    <c:otherwise>
+                                        <span class="no-permission-text">Chỉ xem</span>
+                                    </c:otherwise>
+                                </c:choose>
                             </td>
                         </tr>
                     </c:forEach>

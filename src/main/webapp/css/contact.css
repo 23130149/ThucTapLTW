@@ -137,6 +137,11 @@
     resize: vertical;
 }
 
+.captcha-field {
+    display: grid;
+    gap: 8px;
+}
+
 .contact-form input:focus,
 .contact-form textarea:focus {
     border-color: #11998e;

@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -7,7 +8,7 @@
   <title>Đăng nhập</title>
 
   <link rel="stylesheet"
-        href="${pageContext.request.contextPath}/css/dangnhap.css">
+        href="${pageContext.request.contextPath}/css/dangnhap.css?v=11">
 
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 
@@ -16,33 +17,40 @@
 
 <body>
 <div class="wrapper">
-
-  <% if (session.getAttribute("loginMessage") != null) { %>
-  <p class="error-message">
-    <%= session.getAttribute("loginMessage") %>
-  </p>
-  <% session.removeAttribute("loginMessage"); %>
-  <% } %>
-
-  <% if (request.getAttribute("error") != null) { %>
-  <p class="error-message">
-    <%= request.getAttribute("error") %>
-  </p>
-  <% } %>
-
-  <form action="${pageContext.request.contextPath}/SignIn" method="post">
+  <form class="login-form" action="${pageContext.request.contextPath}/SignIn" method="post">
 
     <h1>Đăng Nhập</h1>
 
+    <% if (session.getAttribute("loginMessage") != null) { %>
+    <div class="login-alert" role="alert">
+      <i class='bx bx-info-circle'></i>
+      <span><%= session.getAttribute("loginMessage") %></span>
+    </div>
+    <% session.removeAttribute("loginMessage"); %>
+    <% } %>
+
+    <% if (request.getAttribute("error") != null) { %>
+    <div class="login-alert" role="alert">
+      <i class='bx bx-shield-quarter'></i>
+      <span><%= request.getAttribute("error") %></span>
+    </div>
+    <% } %>
+
     <div class="input-box">
-      <input type="text" placeholder="Email" name="email" required>
+      <input type="text" placeholder="Email" name="email" value="${param.email}" required>
       <i class='bx bx-user'></i>
     </div>
 
     <div class="input-box">
-      <input type="password" placeholder="Mật Khẩu" name="pass" required>
+      <input type="password" placeholder="Mật khẩu" name="pass" required>
       <i class='bx bx-lock'></i>
     </div>
+
+    <c:if test="${recaptchaConfigured}">
+      <div class="${recaptchaVisible ? 'captcha-box' : 'captcha-box captcha-box-hidden'}">
+        <div class="g-recaptcha" data-sitekey="${recaptchaSiteKey}"></div>
+      </div>
+    </c:if>
 
     <div class="remember-forgot">
       <label>
@@ -91,5 +99,23 @@
 
   </form>
 </div>
+<c:if test="${recaptchaConfigured}">
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  <script>
+    const loginForm = document.querySelector('.login-form');
+    const captchaBox = document.querySelector('.captcha-box');
+
+    loginForm?.addEventListener('submit', function (event) {
+      const captchaResponse = document.querySelector('[name="g-recaptcha-response"]');
+      const hasCaptchaToken = captchaResponse && captchaResponse.value.trim();
+
+      if (!hasCaptchaToken && captchaBox?.classList.contains('captcha-box-hidden')) {
+        event.preventDefault();
+        captchaBox.classList.remove('captcha-box-hidden');
+        captchaBox.scrollIntoView({block: 'center', behavior: 'smooth'});
+      }
+    });
+  </script>
+</c:if>
 </body>
 </html>

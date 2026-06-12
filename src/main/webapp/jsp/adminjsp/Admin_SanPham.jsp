@@ -152,7 +152,12 @@
                 Trên 500k
             </option>
         </select>
-        <button type="button" class="view-all-btn" id="openModalBtn"><i class="bx bx-plus"></i>Thêm sản phẩm</button>
+        <c:if test="${fn:contains(sessionScope.permissionCodesText, ',MANAGE_PRODUCT,')}">
+            <button type="button" class="view-all-btn" id="openModalBtn">
+                <i class="bx bx-plus"></i>
+                Thêm sản phẩm
+            </button>
+        </c:if>
     </form>
     <div class="order-table-container">
         <table class="data-table">
@@ -208,24 +213,35 @@
                 </c:choose>
                 </td>
                 <td>
-                    <button class="action-icon" type="button"
-                            data-id="${p.productId}"
-                            data-name="${p.productName}"
-                            data-price="${p.productPrice}"
-                            data-stock="${p.stockQuantity}"
-                            data-category="${p.categoryId}"
-                            data-description="${p.productDescription}"
-                            data-image="${p.imageUrl}"
-                            onclick="openEditModal(this)"> <i class="bx bx-pencil"></i>
-                    </button>
-                    <form action="${pageContext.request.contextPath}/admin/products"
-                          method="post" style="display:inline">
-                        <input type="hidden" name="action" value="delete">
-                        <input type="hidden" name="productId" value="${p.productId}">
-                        <button type="submit" class="action-icon" onclick="return confirm('Xoá sản phẩm này?')">
-                            <i class="bx bx-trash"></i>
-                        </button>
-                    </form>
+                    <c:choose>
+                        <c:when test="${fn:contains(sessionScope.permissionCodesText, ',MANAGE_PRODUCT,')}">
+                            <button class="action-icon" type="button"
+                                    data-id="${p.productId}"
+                                    data-name="${p.productName}"
+                                    data-price="${p.productPrice}"
+                                    data-stock="${p.stockQuantity}"
+                                    data-category="${p.categoryId}"
+                                    data-description="${p.productDescription}"
+                                    data-image="${p.imageUrl}"
+                                    onclick="openEditModal(this)">
+                                <i class="bx bx-pencil"></i>
+                            </button>
+
+                            <form action="${pageContext.request.contextPath}/admin/products"
+                                  method="post" style="display:inline">
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="productId" value="${p.productId}">
+                                <button type="submit" class="action-icon"
+                                        onclick="return confirm('Xoá sản phẩm này?')">
+                                    <i class="bx bx-trash"></i>
+                                </button>
+                            </form>
+                        </c:when>
+
+                        <c:otherwise>
+                            <span class="no-permission-text">Chỉ xem</span>
+                        </c:otherwise>
+                    </c:choose>
                 </td>
             </tr>
             </c:forEach>
@@ -333,15 +349,19 @@
     const productForm = document.getElementById("productForm");
     const modalTitle = document.querySelector(".modal-header h3");
 
-    document.getElementById("openModalBtn").onclick = function () {
-        modal.style.display = "flex";
-        productForm.reset();
-        clearImagePreview();
+    const openModalBtn = document.getElementById("openModalBtn");
 
-        modalTitle.innerText = "Thêm sản phẩm mới";
-        document.getElementById("modalAction").value = "add";
-        document.getElementById("prodId").value = "";
-    };
+    if (openModalBtn) {
+        openModalBtn.onclick = function () {
+            modal.style.display = "flex";
+            productForm.reset();
+            clearImagePreview();
+
+            modalTitle.innerText = "Thêm sản phẩm mới";
+            document.getElementById("modalAction").value = "add";
+            document.getElementById("prodId").value = "";
+        };
+    }
 
     function closeModal() {
         modal.style.display = "none";

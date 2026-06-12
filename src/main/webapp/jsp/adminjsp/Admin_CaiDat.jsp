@@ -1,364 +1,303 @@
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+    <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+    <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+    <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <title>Admin - Cài đặt</title>
-    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/Admin_CaiDat.css">
-</head>
-<body>
-<aside class="sliderbar">
-    <div class="slidebar-header">
-        <h2 class="logo">Handmade House</h2>
-    </div>
-    <nav class="slidebar-nav">
-        <ul>
-            <li><a href="${pageContext.request.contextPath}/admin/dashboard"><i class="bx bx-chart"></i>Tổng quan</a></li>
-            <li><a href="${pageContext.request.contextPath}/admin/category"><i class="bx bx-category"></i>Danh mục</a></li>
-            <li><a href="${pageContext.request.contextPath}/admin/products"><i class="bx bx-package"></i>Sản phẩm</a></li>
-            <li><a href="${pageContext.request.contextPath}/admin/orders"><i class="bx bx-receipt"></i>Đơn hàng</a></li>
-            <li><a href="${pageContext.request.contextPath}/admin/customers"><i class="bx bx-group"></i>Khách hàng</a></li>
-            <li><a href="${pageContext.request.contextPath}/admin/reviews"><i class="bx bx-star"></i> Đánh giá</a></li>
-            <li><a href="${pageContext.request.contextPath}/admin/contacts"><i class="bx bx-envelope"></i> Liên hệ</a></li>
-            <li><a href="${pageContext.request.contextPath}/admin/banner"><i class="bx bx-image"></i>Banner</a></li>
-            <li class="active"><a href="${pageContext.request.contextPath}/admin/setting"><i class="bx bx-cog"></i>Cài đặt</a></li>
-        </ul>
-    </nav>
-    <div class="logout">
-        <a href="${pageContext.request.contextPath}/home">
-            <i class="bx bx-log-out"></i> Đăng xuất
-        </a>
-    </div>
-</aside>
-<main class="main-content">
-    <header class="header">
-        <h2>Cài đặt</h2>
-        <div class="search-box">
-            <input type="text" placeholder="Tìm kiếm...">
-            <button><i class="bx bx-search"></i></button>
+    <!DOCTYPE html>
+    <html lang="vi">
+    <head>
+        <meta charset="UTF-8">
+        <title>Admin - Cài đặt</title>
+        <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/Admin_CaiDat.css">
+    </head>
+    <body>
+    <aside class="sliderbar">
+        <div class="slidebar-header">
+            <h2 class="logo">Handmade House</h2>
         </div>
-        <div class="user-info">
-            <a href="${pageContext.request.contextPath}/admin/notifications" class="notification-btn">
-                <i class="bx bx-bell"></i>
-                <c:if test="${notificationCount > 0}">
-                    <span class="notification-count">${notificationCount}</span>
-                </c:if>
+        <nav class="slidebar-nav">
+            <ul>
+                <li><a href="${pageContext.request.contextPath}/admin/dashboard"><i class="bx bx-chart"></i>Tổng quan</a></li>
+                <li><a href="${pageContext.request.contextPath}/admin/category"><i class="bx bx-category"></i>Danh mục</a></li>
+                <li><a href="${pageContext.request.contextPath}/admin/products"><i class="bx bx-package"></i>Sản phẩm</a></li>
+                <li><a href="${pageContext.request.contextPath}/admin/orders"><i class="bx bx-receipt"></i>Đơn hàng</a></li>
+                <li><a href="${pageContext.request.contextPath}/admin/customers"><i class="bx bx-group"></i>Khách hàng</a></li>
+                <li><a href="${pageContext.request.contextPath}/admin/reviews"><i class="bx bx-star"></i> Đánh giá</a></li>
+                <li><a href="${pageContext.request.contextPath}/admin/contacts"><i class="bx bx-envelope"></i> Liên hệ</a></li>
+                <li><a href="${pageContext.request.contextPath}/admin/banner"><i class="bx bx-image"></i>Banner</a></li>
+                <li class="active"><a href="${pageContext.request.contextPath}/admin/setting"><i class="bx bx-cog"></i>Cài đặt</a></li>
+            </ul>
+        </nav>
+        <div class="logout">
+            <a href="${pageContext.request.contextPath}/home">
+                <i class="bx bx-log-out"></i> Đăng xuất
             </a>
+        </div>
+    </aside>
+    <main class="main-content">
+        <header class="header">
+            <h2>Cài đặt</h2>
+            <div class="search-box">
+                <input type="text" placeholder="Tìm kiếm...">
+                <button><i class="bx bx-search"></i></button>
+            </div>
+            <div class="user-info">
+                <a href="${pageContext.request.contextPath}/admin/notifications" class="notification-btn">
+                    <i class="bx bx-bell"></i>
+                    <c:if test="${notificationCount > 0}">
+                        <span class="notification-count">${notificationCount}</span>
+                    </c:if>
+                </a>
 
-            <a href="${pageContext.request.contextPath}/admin/setting" class="profile-admin">
-                <span class="admin-avatar">
-                    <c:choose>
-                        <c:when test="${not empty sessionScope.user.userName}">
-                            ${fn:substring(sessionScope.user.userName, 0, 1)}
-                        </c:when>
-                        <c:otherwise>A</c:otherwise>
-                    </c:choose>
-                </span>
-
-                <div class="user-details">
-                    <span class="user-name">
+                <a href="${pageContext.request.contextPath}/admin/setting" class="profile-admin">
+                    <span class="admin-avatar">
                         <c:choose>
                             <c:when test="${not empty sessionScope.user.userName}">
-                                ${sessionScope.user.userName}
+                                ${fn:substring(sessionScope.user.userName, 0, 1)}
                             </c:when>
-                            <c:otherwise>Admin Test</c:otherwise>
+                            <c:otherwise>A</c:otherwise>
                         </c:choose>
                     </span>
-                    <span class="user-role">Quản trị viên</span>
+
+                    <div class="user-details">
+                        <span class="user-name">
+                            <c:choose>
+                                <c:when test="${not empty sessionScope.user.userName}">
+                                    ${sessionScope.user.userName}
+                                </c:when>
+                                <c:otherwise>Admin Test</c:otherwise>
+                            </c:choose>
+                        </span>
+                        <span class="user-role">Quản trị viên</span>
+                    </div>
+                </a>
+            </div>
+        </header>
+        <div class="setting-container">
+            <section class="settings-card">
+                <div class="settings-card-header">
+                    <div>
+                        <h3>
+                            <i class="bx bx-store-alt"></i>
+                            Thông tin cửa hàng
+                        </h3>
+                        <p>Cập nhật thông tin cơ bản hiển thị cho cửa hàng.</p>
+                    </div>
                 </div>
-            </a>
+
+                <form action="${pageContext.request.contextPath}/admin/setting" method="post">
+                    <input type="hidden" name="action" value="updateStore">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="storeName">Tên cửa hàng</label>
+                            <input id="storeName" type="text" name="storeName" value="Handmade House">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="storeEmail">Email liên hệ</label>
+                            <input id="storeEmail" type="email" name="storeEmail" value="handmadehouse23@handmade.vn">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="storePhone">Số điện thoại</label>
+                            <input id="storePhone" type="text" name="storePhone" value="0944912685">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="storeWebsite">Website</label>
+                            <input id="storeWebsite" type="text" name="storeWebsite" value="https://handmadehouse.com">
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="storeAddress">Địa chỉ</label>
+                            <textarea id="storeAddress" name="storeAddress" rows="3">Khu phố 6, Phường Linh Trung, TP. Thủ Đức, TP. Hồ Chí Minh</textarea>
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <c:if test="${fn:contains(sessionScope.permissionCodesText, ',MANAGE_SETTING,')}">
+                            <button type="submit" class="btn-save">
+                                <i class="bx bx-save"></i>
+                                Lưu thông tin
+                            </button>
+                        </c:if>
+                    </div>
+                </form>
+            </section>
+
+            <section class="settings-card">
+                <div class="settings-card-header">
+                    <div>
+                        <h3>
+                            <i class="bx bx-bell"></i>
+                            Thông báo
+                        </h3>
+                        <p>Quản lý các loại thông báo dành cho quản trị viên.</p>
+                    </div>
+                </div>
+
+                <div class="switch-group">
+                    <div class="switch-item">
+                        <div class="info">
+                            <strong>Đơn hàng mới</strong>
+                            <p>Nhận thông báo khi khách hàng tạo đơn hàng mới.</p>
+                        </div>
+
+                        <label class="toggle">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="switch-item">
+                        <div class="info">
+                            <strong>Đánh giá mới</strong>
+                            <p>Nhận thông báo khi có đánh giá mới cần kiểm duyệt.</p>
+                        </div>
+
+                        <label class="toggle">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="switch-item">
+                        <div class="info">
+                            <strong>Sản phẩm hết hàng</strong>
+                            <p>Thông báo khi số lượng tồn kho của sản phẩm bằng 0.</p>
+                        </div>
+
+                        <label class="toggle">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="switch-item">
+                        <div class="info">
+                            <strong>Liên hệ từ người dùng</strong>
+                            <p>Nhận thông báo khi người dùng gửi phản hồi hoặc liên hệ mới.</p>
+                        </div>
+
+                        <label class="toggle">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <section class="settings-card">
+                <div class="settings-card-header">
+                    <div>
+                        <h3>
+                            <i class="bx bx-shield-quarter"></i>
+                            Phân quyền quản trị
+                        </h3>
+                        <p>Gán quyền truy cập từng chức năng cho từng tài khoản quản trị.</p>
+                    </div>
+                </div>
+
+                <div class="admin-permission-list">
+                    <c:forEach var="admin" items="${admins}">
+                        <form class="admin-permission-card" action="${pageContext.request.contextPath}/admin/setting" method="post">
+                            <input type="hidden" name="action" value="updatePermission">
+                            <input type="hidden" name="adminId" value="${admin.userId}">
+
+                            <div class="admin-permission-header">
+                                <div class="admin-permission-info">
+                            <span class="admin-avatar small">
+                                <c:choose>
+                                    <c:when test="${not empty admin.userName}">
+                                        ${fn:substring(admin.userName, 0, 1)}
+                                    </c:when>
+                                    <c:otherwise>A</c:otherwise>
+                                </c:choose>
+                            </span>
+
+                                    <div>
+                                        <strong>
+                                            <c:choose>
+                                                <c:when test="${not empty admin.userName}">
+                                                    ${admin.userName}
+                                                </c:when>
+                                                <c:otherwise>Chưa cập nhật tên</c:otherwise>
+                                            </c:choose>
+                                        </strong>
+                                        <p>${admin.email}</p>
+                                    </div>
+                                </div>
+
+                                <c:if test="${fn:contains(sessionScope.permissionCodesText, ',MANAGE_SETTING,')}">
+                                    <button type="submit" class="btn-save small-btn">
+                                        <i class="bx bx-save"></i>
+                                        Lưu quyền
+                                    </button>
+                                </c:if>
+                            </div>
+
+                            <c:set var="currentPermissions" value="${adminPermissionMap[admin.userId]}"/>
+
+                            <div class="permission-grid">
+                                <c:forEach var="permission" items="${permissions}">
+                                    <label class="permission-option">
+                                        <input type="checkbox"
+                                               name="permissions"
+                                               value="${permission.permissionCode}"
+                                               <c:if test="${fn:contains(currentPermissions, permission.permissionCode)}">checked</c:if>
+                                               <c:if test="${not fn:contains(sessionScope.permissionCodesText, ',MANAGE_SETTING,')}">disabled</c:if>>
+                                        <span>
+                                    <strong>${permission.permissionName}</strong>
+                                    <small>${permission.description}</small>
+                                </span>
+                                    </label>
+                                </c:forEach>
+                            </div>
+                        </form>
+                    </c:forEach>
+                </div>
+            </section>
+            <section class="settings-card">
+                <div class="settings-card-header">
+                    <div>
+                        <h3>
+                            <i class="bx bx-lock-alt"></i>
+                            Bảo mật tài khoản
+                        </h3>
+                        <p>Đổi mật khẩu quản trị viên để tăng tính bảo mật.</p>
+                    </div>
+                </div>
+
+                <form action="${pageContext.request.contextPath}/admin/setting" method="post">
+                    <input type="hidden" name="action" value="changePassword">
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="currentPassword">Mật khẩu hiện tại</label>
+                            <input id="currentPassword" type="password" name="currentPassword" placeholder="Nhập mật khẩu hiện tại">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newPassword">Mật khẩu mới</label>
+                            <input id="newPassword" type="password" name="newPassword" placeholder="Nhập mật khẩu mới">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="confirmPassword">Xác nhận mật khẩu mới</label>
+                            <input id="confirmPassword" type="password" name="confirmPassword" placeholder="Nhập lại mật khẩu mới">
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <c:if test="${fn:contains(sessionScope.permissionCodesText, ',MANAGE_SETTING,')}">
+                            <button type="submit" class="btn-password">
+                                <i class="bx bx-lock-alt"></i>
+                                Đổi mật khẩu
+                            </button>
+                        </c:if>
+                    </div>
+                </form>
+            </section>
         </div>
-    </header>
-    <div class="setting-container">
-        <section class="settings-card">
-            <div class="settings-card-header">
-                <div>
-                    <h3>
-                        <i class="bx bx-store-alt"></i>
-                        Thông tin cửa hàng
-                    </h3>
-                    <p>Cập nhật thông tin cơ bản hiển thị cho cửa hàng.</p>
-                </div>
-            </div>
-
-            <form action="${pageContext.request.contextPath}/admin/setting" method="post">
-                <input type="hidden" name="action" value="updateStore">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="storeName">Tên cửa hàng</label>
-                        <input id="storeName" type="text" name="storeName" value="Handmade House">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="storeEmail">Email liên hệ</label>
-                        <input id="storeEmail" type="email" name="storeEmail" value="handmadehouse23@handmade.vn">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="storePhone">Số điện thoại</label>
-                        <input id="storePhone" type="text" name="storePhone" value="0944912685">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="storeWebsite">Website</label>
-                        <input id="storeWebsite" type="text" name="storeWebsite" value="https://handmadehouse.com">
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label for="storeAddress">Địa chỉ</label>
-                        <textarea id="storeAddress" name="storeAddress" rows="3">Khu phố 6, Phường Linh Trung, TP. Thủ Đức, TP. Hồ Chí Minh</textarea>
-                    </div>
-                </div>
-
-                <div class="card-footer">
-                    <button type="submit" class="btn-save">
-                        <i class="bx bx-save"></i>
-                        Lưu thay đổi
-                    </button>
-                </div>
-            </form>
-        </section>
-
-        <section class="settings-card">
-            <div class="settings-card-header">
-                <div>
-                    <h3>
-                        <i class="bx bx-bell"></i>
-                        Thông báo
-                    </h3>
-                    <p>Quản lý các loại thông báo dành cho quản trị viên.</p>
-                </div>
-            </div>
-
-            <div class="switch-group">
-                <div class="switch-item">
-                    <div class="info">
-                        <strong>Đơn hàng mới</strong>
-                        <p>Nhận thông báo khi khách hàng tạo đơn hàng mới.</p>
-                    </div>
-
-                    <label class="toggle">
-                        <input type="checkbox" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <div class="switch-item">
-                    <div class="info">
-                        <strong>Đánh giá mới</strong>
-                        <p>Nhận thông báo khi có đánh giá mới cần kiểm duyệt.</p>
-                    </div>
-
-                    <label class="toggle">
-                        <input type="checkbox" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <div class="switch-item">
-                    <div class="info">
-                        <strong>Sản phẩm hết hàng</strong>
-                        <p>Thông báo khi số lượng tồn kho của sản phẩm bằng 0.</p>
-                    </div>
-
-                    <label class="toggle">
-                        <input type="checkbox" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <div class="switch-item">
-                    <div class="info">
-                        <strong>Liên hệ từ người dùng</strong>
-                        <p>Nhận thông báo khi người dùng gửi phản hồi hoặc liên hệ mới.</p>
-                    </div>
-
-                    <label class="toggle">
-                        <input type="checkbox" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-            </div>
-        </section>
-
-        <section class="settings-card">
-            <div class="settings-card-header">
-                <div>
-                    <h3>
-                        <i class="bx bx-shield-quarter"></i>
-                        Phân quyền quản trị
-                    </h3>
-                    <p>Thiết lập quyền truy cập các chức năng trong trang quản trị.</p>
-                </div>
-            </div>
-
-            <form action="${pageContext.request.contextPath}/admin/setting" method="post">
-                <input type="hidden" name="action" value="updatePermission">
-
-                <div class="permission-table">
-                    <table>
-                        <thead>
-                        <tr>
-                            <th>Chức năng</th>
-                            <th>Quản trị viên</th>
-                            <th>Nhân viên</th>
-                        </tr>
-                        </thead>
-
-                        <tbody>
-                        <tr>
-                            <td>
-                                <div class="permission-name">
-                                    <i class="bx bx-chart"></i>
-                                    <span>Tổng quan</span>
-                                </div>
-                            </td>
-                            <td><input type="checkbox" checked disabled></td>
-                            <td><input type="checkbox" name="staffDashboard" checked></td>
-                        </tr>
-
-                        <tr>
-                            <td>
-                                <div class="permission-name">
-                                    <i class="bx bx-category"></i>
-                                    <span>Danh mục</span>
-                                </div>
-                            </td>
-                            <td><input type="checkbox" checked disabled></td>
-                            <td><input type="checkbox" name="staffCategory"></td>
-                        </tr>
-
-                        <tr>
-                            <td>
-                                <div class="permission-name">
-                                    <i class="bx bx-package"></i>
-                                    <span>Sản phẩm</span>
-                                </div>
-                            </td>
-                            <td><input type="checkbox" checked disabled></td>
-                            <td><input type="checkbox" name="staffProduct" checked></td>
-                        </tr>
-
-                        <tr>
-                            <td>
-                                <div class="permission-name">
-                                    <i class="bx bx-receipt"></i>
-                                    <span>Đơn hàng</span>
-                                </div>
-                            </td>
-                            <td><input type="checkbox" checked disabled></td>
-                            <td><input type="checkbox" name="staffOrder" checked></td>
-                        </tr>
-
-                        <tr>
-                            <td>
-                                <div class="permission-name">
-                                    <i class="bx bx-group"></i>
-                                    <span>Khách hàng</span>
-                                </div>
-                            </td>
-                            <td><input type="checkbox" checked disabled></td>
-                            <td><input type="checkbox" name="staffCustomer" checked></td>
-                        </tr>
-
-                        <tr>
-                            <td>
-                                <div class="permission-name">
-                                    <i class="bx bx-star"></i>
-                                    <span>Đánh giá</span>
-                                </div>
-                            </td>
-                            <td><input type="checkbox" checked disabled></td>
-                            <td><input type="checkbox" name="staffReview" checked></td>
-                        </tr>
-
-                        <tr>
-                            <td>
-                                <div class="permission-name">
-                                    <i class="bx bx-envelope"></i>
-                                    <span>Liên hệ</span>
-                                </div>
-                            </td>
-                            <td><input type="checkbox" checked disabled></td>
-                            <td><input type="checkbox" name="staffContact" checked></td>
-                        </tr>
-
-                        <tr>
-                            <td>
-                                <div class="permission-name">
-                                    <i class="bx bx-image"></i>
-                                    <span>Banner</span>
-                                </div>
-                            </td>
-                            <td><input type="checkbox" checked disabled></td>
-                            <td><input type="checkbox" name="staffBanner"></td>
-                        </tr>
-
-                        <tr>
-                            <td>
-                                <div class="permission-name">
-                                    <i class="bx bx-cog"></i>
-                                    <span>Cài đặt</span>
-                                </div>
-                            </td>
-                            <td><input type="checkbox" checked disabled></td>
-                            <td><input type="checkbox" name="staffSetting"></td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="card-footer">
-                    <button type="submit" class="btn-save">
-                        <i class="bx bx-save"></i>
-                        Lưu phân quyền
-                    </button>
-                </div>
-            </form>
-        </section>
-        <section class="settings-card">
-            <div class="settings-card-header">
-                <div>
-                    <h3>
-                        <i class="bx bx-lock-alt"></i>
-                        Bảo mật tài khoản
-                    </h3>
-                    <p>Đổi mật khẩu quản trị viên để tăng tính bảo mật.</p>
-                </div>
-            </div>
-
-            <form action="${pageContext.request.contextPath}/admin/setting" method="post">
-                <input type="hidden" name="action" value="changePassword">
-                <div class="form-grid">
-                    <div class="form-group full-width">
-                        <label for="currentPassword">Mật khẩu hiện tại</label>
-                        <input id="currentPassword" type="password" name="currentPassword" placeholder="Nhập mật khẩu hiện tại">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="newPassword">Mật khẩu mới</label>
-                        <input id="newPassword" type="password" name="newPassword" placeholder="Nhập mật khẩu mới">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="confirmPassword">Xác nhận mật khẩu mới</label>
-                        <input id="confirmPassword" type="password" name="confirmPassword" placeholder="Nhập lại mật khẩu mới">
-                    </div>
-                </div>
-
-                <div class="card-footer">
-                    <button type="submit" class="btn-password">
-                        <i class="bx bx-lock-alt"></i>
-                        Đổi mật khẩu
-                    </button>
-                </div>
-            </form>
-        </section>
-    </div>
-</main>
-</body>
-</html>
+    </main>
+    </body>
+    </html>

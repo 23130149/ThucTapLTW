@@ -8,6 +8,7 @@ import model.User;
 import service.EmailService;
 import service.OtpService;
 import util.PasswordUtil;
+import util.RecaptchaUtil;
 
 import java.io.IOException;
 
@@ -31,6 +32,27 @@ public class ForgotPassword extends HttpServlet {
         if ("sendOtp".equals(action)) {
 
             String email = request.getParameter("email");
+            if (email == null || email.isBlank()) {
+                email = (String) session.getAttribute("OTP_EMAIL");
+            }
+
+            if (email == null || email.isBlank()) {
+                request.setAttribute("error", "Vui lòng nhập email.");
+                prepareRecaptcha(request);
+                request.getRequestDispatcher("/jsp/forgotpassword.jsp")
+                        .forward(request, response);
+                return;
+            }
+
+            if (RecaptchaUtil.isConfigured(getServletContext())
+                    && !RecaptchaUtil.verify(request, getServletContext())) {
+                request.setAttribute("error", "Vui lòng xác nhận bạn không phải robot.");
+                request.setAttribute("step", session.getAttribute("OTP_EMAIL") == null ? null : "OTP_SENT");
+                prepareRecaptcha(request);
+                request.getRequestDispatcher("/jsp/forgotpassword.jsp")
+                        .forward(request, response);
+                return;
+            }
 
             String otp = OtpService.generateOtp();
             OtpService.saveOtp(session, otp);
@@ -39,6 +61,7 @@ public class ForgotPassword extends HttpServlet {
             EmailService.sendOtpEmail(email, otp);
 
             request.setAttribute("step", "OTP_SENT");
+            prepareRecaptcha(request);
             request.getRequestDispatcher("/jsp/forgotpassword.jsp")
                     .forward(request, response);
             return;
@@ -55,6 +78,7 @@ public class ForgotPassword extends HttpServlet {
             if (!newPassword.equals(confirmPassword)) {
                 request.setAttribute("error", "Mật khẩu xác nhận không khớp");
                 request.setAttribute("step", "OTP_SENT");
+                prepareRecaptcha(request);
                 request.getRequestDispatcher("/jsp/forgotpassword.jsp")
                         .forward(request, response);
                 return;
@@ -70,6 +94,7 @@ public class ForgotPassword extends HttpServlet {
             if (!strong) {
                 request.setAttribute("error", "Mật khẩu chưa đủ mạnh");
                 request.setAttribute("step", "OTP_SENT");
+                prepareRecaptcha(request);
                 request.getRequestDispatcher("/jsp/forgotpassword.jsp")
                         .forward(request, response);
                 return;
@@ -78,6 +103,7 @@ public class ForgotPassword extends HttpServlet {
             if (!OtpService.verifyOtp(session, otpInput)) {
                 request.setAttribute("error", "OTP sai hoặc đã hết hạn");
                 request.setAttribute("step", "OTP_SENT");
+                prepareRecaptcha(request);
                 request.getRequestDispatcher("/jsp/forgotpassword.jsp")
                         .forward(request, response);
                 return;
@@ -107,7 +133,13 @@ public class ForgotPassword extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        prepareRecaptcha(request);
         request.getRequestDispatcher("/jsp/forgotpassword.jsp")
                 .forward(request, response);
+    }
+
+    private void prepareRecaptcha(HttpServletRequest request) {
+        request.setAttribute("recaptchaSiteKey", RecaptchaUtil.getSiteKey(getServletContext()));
+        request.setAttribute("recaptchaConfigured", RecaptchaUtil.isConfigured(getServletContext()));
     }
 }

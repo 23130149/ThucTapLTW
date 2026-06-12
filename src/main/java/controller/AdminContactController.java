@@ -77,6 +77,13 @@ public class AdminContactController extends HttpServlet {
             } catch (NumberFormatException ignored) {
             }
         }
+        if ("delete".equals(action)) {
+            try {
+                int contactId = Integer.parseInt(request.getParameter("contactId"));
+                contactDao.delete(contactId);
+            } catch (NumberFormatException ignored) {
+            }
+        }
         response.sendRedirect(request.getContextPath() + "/admin/contacts");
     }
     private String normalizeStatus(String status) {

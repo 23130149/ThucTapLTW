@@ -7,7 +7,7 @@
 <html lang="en">
 <head>
   <link rel="stylesheet"
-        href="${pageContext.request.contextPath}/css/chitietsp.css">
+        href="${pageContext.request.contextPath}/css/chitietsp.css?v=11">
   <meta charset="UTF-8">
   <title>${product.productName}</title>
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
@@ -158,6 +158,69 @@
   </div>
     <div class="review-list">
       <h3>Bình luận từ khách hàng (${reviewCount})</h3>
+
+      <c:if test="${not empty sessionScope.reviewError}">
+        <div class="review-message error">
+          ${sessionScope.reviewError}
+        </div>
+        <c:remove var="reviewError" scope="session"/>
+      </c:if>
+
+      <c:if test="${not empty sessionScope.reviewSuccess}">
+        <div class="review-message success">
+          ${sessionScope.reviewSuccess}
+        </div>
+        <c:remove var="reviewSuccess" scope="session"/>
+      </c:if>
+
+      <c:choose>
+        <c:when test="${canReview}">
+          <form action="${pageContext.request.contextPath}/review-submit" method="post" class="review-form">
+            <input type="hidden" name="productId" value="${product.productId}">
+            <input type="hidden" name="rating" id="ratingValue">
+
+            <div class="review-form-title">Viết đánh giá của bạn</div>
+            <p class="review-form-desc">Chọn số sao và chia sẻ cảm nhận sau khi mua sản phẩm.</p>
+
+            <label class="review-label">Đánh giá sao</label>
+            <div class="star-rating">
+              <i class="bx bx-star" data-value="1"></i>
+              <i class="bx bx-star" data-value="2"></i>
+              <i class="bx bx-star" data-value="3"></i>
+              <i class="bx bx-star" data-value="4"></i>
+              <i class="bx bx-star" data-value="5"></i>
+            </div>
+
+            <label class="review-label" for="reviewComment">Bình luận</label>
+            <textarea id="reviewComment" name="comment" required placeholder="Chia sẻ cảm nhận của bạn..."></textarea>
+
+            <c:if test="${recaptchaConfigured}">
+              <div class="review-captcha">
+                <div class="g-recaptcha" data-sitekey="${recaptchaSiteKey}"></div>
+              </div>
+            </c:if>
+
+            <button type="submit" class="review-submit-btn">
+              <i class="bx bx-send"></i>
+              Gửi đánh giá
+            </button>
+          </form>
+        </c:when>
+
+        <c:when test="${not isLoggedIn}">
+          <div class="review-note-box">
+            <p>Bạn cần đăng nhập để đánh giá sản phẩm.</p>
+            <a href="${pageContext.request.contextPath}/SignIn">Đăng nhập ngay</a>
+          </div>
+        </c:when>
+
+        <c:otherwise>
+          <div class="review-note-box">
+            <p>Bạn cần mua sản phẩm này trước khi gửi đánh giá.</p>
+          </div>
+        </c:otherwise>
+      </c:choose>
+
       <c:if test="${empty reviews}">
         <p>Chưa có đánh giá nào.</p>
       </c:if>
@@ -256,11 +319,35 @@
       }
     });
   }
+
+  const reviewStars = document.querySelectorAll(".star-rating i");
+  const ratingInput = document.getElementById("ratingValue");
+
+  if (reviewStars.length > 0 && ratingInput) {
+    reviewStars.forEach(function (star) {
+      star.addEventListener("click", function () {
+        const value = parseInt(this.dataset.value);
+        ratingInput.value = value;
+
+        reviewStars.forEach(function (item) {
+          const itemValue = parseInt(item.dataset.value);
+          const active = itemValue <= value;
+          item.classList.toggle("active", active);
+          item.classList.toggle("bxs-star", active);
+          item.classList.toggle("bx-star", !active);
+        });
+      });
+    });
+  }
+
 </script>
 
 <script>
   window.APP_CONTEXT = '${pageContext.request.contextPath}';
 </script>
 <script src="${pageContext.request.contextPath}/js/search-suggest.js"></script>
+<c:if test="${recaptchaConfigured}">
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</c:if>
 </body>
 </html>

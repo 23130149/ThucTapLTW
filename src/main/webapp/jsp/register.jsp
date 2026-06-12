@@ -8,7 +8,7 @@
     <title>Đăng Ký</title>
 
     <link rel="stylesheet"
-          href="${pageContext.request.contextPath}/css/dangky.css">
+          href="${pageContext.request.contextPath}/css/dangky.css?v=2">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 
 
@@ -50,6 +50,11 @@
                 </div>
                 <p id="confirmMsg" class="msg"></p>
             </div>
+            <c:if test="${recaptchaConfigured}">
+                <div class="captcha-box">
+                    <div class="g-recaptcha" data-sitekey="${recaptchaSiteKey}"></div>
+                </div>
+            </c:if>
             <button type="submit" class="btn">Đăng Ký</button>
             <div class="login-link">
                 <p>
@@ -98,6 +103,11 @@
               method="post"
               id="resendForm">
             <input type="hidden" name="action" value="sendOtp">
+            <c:if test="${recaptchaConfigured}">
+                <div class="captcha-box resend-captcha">
+                    <div class="g-recaptcha" data-sitekey="${recaptchaSiteKey}"></div>
+                </div>
+            </c:if>
         </form>
     </c:if>
 </div>
@@ -183,5 +193,8 @@
         });
     }
 </script>
+<c:if test="${recaptchaConfigured}">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</c:if>
 </body>
 </html>

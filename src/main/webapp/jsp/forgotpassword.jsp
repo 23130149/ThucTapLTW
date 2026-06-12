@@ -7,7 +7,7 @@
     <meta charset="UTF-8">
     <title>Quên mật khẩu - Handmade House</title>
     <link rel="stylesheet"
-          href="${pageContext.request.contextPath}/css/account.css">
+          href="${pageContext.request.contextPath}/css/account.css?v=2">
 
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
@@ -33,6 +33,11 @@
                            placeholder="Nhập Gmail của bạn"
                            required>
                 </div>
+                <c:if test="${recaptchaConfigured}">
+                    <div class="captcha-field">
+                        <div class="g-recaptcha" data-sitekey="${recaptchaSiteKey}"></div>
+                    </div>
+                </c:if>
                 <div class="password-actions">
                     <button type="submit"
                             class="btn-save"
@@ -72,6 +77,11 @@
                         Gửi lại OTP sau ${resendRemain} giây
                     </div>
                 </c:if>
+                <c:if test="${recaptchaConfigured}">
+                    <div class="captcha-field">
+                        <div class="g-recaptcha" data-sitekey="${recaptchaSiteKey}"></div>
+                    </div>
+                </c:if>
                 <div class="password-actions">
                     <button type="submit"
                             class="btn-save"
@@ -99,5 +109,8 @@
   window.APP_CONTEXT = '${pageContext.request.contextPath}';
 </script>
 <script src="${pageContext.request.contextPath}/js/search-suggest.js"></script>
+<c:if test="${recaptchaConfigured}">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</c:if>
 </body>
 </html>

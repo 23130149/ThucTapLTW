@@ -340,118 +340,129 @@
                     <span>Xem</span>
                   </a>
 
-                  <c:if test="${order.status == 'PENDING'}">
-                    <form method="post"
-                          action="${pageContext.request.contextPath}/admin/orders"
-                          class="inline-form">
-                      <input type="hidden" name="action" value="updateStatus">
-                      <input type="hidden" name="orderId" value="${order.orderId}">
-                      <input type="hidden" name="status" value="PROCESSING">
+                  <c:choose>
+                    <c:when test="${fn:contains(sessionScope.permissionCodesText, ',MANAGE_ORDER,')}">
 
-                      <button type="submit" class="action-btn confirm-btn" title="Chuyển sang đang xử lý">
-                        <i class="bx bx-check"></i>
-                        <span>Xử lý</span>
-                      </button>
-                    </form>
-                  </c:if>
+                      <c:if test="${order.status == 'PENDING'}">
+                        <form method="post"
+                              action="${pageContext.request.contextPath}/admin/orders"
+                              class="inline-form">
+                          <input type="hidden" name="action" value="updateStatus">
+                          <input type="hidden" name="orderId" value="${order.orderId}">
+                          <input type="hidden" name="status" value="PROCESSING">
 
-                  <c:if test="${order.status == 'PROCESSING'}">
-                    <form method="post"
-                          action="${pageContext.request.contextPath}/admin/orders"
-                          class="inline-form">
-                      <input type="hidden" name="action" value="updateStatus">
-                      <input type="hidden" name="orderId" value="${order.orderId}">
-                      <input type="hidden" name="status" value="CONFIRMED">
+                          <button type="submit" class="action-btn confirm-btn" title="Chuyển sang đang xử lý">
+                            <i class="bx bx-check"></i>
+                            <span>Xử lý</span>
+                          </button>
+                        </form>
+                      </c:if>
 
-                      <button type="submit" class="action-btn confirm-btn" title="Xác nhận đơn hàng">
-                        <i class="bx bx-check-circle"></i>
-                        <span>Xác nhận</span>
-                      </button>
-                    </form>
-                  </c:if>
+                      <c:if test="${order.status == 'PROCESSING'}">
+                        <form method="post"
+                              action="${pageContext.request.contextPath}/admin/orders"
+                              class="inline-form">
+                          <input type="hidden" name="action" value="updateStatus">
+                          <input type="hidden" name="orderId" value="${order.orderId}">
+                          <input type="hidden" name="status" value="CONFIRMED">
 
-                  <c:if test="${order.status == 'CONFIRMED' && empty order.ghnOrderCode}">
-                    <form method="post"
-                          action="${pageContext.request.contextPath}/admin/orders"
-                          class="inline-form">
-                      <input type="hidden" name="action" value="createGhn">
-                      <input type="hidden" name="orderId" value="${order.orderId}">
+                          <button type="submit" class="action-btn confirm-btn" title="Xác nhận đơn hàng">
+                            <i class="bx bx-check-circle"></i>
+                            <span>Xác nhận</span>
+                          </button>
+                        </form>
+                      </c:if>
 
-                      <button type="submit" class="action-btn ship-btn" title="Tạo vận đơn GHN">
-                        <i class="bx bx-package"></i>
-                        <span>Tạo GHN</span>
-                      </button>
-                    </form>
-                  </c:if>
+                      <c:if test="${order.status == 'CONFIRMED' && empty order.ghnOrderCode}">
+                        <form method="post"
+                              action="${pageContext.request.contextPath}/admin/orders"
+                              class="inline-form">
+                          <input type="hidden" name="action" value="createGhn">
+                          <input type="hidden" name="orderId" value="${order.orderId}">
 
-                  <c:if test="${not empty order.ghnOrderCode && order.status == 'CONFIRMED'}">
-                    <form method="post"
-                          action="${pageContext.request.contextPath}/admin/orders"
-                          class="inline-form">
-                      <input type="hidden" name="action" value="syncGhn">
-                      <input type="hidden" name="orderId" value="${order.orderId}">
+                          <button type="submit" class="action-btn ship-btn" title="Tạo vận đơn GHN">
+                            <i class="bx bx-package"></i>
+                            <span>Tạo GHN</span>
+                          </button>
+                        </form>
+                      </c:if>
 
-                      <button type="submit" class="action-btn ship-btn" title="Giao hàng cho GHN">
-                        <i class="bx bx-send"></i>
-                        <span>Giao GHN</span>
-                      </button>
-                    </form>
-                  </c:if>
+                      <c:if test="${not empty order.ghnOrderCode && order.status == 'CONFIRMED'}">
+                        <form method="post"
+                              action="${pageContext.request.contextPath}/admin/orders"
+                              class="inline-form">
+                          <input type="hidden" name="action" value="syncGhn">
+                          <input type="hidden" name="orderId" value="${order.orderId}">
 
-                  <c:if test="${not empty order.ghnOrderCode && order.status == 'SHIPPED'}">
-                    <form method="post"
-                          action="${pageContext.request.contextPath}/admin/orders"
-                          class="inline-form">
-                      <input type="hidden" name="action" value="syncGhn">
-                      <input type="hidden" name="orderId" value="${order.orderId}">
+                          <button type="submit" class="action-btn ship-btn" title="Giao hàng cho GHN">
+                            <i class="bx bx-send"></i>
+                            <span>Giao GHN</span>
+                          </button>
+                        </form>
+                      </c:if>
 
-                      <button type="submit" class="action-btn complete-btn" title="Cập nhật trạng thái vận chuyển">
-                        <i class="bx bx-refresh"></i>
-                        <span>Cập nhật</span>
-                      </button>
-                    </form>
-                  </c:if>
-                  <c:if test="${order.status == 'RETURN_REQUESTED'}">
-                    <form method="post"
-                          action="${pageContext.request.contextPath}/admin/orders"
-                          class="inline-form">
-                      <input type="hidden" name="action" value="updateStatus">
-                      <input type="hidden" name="orderId" value="${order.orderId}">
-                      <input type="hidden" name="status" value="RETURNED">
+                      <c:if test="${not empty order.ghnOrderCode && order.status == 'SHIPPED'}">
+                        <form method="post"
+                              action="${pageContext.request.contextPath}/admin/orders"
+                              class="inline-form">
+                          <input type="hidden" name="action" value="syncGhn">
+                          <input type="hidden" name="orderId" value="${order.orderId}">
 
-                      <button type="submit" class="action-btn complete-btn" title="Xác nhận đã trả hàng">
-                        <i class="bx bx-check-double"></i>
-                        <span>Đã trả</span>
-                      </button>
-                    </form>
+                          <button type="submit" class="action-btn complete-btn" title="Cập nhật trạng thái vận chuyển">
+                            <i class="bx bx-refresh"></i>
+                            <span>Cập nhật</span>
+                          </button>
+                        </form>
+                      </c:if>
 
-                    <form method="post"
-                          action="${pageContext.request.contextPath}/admin/orders"
-                          class="inline-form">
-                      <input type="hidden" name="action" value="updateStatus">
-                      <input type="hidden" name="orderId" value="${order.orderId}">
-                      <input type="hidden" name="status" value="RETURN_REJECTED">
+                      <c:if test="${order.status == 'RETURN_REQUESTED'}">
+                        <form method="post"
+                              action="${pageContext.request.contextPath}/admin/orders"
+                              class="inline-form">
+                          <input type="hidden" name="action" value="updateStatus">
+                          <input type="hidden" name="orderId" value="${order.orderId}">
+                          <input type="hidden" name="status" value="RETURNED">
 
-                      <button type="submit" class="action-btn reject-btn" title="Từ chối trả hàng">
-                        <i class="bx bx-x"></i>
-                        <span>Từ chối</span>
-                      </button>
-                    </form>
-                  </c:if>
+                          <button type="submit" class="action-btn complete-btn" title="Xác nhận đã trả hàng">
+                            <i class="bx bx-check-double"></i>
+                            <span>Đã trả</span>
+                          </button>
+                        </form>
 
-                  <c:if test="${order.paymentMethodId == 1 && order.paymentStatus != 'PAID' && (order.status == 'DELIVERED' || order.status == 'COMPLETED')}">
-                    <form method="post"
-                          action="${pageContext.request.contextPath}/admin/orders"
-                          class="inline-form">
-                      <input type="hidden" name="action" value="markCashPaid">
-                      <input type="hidden" name="orderId" value="${order.orderId}">
+                        <form method="post"
+                              action="${pageContext.request.contextPath}/admin/orders"
+                              class="inline-form">
+                          <input type="hidden" name="action" value="updateStatus">
+                          <input type="hidden" name="orderId" value="${order.orderId}">
+                          <input type="hidden" name="status" value="RETURN_REJECTED">
 
-                      <button type="submit" class="action-btn paid-btn" title="Xác nhận đã thu tiền mặt">
-                        <i class="bx bx-money"></i>
-                        <span>Đã thu tiền</span>
-                      </button>
-                    </form>
-                  </c:if>
+                          <button type="submit" class="action-btn reject-btn" title="Từ chối trả hàng">
+                            <i class="bx bx-x"></i>
+                            <span>Từ chối</span>
+                          </button>
+                        </form>
+                      </c:if>
+
+                      <c:if test="${order.paymentMethodId == 1 && order.paymentStatus != 'PAID' && (order.status == 'DELIVERED' || order.status == 'COMPLETED')}">
+                        <form method="post"
+                              action="${pageContext.request.contextPath}/admin/orders"
+                              class="inline-form">
+                          <input type="hidden" name="action" value="markCashPaid">
+                          <input type="hidden" name="orderId" value="${order.orderId}">
+
+                          <button type="submit" class="action-btn paid-btn" title="Xác nhận đã thu tiền mặt">
+                            <i class="bx bx-money"></i>
+                            <span>Đã thu tiền</span>
+                          </button>
+                        </form>
+                      </c:if>
+
+                    </c:when>
+
+                    <c:otherwise>
+                      <span class="no-permission-text">Chỉ xem</span>
+                    </c:otherwise>
+                  </c:choose>
                 </div>
               </td>
             </tr>
