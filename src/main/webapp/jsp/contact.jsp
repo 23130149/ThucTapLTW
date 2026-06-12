@@ -11,7 +11,7 @@
           href="${pageContext.request.contextPath}/css/contact.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-  <jsp:include page="/jsp/layout-assets.jsp"/>
+    <jsp:include page="/jsp/layout-assets.jsp"/>
 </head>
 
 <body>
@@ -47,7 +47,7 @@
     <div class="info-card">
         <i class='bx bx-time'></i>
         <h3>Giờ làm việc</h3>
-        <p>8:00 – 20:00 (Thứ 2 - Chủ Nhật)</p>
+        <p>8:00 - 20:00 (Thứ 2 - Chủ Nhật)</p>
     </div>
 </section>
 
@@ -71,6 +71,7 @@
             <label>Họ và tên *</label>
             <input type="text"
                    name="name"
+                   value="${name}"
                    placeholder="Nhập họ tên của bạn"
                    required>
 
@@ -79,6 +80,7 @@
                     <label>Email *</label>
                     <input type="email"
                            name="email"
+                           value="${email}"
                            placeholder="example@email.com"
                            required>
                 </div>
@@ -87,6 +89,7 @@
                     <label>Số điện thoại</label>
                     <input type="tel"
                            name="phone"
+                           value="${phone}"
                            pattern="[0-9]{9,11}"
                            placeholder="0123456789">
                 </div>
@@ -95,13 +98,20 @@
             <label>Tiêu đề *</label>
             <input type="text"
                    name="subject"
+                   value="${subject}"
                    placeholder="Bạn muốn hỏi về điều gì?"
                    required>
 
             <label>Nội dung tin nhắn *</label>
             <textarea name="message"
                       placeholder="Chia sẻ suy nghĩ của bạn với chúng tôi..."
-                      required></textarea>
+                      required>${message}</textarea>
+
+            <c:if test="${recaptchaConfigured}">
+                <div class="captcha-field">
+                    <div class="g-recaptcha" data-sitekey="${recaptchaSiteKey}"></div>
+                </div>
+            </c:if>
 
             <button type="submit">Gửi tin nhắn</button>
         </form>
@@ -110,13 +120,13 @@
     <div class="sidebar">
 
         <div class="side-box">
-            <h3>🐤 Đặt Hàng Custom</h3>
+            <h3>Đặt Hàng Custom</h3>
             <p>Bạn có ý tưởng riêng cho sản phẩm handmade? Chúng tôi nhận đặt hàng custom theo yêu cầu của bạn!</p>
             <p>Liên hệ với chúng tôi để được tư vấn chi tiết về thiết kế, chất liệu và thời gian thực hiện.</p>
         </div>
 
         <div class="side-box">
-            <h3>❤️ Ưu Đãi Đặc Biệt</h3>
+            <h3>Ưu Đãi Đặc Biệt</h3>
             <p>Nhận ngay mã giảm giá 10% cho lần mua hàng đầu tiên khi đăng ký nhận bản tin.</p>
             <p>Nhập email trong form liên hệ và ghi chú "Đăng ký nhận tin".</p>
         </div>
@@ -126,11 +136,12 @@
 
 <jsp:include page="/jsp/footer.jsp"/>
 
-
-
 <script>
   window.APP_CONTEXT = '${pageContext.request.contextPath}';
 </script>
 <script src="${pageContext.request.contextPath}/js/search-suggest.js"></script>
+<c:if test="${recaptchaConfigured}">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</c:if>
 </body>
 </html>

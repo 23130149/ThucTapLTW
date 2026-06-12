@@ -24,9 +24,10 @@ public class AddCart extends HttpServlet {
 
         if (user == null) {
             session = request.getSession(true);
-            session.setAttribute("loginMessage", "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.");
-            session.setAttribute("redirectAfterLogin", "cart");
-            response.sendRedirect(request.getContextPath() + "/SignIn");
+            String referer = request.getHeader("Referer");
+            session.setAttribute("showLoginModal", true);
+            session.setAttribute("redirectAfterLogin", getLocalRedirect(request, referer));
+            response.sendRedirect(getLocalReferer(request, referer));
             return;
         }
 
@@ -92,5 +93,52 @@ public class AddCart extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         doGet(request, response);
+    }
+
+    private String getLocalReferer(HttpServletRequest request, String referer) {
+        String fallback = request.getContextPath() + "/product";
+
+        if (referer == null || referer.isBlank()) {
+            return fallback;
+        }
+
+        String appBase = request.getScheme() + "://" + request.getServerName()
+                + (isDefaultPort(request) ? "" : ":" + request.getServerPort())
+                + request.getContextPath();
+
+        return referer.startsWith(appBase) ? referer : fallback;
+    }
+
+    private String getLocalRedirect(HttpServletRequest request, String referer) {
+        String localReferer = getLocalReferer(request, referer);
+        String contextPath = request.getContextPath();
+
+        if (localReferer.startsWith(contextPath)) {
+            return stripLeadingSlash(localReferer.substring(contextPath.length()));
+        }
+
+        String appBase = request.getScheme() + "://" + request.getServerName()
+                + (isDefaultPort(request) ? "" : ":" + request.getServerPort())
+                + contextPath;
+
+        if (localReferer.startsWith(appBase)) {
+            return stripLeadingSlash(localReferer.substring(appBase.length()));
+        }
+
+        return "product";
+    }
+
+    private boolean isDefaultPort(HttpServletRequest request) {
+        int port = request.getServerPort();
+        return ("http".equalsIgnoreCase(request.getScheme()) && port == 80)
+                || ("https".equalsIgnoreCase(request.getScheme()) && port == 443);
+    }
+
+    private String stripLeadingSlash(String value) {
+        while (value.startsWith("/")) {
+            value = value.substring(1);
+        }
+
+        return value.isBlank() ? "product" : value;
     }
 }

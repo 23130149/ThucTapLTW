@@ -11,6 +11,7 @@ import model.Product;
 import model.ProductImage;
 import model.Review;
 import model.User;
+import util.RecaptchaUtil;
 
 import java.io.IOException;
 import java.util.List;
@@ -77,6 +78,8 @@ public class ProductDetailController extends HttpServlet {
         request.setAttribute("reviewCount", reviewCount);
         request.setAttribute("isLoggedIn", isLoggedIn);
         request.setAttribute("canReview", canReview);
+        request.setAttribute("recaptchaSiteKey", RecaptchaUtil.getSiteKey(getServletContext()));
+        request.setAttribute("recaptchaConfigured", RecaptchaUtil.isConfigured(getServletContext()));
         request.getRequestDispatcher("/jsp/productDetail.jsp").forward(request, response);
     }
 

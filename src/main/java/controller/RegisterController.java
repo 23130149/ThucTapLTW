@@ -7,6 +7,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import service.EmailService;
 import util.PasswordUtil;
+import util.RecaptchaUtil;
 
 import java.io.IOException;
 
@@ -39,25 +40,46 @@ public class RegisterController extends HttpServlet {
 
                 if (fullName == null || email == null) {
                     request.setAttribute("error", "Phiên đăng ký đã hết hạn, vui lòng đăng ký lại");
+                    prepareRecaptcha(request);
+                    request.getRequestDispatcher("/jsp/register.jsp").forward(request, response);
+                    return;
+                }
+
+                if (RecaptchaUtil.isConfigured(getServletContext())
+                        && !RecaptchaUtil.verify(request, getServletContext())) {
+                    request.setAttribute("error", "Vui lòng xác nhận bạn không phải robot.");
+                    request.setAttribute("step", "OTP_SENT");
+                    prepareRecaptcha(request);
                     request.getRequestDispatcher("/jsp/register.jsp").forward(request, response);
                     return;
                 }
             }
             else {
+                if (RecaptchaUtil.isConfigured(getServletContext())
+                        && !RecaptchaUtil.verify(request, getServletContext())) {
+                    request.setAttribute("error", "Vui lòng xác nhận bạn không phải robot.");
+                    prepareRecaptcha(request);
+                    request.getRequestDispatcher("/jsp/register.jsp").forward(request, response);
+                    return;
+                }
+
                 if (!password.equals(confirmPassword)) {
                     request.setAttribute("error", "Mật khẩu xác nhận không khớp");
+                    prepareRecaptcha(request);
                     request.getRequestDispatcher("/jsp/register.jsp").forward(request, response);
                     return;
                 }
 
                 if (!email.endsWith("@gmail.com")) {
                     request.setAttribute("error", "Chỉ chấp nhận Gmail");
+                    prepareRecaptcha(request);
                     request.getRequestDispatcher("/jsp/register.jsp").forward(request, response);
                     return;
                 }
 
                 if (userDao.emailExists(email)) {
                     request.setAttribute("error", "Email đã tồn tại");
+                    prepareRecaptcha(request);
                     request.getRequestDispatcher("/jsp/register.jsp").forward(request, response);
                     return;
                 }
@@ -129,7 +151,13 @@ public class RegisterController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        prepareRecaptcha(request);
         request.getRequestDispatcher("/jsp/register.jsp")
                 .forward(request, response);
+    }
+
+    private void prepareRecaptcha(HttpServletRequest request) {
+        request.setAttribute("recaptchaSiteKey", RecaptchaUtil.getSiteKey(getServletContext()));
+        request.setAttribute("recaptchaConfigured", RecaptchaUtil.isConfigured(getServletContext()));
     }
 }

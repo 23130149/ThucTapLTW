@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.User;
+import util.RecaptchaUtil;
 
 import java.io.IOException;
 
@@ -40,6 +41,13 @@ public class ReviewSubmitController extends HttpServlet {
 
         if (!orderDao.hasUserPurchasedProduct(user.getUserId(), productId)) {
             session.setAttribute("reviewError", "Bạn cần mua sản phẩm trước khi đánh giá.");
+            response.sendRedirect(request.getContextPath() + "/product-detail?id=" + productId);
+            return;
+        }
+
+        if (RecaptchaUtil.isConfigured(getServletContext())
+                && !RecaptchaUtil.verify(request, getServletContext())) {
+            session.setAttribute("reviewError", "Vui lòng xác nhận bạn không phải robot.");
             response.sendRedirect(request.getContextPath() + "/product-detail?id=" + productId);
             return;
         }

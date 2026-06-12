@@ -665,6 +665,12 @@ input {
     box-shadow: 0 0 0 4px rgba(17, 153, 142, 0.10);
 }
 
+.review-captcha {
+    display: grid;
+    justify-content: start;
+    margin: 14px 0 2px;
+}
+
 .review-submit-btn {
     margin-top: 14px;
     border: none;
