@@ -45,7 +45,7 @@ public class AdminContactController extends HttpServlet {
         request.setAttribute("keyword", keyword);
         request.setAttribute("currentStatus", status);
         request.setAttribute("notificationCount", oDao.countAdminNotifications());
-        request.setAttribute("latestNotifications", oDao.getLatestAdminNotifications(5));
+        request.setAttribute("latestNotifications", oDao.getLatestAdminNotifications(20));
 
         request.getRequestDispatcher("/jsp/adminjsp/Admin_LienHe.jsp").forward(request, response);
     }

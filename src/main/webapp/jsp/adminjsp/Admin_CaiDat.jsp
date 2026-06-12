@@ -37,18 +37,33 @@
     <main class="main-content">
         <header class="header">
             <h2>Cài đặt</h2>
-            <div class="search-box">
-                <input type="text" placeholder="Tìm kiếm...">
-                <button><i class="bx bx-search"></i></button>
-            </div>
             <div class="user-info">
-                <a href="${pageContext.request.contextPath}/admin/notifications" class="notification-btn">
-                    <i class="bx bx-bell"></i>
-                    <c:if test="${notificationCount > 0}">
-                        <span class="notification-count">${notificationCount}</span>
-                    </c:if>
-                </a>
+                <div class="notification-wrapper">
+                    <a href="javascript:void(0)" class="notification-btn">
+                        <i class="bx bx-bell"></i>
+                        <c:if test="${notificationCount > 0}">
+                            <span class="notification-count">${notificationCount}</span>
+                        </c:if>
+                    </a>
+                    <div class="notification-dropdown">
+                        <h4>Thông báo Admin</h4>
 
+                        <c:choose>
+                            <c:when test="${empty latestNotifications}">
+                                <p class="empty-notification">Không có thông báo mới</p>
+                            </c:when>
+
+                            <c:otherwise>
+                                <c:forEach items="${latestNotifications}" var="n">
+                                    <a href="${pageContext.request.contextPath}${n.url}" class="notification-item">
+                                        <span class="notification-type">${n.type}</span>
+                                        <p>${n.message}</p>
+                                    </a>
+                                </c:forEach>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
+                </div>
                 <a href="${pageContext.request.contextPath}/admin/setting" class="profile-admin">
                     <span class="admin-avatar">
                         <c:choose>
@@ -73,8 +88,26 @@
                 </a>
             </div>
         </header>
-        <div class="setting-container">
-            <section class="settings-card">
+        <c:choose>
+        <c:when test="${accessDenied}">
+            <div class="admin-alert error">
+                <i class="bx bx-error-circle"></i>
+                    ${accessDeniedMessage}
+            </div>
+        </c:when>
+
+            <c:otherwise>
+
+                <c:if test="${not empty sessionScope.settingMessage}">
+                    <div class="admin-alert success">
+                        <i class="bx bx-check-circle"></i>
+                            ${sessionScope.settingMessage}
+                    </div>
+                    <c:remove var="settingMessage" scope="session"/>
+                </c:if>
+            <div class="setting-container">
+                <c:if test="${canManageSetting}">
+                <section class="settings-card">
                 <div class="settings-card-header">
                     <div>
                         <h3>
@@ -115,7 +148,7 @@
                     </div>
 
                     <div class="card-footer">
-                        <c:if test="${fn:contains(sessionScope.permissionCodesText, ',MANAGE_SETTING,')}">
+                        <c:if test="${canManageSetting}">
                             <button type="submit" class="btn-save">
                                 <i class="bx bx-save"></i>
                                 Lưu thông tin
@@ -124,69 +157,6 @@
                     </div>
                 </form>
             </section>
-
-            <section class="settings-card">
-                <div class="settings-card-header">
-                    <div>
-                        <h3>
-                            <i class="bx bx-bell"></i>
-                            Thông báo
-                        </h3>
-                        <p>Quản lý các loại thông báo dành cho quản trị viên.</p>
-                    </div>
-                </div>
-
-                <div class="switch-group">
-                    <div class="switch-item">
-                        <div class="info">
-                            <strong>Đơn hàng mới</strong>
-                            <p>Nhận thông báo khi khách hàng tạo đơn hàng mới.</p>
-                        </div>
-
-                        <label class="toggle">
-                            <input type="checkbox" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-
-                    <div class="switch-item">
-                        <div class="info">
-                            <strong>Đánh giá mới</strong>
-                            <p>Nhận thông báo khi có đánh giá mới cần kiểm duyệt.</p>
-                        </div>
-
-                        <label class="toggle">
-                            <input type="checkbox" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-
-                    <div class="switch-item">
-                        <div class="info">
-                            <strong>Sản phẩm hết hàng</strong>
-                            <p>Thông báo khi số lượng tồn kho của sản phẩm bằng 0.</p>
-                        </div>
-
-                        <label class="toggle">
-                            <input type="checkbox" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-
-                    <div class="switch-item">
-                        <div class="info">
-                            <strong>Liên hệ từ người dùng</strong>
-                            <p>Nhận thông báo khi người dùng gửi phản hồi hoặc liên hệ mới.</p>
-                        </div>
-
-                        <label class="toggle">
-                            <input type="checkbox" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-            </section>
-
             <section class="settings-card">
                 <div class="settings-card-header">
                     <div>
@@ -197,15 +167,49 @@
                         <p>Gán quyền truy cập từng chức năng cho từng tài khoản quản trị.</p>
                     </div>
                 </div>
+                <form method="get"
+                      action="${pageContext.request.contextPath}/admin/setting"
+                      class="admin-permission-search">
+                    <div class="admin-search-box">
+                        <i class="bx bx-search"></i>
+                        <input type="text"
+                               name="adminKeyword"
+                               value="${adminKeyword}"
+                               placeholder="Tìm admin theo tên, email hoặc số điện thoại...">
+                    </div>
 
-                <div class="admin-permission-list">
-                    <c:forEach var="admin" items="${admins}">
-                        <form class="admin-permission-card" action="${pageContext.request.contextPath}/admin/setting" method="post">
-                            <input type="hidden" name="action" value="updatePermission">
-                            <input type="hidden" name="adminId" value="${admin.userId}">
+                    <a href="${pageContext.request.contextPath}/admin/setting" class="btn-reset-admin">
+                        <i class="bx bx-refresh"></i>
+                        Làm mới
+                    </a>
+                </form>
 
-                            <div class="admin-permission-header">
-                                <div class="admin-permission-info">
+                <c:if test="${not empty adminKeyword}">
+                    <p class="search-result-text">
+                        Kết quả tìm kiếm cho: <strong>${adminKeyword}</strong>
+                    </p>
+                </c:if>
+                    <div class="admin-permission-list">
+                        <c:choose>
+                            <c:when test="${empty admins}">
+                                <div class="empty-admin-result">
+                                    <i class="bx bx-user-x"></i>
+                                    <p>Không tìm thấy tài khoản admin phù hợp.</p>
+                                </div>
+                            </c:when>
+
+                            <c:otherwise>
+                                <c:forEach var="admin" items="${admins}">
+                                    <form class="admin-permission-card"
+                                          action="${pageContext.request.contextPath}/admin/setting"
+                                          method="post">
+
+                                        <input type="hidden" name="action" value="updatePermission">
+                                        <input type="hidden" name="adminId" value="${admin.userId}">
+                                        <input type="hidden" name="adminKeyword" value="${adminKeyword}">
+
+                                        <div class="admin-permission-header">
+                                            <div class="admin-permission-info">
                             <span class="admin-avatar small">
                                 <c:choose>
                                     <c:when test="${not empty admin.userName}">
@@ -215,89 +219,136 @@
                                 </c:choose>
                             </span>
 
-                                    <div>
-                                        <strong>
-                                            <c:choose>
-                                                <c:when test="${not empty admin.userName}">
-                                                    ${admin.userName}
-                                                </c:when>
-                                                <c:otherwise>Chưa cập nhật tên</c:otherwise>
-                                            </c:choose>
-                                        </strong>
-                                        <p>${admin.email}</p>
-                                    </div>
-                                </div>
+                                                <div>
+                                                    <strong>
+                                                        <c:choose>
+                                                            <c:when test="${not empty admin.userName}">
+                                                                ${admin.userName}
+                                                            </c:when>
+                                                            <c:otherwise>Chưa cập nhật tên</c:otherwise>
+                                                        </c:choose>
+                                                    </strong>
+                                                    <p>${admin.email}</p>
+                                                </div>
+                                            </div>
 
-                                <c:if test="${fn:contains(sessionScope.permissionCodesText, ',MANAGE_SETTING,')}">
-                                    <button type="submit" class="btn-save small-btn">
-                                        <i class="bx bx-save"></i>
-                                        Lưu quyền
-                                    </button>
-                                </c:if>
-                            </div>
+                                            <c:if test="${canManageSetting}">
+                                                <button type="submit" class="btn-save small-btn">
+                                                    <i class="bx bx-save"></i>
+                                                    Lưu quyền
+                                                </button>
+                                            </c:if>
+                                        </div>
 
-                            <c:set var="currentPermissions" value="${adminPermissionMap[admin.userId]}"/>
+                                        <c:set var="currentPermissions" value="${adminPermissionMap[admin.userId]}"/>
 
-                            <div class="permission-grid">
-                                <c:forEach var="permission" items="${permissions}">
-                                    <label class="permission-option">
-                                        <input type="checkbox"
-                                               name="permissions"
-                                               value="${permission.permissionCode}"
-                                               <c:if test="${fn:contains(currentPermissions, permission.permissionCode)}">checked</c:if>
-                                               <c:if test="${not fn:contains(sessionScope.permissionCodesText, ',MANAGE_SETTING,')}">disabled</c:if>>
-                                        <span>
-                                    <strong>${permission.permissionName}</strong>
-                                    <small>${permission.description}</small>
-                                </span>
-                                    </label>
+                                        <div class="permission-grid">
+                                            <c:forEach var="permission" items="${permissions}">
+                                                <label class="permission-option">
+                                                    <input type="checkbox"
+                                                           name="permissions"
+                                                           value="${permission.permissionCode}"
+                                                           <c:if test="${fn:contains(currentPermissions, permission.permissionCode)}">checked</c:if>>
+
+                                                    <span>
+                                                        <strong>${permission.permissionName}</strong>
+                                                        <small>${permission.description}</small>
+                                                    </span>
+                                                </label>
+                                            </c:forEach>
+                                        </div>
+                                    </form>
                                 </c:forEach>
-                            </div>
-                        </form>
-                    </c:forEach>
-                </div>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
             </section>
-            <section class="settings-card">
-                <div class="settings-card-header">
-                    <div>
-                        <h3>
-                            <i class="bx bx-lock-alt"></i>
-                            Bảo mật tài khoản
-                        </h3>
-                        <p>Đổi mật khẩu quản trị viên để tăng tính bảo mật.</p>
-                    </div>
-                </div>
-
-                <form action="${pageContext.request.contextPath}/admin/setting" method="post">
-                    <input type="hidden" name="action" value="changePassword">
-                    <div class="form-grid">
-                        <div class="form-group full-width">
-                            <label for="currentPassword">Mật khẩu hiện tại</label>
-                            <input id="currentPassword" type="password" name="currentPassword" placeholder="Nhập mật khẩu hiện tại">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="newPassword">Mật khẩu mới</label>
-                            <input id="newPassword" type="password" name="newPassword" placeholder="Nhập mật khẩu mới">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="confirmPassword">Xác nhận mật khẩu mới</label>
-                            <input id="confirmPassword" type="password" name="confirmPassword" placeholder="Nhập lại mật khẩu mới">
+                </c:if>
+                <section class="settings-card">
+                    <div class="settings-card-header">
+                        <div>
+                            <h3>
+                                <i class="bx bx-lock-alt"></i>
+                                Bảo mật tài khoản
+                            </h3>
+                            <p>Đổi mật khẩu quản trị viên đang đăng nhập.</p>
                         </div>
                     </div>
 
-                    <div class="card-footer">
-                        <c:if test="${fn:contains(sessionScope.permissionCodesText, ',MANAGE_SETTING,')}">
+                    <form action="${pageContext.request.contextPath}/admin/setting" method="post">
+                        <input type="hidden" name="action" value="changePassword">
+                        <input type="hidden" name="adminKeyword" value="${adminKeyword}">
+
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label for="currentPassword">Mật khẩu hiện tại</label>
+                                <input id="currentPassword"
+                                       type="password"
+                                       name="currentPassword"
+                                       placeholder="Nhập mật khẩu hiện tại">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="newPassword">Mật khẩu mới</label>
+                                <input id="newPassword"
+                                       type="password"
+                                       name="newPassword"
+                                       placeholder="Nhập mật khẩu mới">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="confirmPassword">Xác nhận mật khẩu mới</label>
+                                <input id="confirmPassword"
+                                       type="password"
+                                       name="confirmPassword"
+                                       placeholder="Nhập lại mật khẩu mới">
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
                             <button type="submit" class="btn-password">
                                 <i class="bx bx-lock-alt"></i>
                                 Đổi mật khẩu
                             </button>
-                        </c:if>
-                    </div>
-                </form>
-            </section>
+                        </div>
+                    </form>
+                </section>
         </div>
+        </c:otherwise>
+        </c:choose>
     </main>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const wrappers = document.querySelectorAll(".notification-wrapper");
+
+            wrappers.forEach(function (wrapper) {
+                const button = wrapper.querySelector(".notification-btn");
+                const dropdown = wrapper.querySelector(".notification-dropdown");
+
+                button.addEventListener("click", function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    wrappers.forEach(function (item) {
+                        if (item !== wrapper) {
+                            item.classList.remove("active");
+                        }
+                    });
+
+                    wrapper.classList.toggle("active");
+                });
+
+                dropdown.addEventListener("click", function (event) {
+                    event.stopPropagation();
+                });
+            });
+
+            document.addEventListener("click", function () {
+                wrappers.forEach(function (wrapper) {
+                    wrapper.classList.remove("active");
+                });
+            });
+        });
+    </script>
     </body>
     </html>

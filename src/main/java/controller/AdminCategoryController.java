@@ -45,7 +45,7 @@ public class AdminCategoryController extends HttpServlet {
         request.setAttribute("avgCategory", String.format("%.1f", avg));
         request.setAttribute("keyword", keyword);
         request.setAttribute("notificationCount", oDao.countAdminNotifications());
-        request.setAttribute("latestNotifications", oDao.getLatestAdminNotifications(5));
+        request.setAttribute("latestNotifications", oDao.getLatestAdminNotifications(20));
 
         request.getRequestDispatcher("/jsp/adminjsp/Admin_DanhMuc.jsp").forward(request, response);
     }

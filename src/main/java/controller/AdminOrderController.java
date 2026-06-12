@@ -96,7 +96,7 @@ public class AdminOrderController extends HttpServlet {
         request.setAttribute("returnRejectedCount", oDao.countOrdersByStatus("RETURN_REJECTED"));
 
         request.setAttribute("notificationCount", oDao.countAdminNotifications());
-        request.setAttribute("latestNotifications", oDao.getLatestAdminNotifications(5));
+        request.setAttribute("latestNotifications", oDao.getLatestAdminNotifications(20));
         request.setAttribute("ghnSimulation", new GhnService().isSimulation());
 
         request.getRequestDispatcher("/jsp/adminjsp/Admin_DonHang.jsp").forward(request, response);

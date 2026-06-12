@@ -736,4 +736,38 @@ public class UserDao extends BaseDao {
                         .list()
         );
     }
+    public List<User> searchAdminAccounts(String keyword) {
+        String sql = """
+        SELECT
+            User_Id       AS userId,
+            Customer_Code AS customerCode,
+            User_Name     AS userName,
+            Email         AS email,
+            Phone         AS phone,
+            Date_Of_Birth AS dateOfBirth,
+            Gender        AS gender,
+            Password      AS password,
+            Google_Id     AS googleId,
+            Avatar_Url    AS avatarUrl,
+            Bio           AS bio,
+            Create_At     AS createAt,
+            Role          AS role
+        FROM user
+        WHERE Role = 'ADMIN'
+          AND (
+                :keyword = ''
+                OR LOWER(COALESCE(User_Name, '')) LIKE CONCAT('%', LOWER(:keyword), '%')
+                OR LOWER(COALESCE(Email, '')) LIKE CONCAT('%', LOWER(:keyword), '%')
+                OR LOWER(COALESCE(Phone, '')) LIKE CONCAT('%', LOWER(:keyword), '%')
+          )
+        ORDER BY Create_At DESC
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("keyword", keyword == null ? "" : keyword.trim())
+                        .mapToBean(User.class)
+                        .list()
+        );
+    }
 }
