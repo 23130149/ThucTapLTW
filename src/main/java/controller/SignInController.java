@@ -8,12 +8,12 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import util.PasswordUtil;
+import util.RecaptchaUtil;
 
 import java.io.IOException;
 
 @WebServlet("/SignIn")
-public class    SignInController extends HttpServlet {
-
+public class SignInController extends HttpServlet {
     private UserDao userDao;
     private CartDao cartDao;
 
@@ -26,35 +26,41 @@ public class    SignInController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
         String redirect = request.getParameter("redirect");
         if (redirect != null && !redirect.trim().isEmpty()) {
             request.getSession().setAttribute("redirectAfterLogin", sanitizeRedirect(redirect));
         }
 
+        prepareRecaptcha(request, false);
         request.getRequestDispatcher("/jsp/signin.jsp").forward(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
         request.setCharacterEncoding("UTF-8");
 
         String email = request.getParameter("email");
         String password = request.getParameter("pass");
+        HttpSession session = request.getSession();
 
-        User user = userDao.findByEmail(email);
-
-        if (user == null || user.getPassword() == null ||
-                !PasswordUtil.verify(password, user.getPassword())) {
-
-            request.setAttribute("error", "Sai email hoặc mật khẩu");
+        if (RecaptchaUtil.isConfigured(getServletContext())
+                && !RecaptchaUtil.verify(request, getServletContext())) {
+            request.setAttribute("error", "Vui lòng xác nhận bạn không phải robot.");
+            prepareRecaptcha(request, true);
             request.getRequestDispatcher("/jsp/signin.jsp").forward(request, response);
             return;
         }
 
-        HttpSession session = request.getSession();
+        User user = userDao.findByEmail(email);
+
+        if (user == null || user.getPassword() == null
+                || !PasswordUtil.verify(password, user.getPassword())) {
+            request.setAttribute("error", "Sai email hoặc mật khẩu");
+            prepareRecaptcha(request, false);
+            request.getRequestDispatcher("/jsp/signin.jsp").forward(request, response);
+            return;
+        }
 
         Cart sessionCart = (Cart) session.getAttribute("cart");
         cartDao.mergeSessionCartToDb(user.getUserId(), sessionCart);
@@ -91,5 +97,11 @@ public class    SignInController extends HttpServlet {
         }
 
         return value.isBlank() ? null : value;
+    }
+
+    private void prepareRecaptcha(HttpServletRequest request, boolean visible) {
+        request.setAttribute("recaptchaSiteKey", RecaptchaUtil.getSiteKey(getServletContext()));
+        request.setAttribute("recaptchaConfigured", RecaptchaUtil.isConfigured(getServletContext()));
+        request.setAttribute("recaptchaVisible", visible && RecaptchaUtil.isConfigured(getServletContext()));
     }
 }

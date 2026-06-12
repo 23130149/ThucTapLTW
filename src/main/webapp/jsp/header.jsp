@@ -11,6 +11,22 @@
         <c:remove var="toastType" scope="session"/>
         <c:remove var="toastIcon" scope="session"/>
     </c:if>
+    <c:if test="${empty sessionScope.user}">
+        <div class="hh-login-modal ${sessionScope.showLoginModal ? 'show' : ''}" id="hhLoginModal" aria-hidden="${sessionScope.showLoginModal ? 'false' : 'true'}">
+            <div class="hh-login-dialog" role="dialog" aria-modal="true" aria-labelledby="hhLoginTitle">
+                <button type="button" class="hh-login-close" aria-label="Đóng thông báo">
+                    <i class="bx bx-x"></i>
+                </button>
+                <div class="hh-login-icon">
+                    <i class="bx bx-cart-add"></i>
+                </div>
+                <h3 id="hhLoginTitle">Vui lòng đăng nhập</h3>
+                <p>Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng.</p>
+                <a class="hh-login-button" href="${pageContext.request.contextPath}/SignIn?redirect=${sessionScope.redirectAfterLogin}">Đăng nhập</a>
+            </div>
+        </div>
+        <c:remove var="showLoginModal" scope="session"/>
+    </c:if>
     <div class="hh-header-main">
         <div class="hh-header-inner">
             <a class="hh-logo" href="${pageContext.request.contextPath}/home">
@@ -41,3 +57,68 @@
     </nav>
 </header>
 <script>window.APP_CONTEXT='${pageContext.request.contextPath}';</script>
+<c:if test="${empty sessionScope.user}">
+    <script>
+        (function () {
+            const modal = document.getElementById('hhLoginModal');
+            if (!modal) return;
+
+            const loginLink = modal.querySelector('.hh-login-button');
+            const closeButtons = modal.querySelectorAll('.hh-login-close');
+            const contextPath = window.APP_CONTEXT || '';
+
+            function currentRedirect() {
+                let current = window.location.pathname + window.location.search;
+                if (contextPath && current.startsWith(contextPath)) {
+                    current = current.substring(contextPath.length);
+                }
+                current = current.replace(/^\/+/, '');
+                return current || 'home';
+            }
+
+            function syncLoginLink() {
+                loginLink.href = contextPath + '/SignIn?redirect=' + encodeURIComponent(currentRedirect());
+            }
+
+            function openLoginModal(event) {
+                event.preventDefault();
+                syncLoginLink();
+                modal.classList.add('show');
+                modal.setAttribute('aria-hidden', 'false');
+            }
+
+            function closeLoginModal() {
+                modal.classList.remove('show');
+                modal.setAttribute('aria-hidden', 'true');
+            }
+
+            if (modal.classList.contains('show')) {
+                syncLoginLink();
+            }
+
+            document.querySelectorAll('a[href*="/Add-Cart"]').forEach(function (link) {
+                link.addEventListener('click', openLoginModal);
+            });
+
+            document.querySelectorAll('form[action$="/Add-Cart"]').forEach(function (form) {
+                form.addEventListener('submit', openLoginModal);
+            });
+
+            closeButtons.forEach(function (button) {
+                button.addEventListener('click', closeLoginModal);
+            });
+
+            modal.addEventListener('click', function (event) {
+                if (event.target === modal) {
+                    closeLoginModal();
+                }
+            });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') {
+                    closeLoginModal();
+                }
+            });
+        })();
+    </script>
+</c:if>

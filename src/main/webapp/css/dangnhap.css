@@ -24,6 +24,30 @@ body {
 .wrapper h1 {
     text-align: center;
     font-size: 30px;
+    margin-bottom: 18px;
+}
+
+.login-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+    margin: 0 0 18px;
+    padding: 12px 14px;
+    border: 1px solid #b7eadb;
+    border-radius: 8px;
+    background: #effcf7;
+    color: #086454;
+    font-size: 14px;
+    line-height: 1.35;
+}
+
+.login-alert i {
+    flex: 0 0 auto;
+    color: #11998e;
+    font-size: 20px;
+    line-height: 1;
+    margin-top: 1px;
 }
 
 .input-box {
@@ -49,6 +73,21 @@ body {
     transform: translateY(-50%);
 }
 
+.captcha-box {
+    display: grid;
+    justify-content: center;
+    gap: 8px;
+    margin: 0 0 18px;
+}
+
+.captcha-box-hidden {
+    max-height: 0;
+    margin: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
+
 .remember-forgot {
     display: flex;
     justify-content: space-between;
@@ -71,14 +110,14 @@ body {
     margin-top: 15px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 12px;
 }
 
 .google-btn-wrap,
 .social-btn {
     width: 100%;
-    height: 50px;
-    border-radius: 6px;
+    height: 40px;
+    border-radius: 4px;
 }
 
 .google-btn-wrap {
@@ -86,32 +125,41 @@ body {
 }
 
 .google-btn-wrap > div,
-.social-login iframe {
+.google-btn-wrap iframe {
     width: 100% !important;
-    height: 50px !important;
+    height: 40px !important;
 }
 
 .social-btn {
     display: flex;
+    position: relative;
     align-items: center;
     justify-content: center;
-    position: relative;
-    padding: 0 48px;
+    padding: 0 54px;
     border: 1px solid #dadce0;
     background: white;
     text-decoration: none;
     color: #3c4043;
+    font-family: Arial, sans-serif;
     font-weight: 500;
-    font-size: 20px;
+    font-size: 14px;
+    line-height: 1;
     transition: 0.2s;
+}
+
+.social-btn span {
+    display: block;
+    width: 100%;
+    text-align: center;
+    white-space: nowrap;
 }
 
 .social-btn i {
     position: absolute;
-    left: 18px;
+    left: 17px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 25px;
+    font-size: 20px;
 }
 
 .social-btn:hover {

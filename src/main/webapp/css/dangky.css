@@ -150,6 +150,17 @@ body {
     color: white;
     font-weight: 600;
 }
+
+.captcha-box {
+    display: grid;
+    justify-content: center;
+    margin: 4px 0 16px;
+}
+
+.resend-captcha {
+    margin-top: 14px;
+}
+
 .msg {
     font-size: 13px;
     margin: 4px 10px;
