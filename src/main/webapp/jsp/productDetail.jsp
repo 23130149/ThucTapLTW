@@ -8,6 +8,7 @@
 <head>
   <link rel="stylesheet"
         href="${pageContext.request.contextPath}/css/chitietsp.css?v=10">
+        href="${pageContext.request.contextPath}/css/chitietsp.css?v=11">
   <meta charset="UTF-8">
   <title>${product.productName}</title>
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
@@ -194,6 +195,12 @@
             <label class="review-label" for="reviewComment">Bình luận</label>
             <textarea id="reviewComment" name="comment" required placeholder="Chia sẻ cảm nhận của bạn..."></textarea>
 
+            <c:if test="${recaptchaConfigured}">
+              <div class="review-captcha">
+                <div class="g-recaptcha" data-sitekey="${recaptchaSiteKey}"></div>
+              </div>
+            </c:if>
+
             <button type="submit" class="review-submit-btn">
               <i class="bx bx-send"></i>
               Gửi đánh giá
@@ -340,5 +347,8 @@
   window.APP_CONTEXT = '${pageContext.request.contextPath}';
 </script>
 <script src="${pageContext.request.contextPath}/js/search-suggest.js"></script>
+<c:if test="${recaptchaConfigured}">
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</c:if>
 </body>
 </html>

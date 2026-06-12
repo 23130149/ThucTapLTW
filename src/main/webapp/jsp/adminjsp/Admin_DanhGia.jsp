@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <title>Admin</title>
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/Admin_DanhGia.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/Admin_DanhGia.css?v=3">
 </head>
 <body>
 <aside class="sliderbar">
@@ -291,6 +291,40 @@
 
                                 <c:choose>
                                     <c:when test="${fn:contains(sessionScope.permissionCodesText, ',MANAGE_REVIEW,')}">
+                                        <div class="review-action-row">
+                                            <c:if test="${review.status == 'PENDING' || review.status == 'HIDDEN'}">
+                                                <form method="post"
+                                                      action="${pageContext.request.contextPath}/admin/reviews"
+                                                      class="review-status-form">
+                                                    <input type="hidden" name="action" value="approve">
+                                                    <input type="hidden" name="reviewId" value="${review.reviewId}">
+                                                    <input type="hidden" name="keyword" value="${fn:escapeXml(keyword)}">
+                                                    <input type="hidden" name="rating" value="${currentRating}">
+                                                    <input type="hidden" name="status" value="${currentStatus}">
+                                                    <button type="submit" class="review-action-btn approve-btn">
+                                                        <i class="bx bx-check-circle"></i>
+                                                        Duyệt hiển thị
+                                                    </button>
+                                                </form>
+                                            </c:if>
+
+                                            <c:if test="${review.status == 'PENDING' || review.status == 'APPROVED'}">
+                                                <form method="post"
+                                                      action="${pageContext.request.contextPath}/admin/reviews"
+                                                      class="review-status-form">
+                                                    <input type="hidden" name="action" value="hide">
+                                                    <input type="hidden" name="reviewId" value="${review.reviewId}">
+                                                    <input type="hidden" name="keyword" value="${fn:escapeXml(keyword)}">
+                                                    <input type="hidden" name="rating" value="${currentRating}">
+                                                    <input type="hidden" name="status" value="${currentStatus}">
+                                                    <button type="submit" class="review-action-btn hide-btn">
+                                                        <i class="bx bx-hide"></i>
+                                                        Ẩn đánh giá
+                                                    </button>
+                                                </form>
+                                            </c:if>
+                                        </div>
+
                                         <form method="post"
                                               action="${pageContext.request.contextPath}/admin/reviews"
                                               class="reply-inline-form">

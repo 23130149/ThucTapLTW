@@ -206,6 +206,12 @@ main.about-us-container {
     outline-offset: 3px;
 }
 
+.captcha-field {
+    display: grid;
+    justify-content: center;
+    margin: 4px 0 18px;
+}
+
 .btn-logout {
     display: block;
     width: 100%;
