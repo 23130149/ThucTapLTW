@@ -66,7 +66,7 @@
             request.setAttribute("topProducts", topProducts);
             request.setAttribute("latestOrders", latestOrders);
             request.setAttribute("notificationCount", oDao.countAdminNotifications());
-            request.setAttribute("latestNotifications", oDao.getLatestAdminNotifications(5));
+            request.setAttribute("latestNotifications", oDao.getLatestAdminNotifications(20));
 
             request.getRequestDispatcher("/jsp/adminjsp/Admin_TongQuan.jsp").forward(request, response);
     }

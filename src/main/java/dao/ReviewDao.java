@@ -255,6 +255,33 @@ public class ReviewDao extends BaseDao {
         }
     }
 
+    public boolean hasUserLiked(int reviewId, int userId) {
+        return getJdbi().withHandle(handle ->
+                handle.createQuery("""
+                                SELECT COUNT(*)
+                                FROM review_likes
+                                WHERE Review_Id = :reviewId AND User_Id = :userId
+                                """)
+                        .bind("reviewId", reviewId)
+                        .bind("userId", userId)
+                        .mapTo(Integer.class)
+                        .one() > 0
+        );
+    }
+
+    public int countLikes(int reviewId) {
+        return getJdbi().withHandle(handle ->
+                handle.createQuery("""
+                                SELECT COUNT(*)
+                                FROM review_likes
+                                WHERE Review_Id = :reviewId
+                                """)
+                        .bind("reviewId", reviewId)
+                        .mapTo(Integer.class)
+                        .one()
+        );
+    }
+
     public void addReply(int reviewId, int userId, String replyText) {
         String sql = """
                 INSERT INTO review_replies (Review_Id, User_Id, Reply_Text, Create_At)
@@ -409,18 +436,41 @@ public class ReviewDao extends BaseDao {
         return result;
     }
 
-    public void updateShopReply(int reviewId, String replyText) {
+    public boolean updateReviewStatus(int reviewId, String status) {
+        String normalizedStatus = status == null ? "" : status.trim().toUpperCase();
+
+        if (!"PENDING".equals(normalizedStatus)
+                && !"APPROVED".equals(normalizedStatus)
+                && !"HIDDEN".equals(normalizedStatus)) {
+            return false;
+        }
+
+        String sql = """
+                UPDATE reviews
+                SET Status = :status
+                WHERE Review_Id = :reviewId
+                """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createUpdate(sql)
+                        .bind("reviewId", reviewId)
+                        .bind("status", normalizedStatus)
+                        .execute() > 0
+        );
+    }
+
+    public boolean updateShopReply(int reviewId, String replyText) {
         String sql = """
                 UPDATE reviews
                 SET Shop_Reply = :replyText
                 WHERE Review_Id = :reviewId
                 """;
 
-        getJdbi().useHandle(handle ->
+        return getJdbi().withHandle(handle ->
                 handle.createUpdate(sql)
                         .bind("reviewId", reviewId)
                         .bind("replyText", replyText)
-                        .execute()
+                        .execute() > 0
         );
     }
 }

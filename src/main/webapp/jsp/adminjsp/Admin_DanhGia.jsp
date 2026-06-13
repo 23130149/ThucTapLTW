@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <title>Admin</title>
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/Admin_DanhGia.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/Admin_DanhGia.css?v=3">
 </head>
 <body>
 <aside class="sliderbar">
@@ -39,7 +39,7 @@
         <h2>Quản lý đánh giá</h2>
         <div class="user-info">
             <div class="notification-wrapper">
-                <a href="${pageContext.request.contextPath}/admin/notifications" class="notification-btn">
+                <a href="javascript:void(0)" class="notification-btn">
                     <i class="bx bx-bell"></i>
                     <c:if test="${notificationCount > 0}">
                         <span class="notification-count">${notificationCount}</span>
@@ -47,10 +47,12 @@
                 </a>
                 <div class="notification-dropdown">
                     <h4>Thông báo Admin</h4>
+
                     <c:choose>
                         <c:when test="${empty latestNotifications}">
                             <p class="empty-notification">Không có thông báo mới</p>
                         </c:when>
+
                         <c:otherwise>
                             <c:forEach items="${latestNotifications}" var="n">
                                 <a href="${pageContext.request.contextPath}${n.url}" class="notification-item">
@@ -85,6 +87,15 @@
             </a>
         </div>
     </header>
+    <c:choose>
+    <c:when test="${accessDenied}">
+        <div class="admin-alert error">
+            <i class="bx bx-error-circle"></i>
+                ${accessDeniedMessage}
+        </div>
+    </c:when>
+
+    <c:otherwise>
     <c:if test="${not empty sessionScope.reviewMessage}">
         <div class="admin-alert success">
                 ${sessionScope.reviewMessage}
@@ -291,6 +302,40 @@
 
                                 <c:choose>
                                     <c:when test="${fn:contains(sessionScope.permissionCodesText, ',MANAGE_REVIEW,')}">
+                                        <div class="review-action-row">
+                                            <c:if test="${review.status == 'PENDING' || review.status == 'HIDDEN'}">
+                                                <form method="post"
+                                                      action="${pageContext.request.contextPath}/admin/reviews"
+                                                      class="review-status-form">
+                                                    <input type="hidden" name="action" value="approve">
+                                                    <input type="hidden" name="reviewId" value="${review.reviewId}">
+                                                    <input type="hidden" name="keyword" value="${fn:escapeXml(keyword)}">
+                                                    <input type="hidden" name="rating" value="${currentRating}">
+                                                    <input type="hidden" name="status" value="${currentStatus}">
+                                                    <button type="submit" class="review-action-btn approve-btn">
+                                                        <i class="bx bx-check-circle"></i>
+                                                        Duyệt hiển thị
+                                                    </button>
+                                                </form>
+                                            </c:if>
+
+                                            <c:if test="${review.status == 'PENDING' || review.status == 'APPROVED'}">
+                                                <form method="post"
+                                                      action="${pageContext.request.contextPath}/admin/reviews"
+                                                      class="review-status-form">
+                                                    <input type="hidden" name="action" value="hide">
+                                                    <input type="hidden" name="reviewId" value="${review.reviewId}">
+                                                    <input type="hidden" name="keyword" value="${fn:escapeXml(keyword)}">
+                                                    <input type="hidden" name="rating" value="${currentRating}">
+                                                    <input type="hidden" name="status" value="${currentStatus}">
+                                                    <button type="submit" class="review-action-btn hide-btn">
+                                                        <i class="bx bx-hide"></i>
+                                                        Ẩn đánh giá
+                                                    </button>
+                                                </form>
+                                            </c:if>
+                                        </div>
+
                                         <form method="post"
                                               action="${pageContext.request.contextPath}/admin/reviews"
                                               class="reply-inline-form">
@@ -323,6 +368,41 @@
             </c:choose>
         </div>
     </section>
+    </c:otherwise>
+    </c:choose>
 </main>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const wrappers = document.querySelectorAll(".notification-wrapper");
+
+        wrappers.forEach(function (wrapper) {
+            const button = wrapper.querySelector(".notification-btn");
+            const dropdown = wrapper.querySelector(".notification-dropdown");
+
+            button.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                wrappers.forEach(function (item) {
+                    if (item !== wrapper) {
+                        item.classList.remove("active");
+                    }
+                });
+
+                wrapper.classList.toggle("active");
+            });
+
+            dropdown.addEventListener("click", function (event) {
+                event.stopPropagation();
+            });
+        });
+
+        document.addEventListener("click", function () {
+            wrappers.forEach(function (wrapper) {
+                wrapper.classList.remove("active");
+            });
+        });
+    });
+</script>
 </body>
 </html>

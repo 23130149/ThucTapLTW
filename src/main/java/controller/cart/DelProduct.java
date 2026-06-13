@@ -6,8 +6,10 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 import model.User;
+import util.AjaxUtil;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,6 +27,10 @@ public class DelProduct extends HttpServlet {
             session = request.getSession(true);
             session.setAttribute("loginMessage", "Vui lòng đăng nhập để xóa sản phẩm trong giỏ hàng.");
             session.setAttribute("redirectAfterLogin", "cart");
+            if (AjaxUtil.wantsJson(request)) {
+                AjaxUtil.writeJson(response, AjaxUtil.error("Vui lòng đăng nhập để xóa sản phẩm trong giỏ hàng."));
+                return;
+            }
             response.sendRedirect(request.getContextPath() + "/SignIn");
             return;
         }
@@ -32,6 +38,10 @@ public class DelProduct extends HttpServlet {
         String idRaw = request.getParameter("id");
         if (idRaw == null || idRaw.trim().isEmpty()) {
             session.setAttribute("cartError", "Thiếu tham số id");
+            if (AjaxUtil.wantsJson(request)) {
+                AjaxUtil.writeJson(response, AjaxUtil.error("Thiếu tham số id."));
+                return;
+            }
             response.sendRedirect(request.getContextPath() + "/cart");
             return;
         }
@@ -45,6 +55,10 @@ public class DelProduct extends HttpServlet {
         } catch (NumberFormatException e) {
             LOGGER.log(Level.WARNING, "Invalid product id for deletion: " + idRaw, e);
             session.setAttribute("cartError", "ID sản phẩm không hợp lệ");
+            if (AjaxUtil.wantsJson(request)) {
+                AjaxUtil.writeJson(response, AjaxUtil.error("ID sản phẩm không hợp lệ."));
+                return;
+            }
             response.sendRedirect(request.getContextPath() + "/cart");
             return;
         }
@@ -60,6 +74,15 @@ public class DelProduct extends HttpServlet {
 
         Cart cart = cartDao.getCartByUserId(user.getUserId());
         session.setAttribute("cart", cart);
+        if (AjaxUtil.wantsJson(request)) {
+            Map<String, Object> payload = deleted
+                    ? AjaxUtil.ok("Đã xóa sản phẩm khỏi giỏ hàng.")
+                    : AjaxUtil.error("Sản phẩm không tồn tại trong giỏ hàng.");
+            payload.put("productId", id);
+            payload.put("cart", AjaxUtil.cartSummary(cart));
+            AjaxUtil.writeJson(response, payload);
+            return;
+        }
         response.sendRedirect(request.getContextPath() + "/cart");
     }
 

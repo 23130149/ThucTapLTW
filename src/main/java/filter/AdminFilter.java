@@ -5,16 +5,17 @@ import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.*;
 import model.User;
+import util.AjaxUtil;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Set;
 
 @WebFilter({"/admin/*", "/jsp/adminjsp/*"})
 public class AdminFilter implements Filter {
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response,
-                         FilterChain chain)
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
 
         HttpServletRequest req = (HttpServletRequest) request;
@@ -23,80 +24,177 @@ public class AdminFilter implements Filter {
         HttpSession session = req.getSession(false);
 
         if (session == null || session.getAttribute("user") == null) {
+            if (AjaxUtil.wantsJson(req)) {
+                AjaxUtil.writeJson(resp, HttpServletResponse.SC_UNAUTHORIZED,
+                        AjaxUtil.error("Phiên đăng nhập admin đã hết hạn. Vui lòng đăng nhập lại."));
+                return;
+            }
             resp.sendRedirect(req.getContextPath() + "/SignIn");
             return;
         }
 
         User user = (User) session.getAttribute("user");
 
-        if (!"ADMIN".equals(user.getRole())) {
-            resp.sendRedirect(req.getContextPath() + "/jsp/home.jsp");
+        if (user.getRole() == null || !"ADMIN".equalsIgnoreCase(user.getRole())) {
+            if (AjaxUtil.wantsJson(req)) {
+                AjaxUtil.writeJson(resp, HttpServletResponse.SC_FORBIDDEN,
+                        AjaxUtil.error("Tài khoản hiện tại không có quyền truy cập khu vực admin."));
+                return;
+            }
+            resp.sendRedirect(req.getContextPath() + "/home");
             return;
         }
 
-        PermissionDao pDao = new PermissionDao();
-        Set<String> permissions = pDao.getPermissionCodesByUserId(user.getUserId());
+        try {
+            PermissionDao pDao = new PermissionDao();
+            Set<String> permissions = pDao.getPermissionCodesByUserId(user.getUserId());
 
-        session.setAttribute("permissions", permissions);
-        session.setAttribute("permissionCodesText", "," + String.join(",", permissions) + ",");
+            if (permissions == null) {
+                permissions = Set.of();
+            }
 
-        String requiredPermission = getRequiredPermission(req.getRequestURI(), req.getContextPath());
+            session.setAttribute("permissions", permissions);
+            session.setAttribute("permissionCodesText", "," + String.join(",", permissions) + ",");
 
-        if (requiredPermission != null && isModifyRequest(req)) {
-            if (!permissions.contains(requiredPermission)) {
-                resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền thực hiện chức năng này");
+            String path = getPath(req);
+            String requiredPermission = getRequiredPermission(path);
+
+            if (requiredPermission != null && !permissions.contains(requiredPermission)) {
+                if (AjaxUtil.wantsJson(req)) {
+                    AjaxUtil.writeJson(resp, HttpServletResponse.SC_FORBIDDEN,
+                            AjaxUtil.error("Bạn không có quyền thực hiện thao tác này."));
+                    return;
+                }
+
+                request.setAttribute("accessDenied", true);
+                request.setAttribute("accessDeniedMessage", "Bạn không có quyền quản lý trang này");
+
+                String jspPage = getJspPage(path);
+
+                if (jspPage != null) {
+                    request.getRequestDispatcher(jspPage).forward(request, response);
+                    return;
+                }
+
+                request.getRequestDispatcher("/jsp/adminjsp/Admin_TongQuan.jsp").forward(request, response);
                 return;
             }
-        }
 
-        chain.doFilter(request, response);
+            chain.doFilter(request, response);
+        } catch (Exception e) {
+            if (AjaxUtil.wantsJson(req) && !resp.isCommitted()) {
+                resp.reset();
+                Map<String, Object> payload = AjaxUtil.error("Không thể xử lý thao tác admin. Vui lòng kiểm tra lại dữ liệu hoặc ràng buộc trong CSDL.");
+                String detail = rootMessage(e);
+                if (detail != null && !detail.isBlank()) {
+                    payload.put("detail", detail);
+                }
+                AjaxUtil.writeJson(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, payload);
+                return;
+            }
+
+            if (e instanceof ServletException servletException) {
+                throw servletException;
+            }
+            if (e instanceof IOException ioException) {
+                throw ioException;
+            }
+            throw new ServletException(e);
+        }
     }
 
-    private boolean isModifyRequest(HttpServletRequest req) {
-        String method = req.getMethod();
-
-        if ("POST".equalsIgnoreCase(method)
-                || "PUT".equalsIgnoreCase(method)
-                || "DELETE".equalsIgnoreCase(method)) {
-            return true;
+    private String rootMessage(Throwable throwable) {
+        Throwable current = throwable;
+        while (current.getCause() != null) {
+            current = current.getCause();
         }
-
-        String action = req.getParameter("action");
-
-        if (action == null || action.isBlank()) {
-            return false;
-        }
-
-        return action.equalsIgnoreCase("add")
-                || action.equalsIgnoreCase("create")
-                || action.equalsIgnoreCase("insert")
-                || action.equalsIgnoreCase("edit")
-                || action.equalsIgnoreCase("update")
-                || action.equalsIgnoreCase("delete")
-                || action.equalsIgnoreCase("remove")
-                || action.equalsIgnoreCase("save")
-                || action.equalsIgnoreCase("reply")
-                || action.equalsIgnoreCase("approve")
-                || action.equalsIgnoreCase("reject")
-                || action.equalsIgnoreCase("confirm")
-                || action.equalsIgnoreCase("cancel")
-                || action.equalsIgnoreCase("hide")
-                || action.equalsIgnoreCase("changeStatus")
-                || action.equalsIgnoreCase("updateStatus");
+        return current.getMessage();
     }
 
-    private String getRequiredPermission(String requestUri, String contextPath) {
-        String path = requestUri.substring(contextPath.length());
+    private String getPath(HttpServletRequest req) {
+        return req.getRequestURI().substring(req.getContextPath().length());
+    }
 
-        if (path.startsWith("/admin/category")) return "MANAGE_CATEGORY";
-        if (path.startsWith("/admin/products")) return "MANAGE_PRODUCT";
-        if (path.startsWith("/admin/orders")) return "MANAGE_ORDER";
-        if (path.startsWith("/admin/customers")) return "MANAGE_CUSTOMER";
-        if (path.startsWith("/admin/reviews")) return "MANAGE_REVIEW";
-        if (path.startsWith("/admin/contact")) return "MANAGE_CONTACT";
-        if (path.startsWith("/admin/contacts")) return "MANAGE_CONTACT";
-        if (path.startsWith("/admin/banner")) return "MANAGE_BANNER";
-        if (path.startsWith("/admin/setting")) return "MANAGE_SETTING";
+    private String getRequiredPermission(String path) {
+        if (path.startsWith("/admin/category")
+                || path.startsWith("/jsp/adminjsp/Admin_DanhMuc.jsp")) {
+            return "MANAGE_CATEGORY";
+        }
+
+        if (path.startsWith("/admin/products")
+                || path.startsWith("/jsp/adminjsp/Admin_SanPham.jsp")) {
+            return "MANAGE_PRODUCT";
+        }
+
+        if (path.startsWith("/admin/orders")
+                || path.startsWith("/jsp/adminjsp/Admin_DonHang.jsp")) {
+            return "MANAGE_ORDER";
+        }
+
+        if (path.startsWith("/admin/customers")
+                || path.startsWith("/jsp/adminjsp/Admin_KhachHang.jsp")) {
+            return "MANAGE_CUSTOMER";
+        }
+
+        if (path.startsWith("/admin/reviews")
+                || path.startsWith("/jsp/adminjsp/Admin_DanhGia.jsp")) {
+            return "MANAGE_REVIEW";
+        }
+
+        if (path.startsWith("/admin/contact")
+                || path.startsWith("/admin/contacts")
+                || path.startsWith("/jsp/adminjsp/Admin_LienHe.jsp")) {
+            return "MANAGE_CONTACT";
+        }
+
+        if (path.startsWith("/admin/banner")
+                || path.startsWith("/jsp/adminjsp/Admin_Banner.jsp")) {
+            return "MANAGE_BANNER";
+        }
+
+        return null;
+    }
+    private String getJspPage(String path) {
+        if (path.startsWith("/admin/category")
+                || path.startsWith("/jsp/adminjsp/Admin_DanhMuc.jsp")) {
+            return "/jsp/adminjsp/Admin_DanhMuc.jsp";
+        }
+
+        if (path.startsWith("/admin/products")
+                || path.startsWith("/jsp/adminjsp/Admin_SanPham.jsp")) {
+            return "/jsp/adminjsp/Admin_SanPham.jsp";
+        }
+
+        if (path.startsWith("/admin/orders")
+                || path.startsWith("/jsp/adminjsp/Admin_DonHang.jsp")) {
+            return "/jsp/adminjsp/Admin_DonHang.jsp";
+        }
+
+        if (path.startsWith("/admin/customers")
+                || path.startsWith("/jsp/adminjsp/Admin_KhachHang.jsp")) {
+            return "/jsp/adminjsp/Admin_KhachHang.jsp";
+        }
+
+        if (path.startsWith("/admin/reviews")
+                || path.startsWith("/jsp/adminjsp/Admin_DanhGia.jsp")) {
+            return "/jsp/adminjsp/Admin_DanhGia.jsp";
+        }
+
+        if (path.startsWith("/admin/contact")
+                || path.startsWith("/admin/contacts")
+                || path.startsWith("/jsp/adminjsp/Admin_LienHe.jsp")) {
+            return "/jsp/adminjsp/Admin_LienHe.jsp";
+        }
+
+        if (path.startsWith("/admin/banner")
+                || path.startsWith("/jsp/adminjsp/Admin_Banner.jsp")) {
+            return "/jsp/adminjsp/Admin_Banner.jsp";
+        }
+
+        if (path.startsWith("/admin/setting")
+                || path.startsWith("/jsp/adminjsp/Admin_CaiDat.jsp")) {
+            return "/jsp/adminjsp/Admin_CaiDat.jsp";
+        }
 
         return null;
     }

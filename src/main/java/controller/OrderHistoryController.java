@@ -3,6 +3,7 @@ package controller;
 import dao.OrderDao;
 import model.Order;
 import model.User;
+import util.AjaxUtil;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -82,6 +83,13 @@ public class OrderHistoryController extends HttpServlet {
         HttpSession session = request.getSession(false);
         User user = session == null ? null : (User) session.getAttribute("user");
         if (user == null) {
+            if (AjaxUtil.wantsJson(request)) {
+                AjaxUtil.writeJson(response, Map.of(
+                        "success", false,
+                        "message", "Bạn cần đăng nhập để xử lý đơn hàng."
+                ));
+                return;
+            }
             response.sendRedirect(request.getContextPath() + "/SignIn");
             return;
         }
@@ -90,8 +98,16 @@ public class OrderHistoryController extends HttpServlet {
         String action = request.getParameter("action");
         String reason = request.getParameter("reason");
         boolean success = false;
+        String message = null;
 
         if (orderId <= 0) {
+            if (AjaxUtil.wantsJson(request)) {
+                AjaxUtil.writeJson(response, Map.of(
+                        "success", false,
+                        "message", "Không tìm thấy đơn hàng cần xử lý."
+                ));
+                return;
+            }
             session.setAttribute("orderMessage", "Không tìm thấy đơn hàng cần xử lý.");
             response.sendRedirect(request.getContextPath() + "/OrderHistory");
             return;
@@ -99,20 +115,44 @@ public class OrderHistoryController extends HttpServlet {
 
         if ("cancel".equals(action)) {
             success = orderDao.cancelOrderByUser(orderId, user.getUserId(), reason);
+            message = success
+                    ? "Đã huỷ đơn hàng và khôi phục số lượng sản phẩm trong kho."
+                    : "Không thể huỷ đơn. Vui lòng nhập lý do hoặc kiểm tra trạng thái đơn hàng.";
             session.setAttribute("orderMessage", success
                     ? "Đã huỷ đơn hàng và khôi phục số lượng sản phẩm trong kho."
                     : "Không thể huỷ đơn. Vui lòng nhập lý do hoặc kiểm tra trạng thái đơn hàng.");
         } else if ("return".equals(action)) {
             String imagePath = saveReturnImageIfPresent(request);
             success = orderDao.requestReturnByUser(orderId, user.getUserId(), reason, imagePath);
+            message = success
+                    ? "Đã gửi yêu cầu trả hàng. Cửa hàng sẽ kiểm tra và phản hồi sớm."
+                    : "Không thể gửi yêu cầu trả hàng. Chỉ đơn đã hoàn thành mới được trả hàng và cần có lý do.";
             session.setAttribute("orderMessage", success
                     ? "Đã gửi yêu cầu trả hàng. Cửa hàng sẽ kiểm tra và phản hồi sớm."
                     : "Không thể gửi yêu cầu trả hàng. Chỉ đơn đã hoàn thành mới được trả hàng và cần có lý do.");
         } else if ("confirmReceived".equals(action)) {
             success = orderDao.confirmReceivedByUser(orderId, user.getUserId());
+            message = success
+                    ? "Đã xác nhận nhận hàng. Đơn hàng đã hoàn thành."
+                    : "Chưa thể xác nhận nhận hàng vì GHN chưa báo đã giao.";
             session.setAttribute("orderMessage", success
                     ? "Đã xác nhận nhận hàng. Đơn hàng đã hoàn thành."
                     : "Chưa thể xác nhận nhận hàng vì GHN chưa báo đã giao.");
+        }
+
+        if (message == null) {
+            message = "Thao tác không hợp lệ.";
+        }
+        session.setAttribute("orderMessage", message);
+
+        if (AjaxUtil.wantsJson(request)) {
+            AjaxUtil.writeJson(response, Map.of(
+                    "success", success,
+                    "message", message,
+                    "orderId", orderId,
+                    "action", action == null ? "" : action
+            ));
+            return;
         }
 
         String redirect = request.getHeader("Referer");

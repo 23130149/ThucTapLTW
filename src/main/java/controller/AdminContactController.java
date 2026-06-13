@@ -6,9 +6,11 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 import model.Contact;
+import util.AjaxUtil;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @WebServlet(name = "AdminContactController", value = "/admin/contacts")
 public class AdminContactController extends HttpServlet {
@@ -45,7 +47,7 @@ public class AdminContactController extends HttpServlet {
         request.setAttribute("keyword", keyword);
         request.setAttribute("currentStatus", status);
         request.setAttribute("notificationCount", oDao.countAdminNotifications());
-        request.setAttribute("latestNotifications", oDao.getLatestAdminNotifications(5));
+        request.setAttribute("latestNotifications", oDao.getLatestAdminNotifications(20));
 
         request.getRequestDispatcher("/jsp/adminjsp/Admin_LienHe.jsp").forward(request, response);
     }
@@ -57,32 +59,52 @@ public class AdminContactController extends HttpServlet {
 
         ContactDao contactDao = new ContactDao();
         String action = request.getParameter("action");
+        boolean success = false;
+        String message = null;
 
         if ("updateStatus".equals(action)) {
             try {
                 int contactId = Integer.parseInt(request.getParameter("contactId"));
                 String status = normalizeStatus(request.getParameter("status"));
-                contactDao.updateStatus(contactId, status);
+                success = contactDao.updateStatus(contactId, status);
             } catch (NumberFormatException ignored) {
+                message = "Liên hệ không hợp lệ.";
             }
-        }
-        if ("reply".equals(action)) {
+        } else if ("reply".equals(action)) {
             try {
                 int contactId = Integer.parseInt(request.getParameter("contactId"));
                 String reply = request.getParameter("reply");
 
                 if (reply != null && !reply.trim().isEmpty()) {
-                    contactDao.replyContact(contactId, reply.trim());
+                    success = contactDao.replyContact(contactId, reply.trim());
+                } else {
+                    message = "Vui lòng nhập nội dung phản hồi.";
                 }
             } catch (NumberFormatException ignored) {
+                message = "Liên hệ không hợp lệ.";
             }
-        }
-        if ("delete".equals(action)) {
+        } else if ("delete".equals(action)) {
             try {
                 int contactId = Integer.parseInt(request.getParameter("contactId"));
-                contactDao.delete(contactId);
+                success = contactDao.delete(contactId);
             } catch (NumberFormatException ignored) {
+                message = "Liên hệ không hợp lệ.";
             }
+        } else {
+            message = "Thao tác liên hệ không hợp lệ.";
+        }
+        if (!success && message == null) {
+            message = "Không tìm thấy liên hệ cần cập nhật.";
+        }
+        if (AjaxUtil.wantsJson(request)) {
+            Map<String, Object> payload = success
+                    ? AjaxUtil.ok("Đã cập nhật liên hệ.")
+                    : AjaxUtil.error(message);
+            payload.put("action", action);
+            payload.put("contactId", request.getParameter("contactId"));
+            payload.put("status", request.getParameter("status"));
+            AjaxUtil.writeJson(response, payload);
+            return;
         }
         response.sendRedirect(request.getContextPath() + "/admin/contacts");
     }

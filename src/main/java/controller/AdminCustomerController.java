@@ -6,6 +6,7 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 import model.User;
+import util.AjaxUtil;
 
 import java.io.IOException;
 import java.util.List;
@@ -67,7 +68,7 @@ public class AdminCustomerController extends HttpServlet {
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("notificationCount", oDao.countAdminNotifications());
-        request.setAttribute("latestNotifications", latestNotifications);
+        request.setAttribute("latestNotifications", oDao.getLatestAdminNotifications(20));
 
         request.getRequestDispatcher("/jsp/adminjsp/Admin_KhachHang.jsp").forward(request, response);
     }
@@ -79,15 +80,32 @@ public class AdminCustomerController extends HttpServlet {
 
         UserDao uDao = new UserDao();
         String action = request.getParameter("action");
+        boolean success = false;
+        String message = null;
 
         if ("delete".equals(action)) {
             try {
                 int userId = Integer.parseInt(request.getParameter("userId"));
-                uDao.deleteCustomer(userId);
+                success = uDao.deleteCustomer(userId);
             } catch (NumberFormatException ignored) {
+                message = "Khách hàng không hợp lệ.";
             }
+        } else {
+            message = "Thao tác khách hàng không hợp lệ.";
+        }
+        if (!success && message == null) {
+            message = "Không tìm thấy khách hàng cần xóa.";
         }
 
+        if (AjaxUtil.wantsJson(request)) {
+            Map<String, Object> payload = success
+                    ? AjaxUtil.ok("Đã xóa khách hàng.")
+                    : AjaxUtil.error(message);
+            payload.put("action", action);
+            payload.put("userId", request.getParameter("userId"));
+            AjaxUtil.writeJson(response, payload);
+            return;
+        }
         response.sendRedirect(request.getContextPath() + "/admin/customers");
     }
 

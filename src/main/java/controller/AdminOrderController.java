@@ -10,10 +10,12 @@ import model.Order;
 import model.OrderItem;
 import model.UserAddress;
 import service.GhnService;
+import util.AjaxUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @WebServlet(name = "AdminOrderController", value = "/admin/orders")
@@ -96,7 +98,7 @@ public class AdminOrderController extends HttpServlet {
         request.setAttribute("returnRejectedCount", oDao.countOrdersByStatus("RETURN_REJECTED"));
 
         request.setAttribute("notificationCount", oDao.countAdminNotifications());
-        request.setAttribute("latestNotifications", oDao.getLatestAdminNotifications(5));
+        request.setAttribute("latestNotifications", oDao.getLatestAdminNotifications(20));
         request.setAttribute("ghnSimulation", new GhnService().isSimulation());
 
         request.getRequestDispatcher("/jsp/adminjsp/Admin_DonHang.jsp").forward(request, response);
@@ -112,6 +114,7 @@ public class AdminOrderController extends HttpServlet {
 
         String action = request.getParameter("action");
         String message = null;
+        boolean success = false;
 
         if ("updateStatus".equals(action)) {
             try {
@@ -123,9 +126,15 @@ public class AdminOrderController extends HttpServlet {
                 }
 
                 if (status != null && Set.of("PROCESSING", "CONFIRMED", "RETURNED", "RETURN_REJECTED").contains(status)) {
-                    orderDao.updateStatus(orderId, status);
+                    success = orderDao.updateStatus(orderId, status);
+                    if (!success) {
+                        message = "Không tìm thấy đơn hàng cần cập nhật.";
+                    }
+                } else {
+                    message = "Trạng thái đơn hàng không hợp lệ.";
                 }
             } catch (NumberFormatException ignored) {
+                message = "Mã đơn hàng không hợp lệ.";
             }
         } else if ("createGhn".equals(action)) {
             try {
@@ -141,6 +150,8 @@ public class AdminOrderController extends HttpServlet {
                     GhnService.GhnOrderResult result = ghnService.createOrder(order, address, items);
                     if (!orderDao.saveGhnShipping(orderId, result)) {
                         message = "Không thể lưu vận đơn GHN vào đơn hàng.";
+                    } else {
+                        success = true;
                     }
                 }
             } catch (NumberFormatException e) {
@@ -161,7 +172,10 @@ public class AdminOrderController extends HttpServlet {
                     GhnService.GhnOrderResult result = ghnService.getOrderDetail(
                             order.getGhnOrderCode(), order.getGhnStatus()
                     );
-                    orderDao.updateGhnStatus(orderId, result);
+                    success = orderDao.updateGhnStatus(orderId, result);
+                    if (!success) {
+                        message = "Không thể cập nhật trạng thái GHN cho đơn hàng.";
+                    }
                 }
             } catch (NumberFormatException e) {
                 message = "Mã đơn hàng không hợp lệ.";
@@ -171,19 +185,35 @@ public class AdminOrderController extends HttpServlet {
             } catch (Exception e) {
                 message = "Không thể cập nhật trạng thái GHN: " + e.getMessage();
             }
-        } else if ("markCashPaid".equals(action)) {
+        } else if ("markPaymentPaid".equals(action) || "markCashPaid".equals(action)) {
             try {
                 int orderId = Integer.parseInt(request.getParameter("orderId"));
-                if (!orderDao.markCashPaid(orderId)) {
+                if (!orderDao.markManualPaymentPaid(orderId)) {
                     message = "Không thể xác nhận thanh toán cho đơn hàng này.";
+                } else {
+                    success = true;
                 }
             } catch (NumberFormatException e) {
                 message = "Mã đơn hàng không hợp lệ.";
             }
+        } else {
+            message = "Thao tác đơn hàng không hợp lệ.";
         }
 
-        if (message != null) {
+        if (!success && message != null) {
             request.getSession().setAttribute("adminOrderMessage", message);
+        }
+        if (AjaxUtil.wantsJson(request)) {
+            Map<String, Object> payload = success
+                    ? AjaxUtil.ok("Đã cập nhật đơn hàng.")
+                    : AjaxUtil.error(message == null ? "Không thể cập nhật đơn hàng." : message);
+            String orderId = request.getParameter("orderId");
+            if (orderId != null) {
+                payload.put("orderId", orderId);
+            }
+            payload.put("action", action);
+            AjaxUtil.writeJson(response, payload);
+            return;
         }
         response.sendRedirect(request.getContextPath() + "/admin/orders");
     }

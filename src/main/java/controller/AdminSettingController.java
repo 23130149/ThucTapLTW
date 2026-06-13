@@ -7,8 +7,11 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 import model.User;
+import util.PasswordUtil;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -23,19 +26,33 @@ public class AdminSettingController extends HttpServlet {
         UserDao uDao = new UserDao();
         PermissionDao pDao = new PermissionDao();
 
-        List<User> admins = uDao.getAllAdminAccounts();
+        String adminKeyword = request.getParameter("adminKeyword");
+        adminKeyword = adminKeyword == null ? "" : adminKeyword.trim();
 
-        Map<Integer, String> adminPermissionMap = admins.stream()
-                .collect(Collectors.toMap(
-                        User::getUserId,
-                        admin -> String.join(",", pDao.getPermissionCodesByUserId(admin.getUserId())),
-                        (oldValue, newValue) -> oldValue
-                ));
+        boolean canManageSetting = canManageSetting(request);
+
+        List<User> admins = Collections.emptyList();
+        Map<Integer, String> adminPermissionMap = Collections.emptyMap();
+
+        if (canManageSetting) {
+            admins = uDao.searchAdminAccounts(adminKeyword);
+
+            adminPermissionMap = admins.stream()
+                    .collect(Collectors.toMap(
+                            User::getUserId,
+                            admin -> String.join(",", pDao.getPermissionCodesByUserId(admin.getUserId())),
+                            (oldValue, newValue) -> oldValue
+                    ));
+
+            request.setAttribute("permissions", pDao.getAllPermissions());
+        }
+
         request.setAttribute("notificationCount", oDao.countAdminNotifications());
+        request.setAttribute("latestNotifications", oDao.getLatestAdminNotifications(20));
         request.setAttribute("admins", admins);
-        request.setAttribute("permissions", pDao.getAllPermissions());
         request.setAttribute("adminPermissionMap", adminPermissionMap);
-
+        request.setAttribute("adminKeyword", adminKeyword);
+        request.setAttribute("canManageSetting", canManageSetting);
 
         request.getRequestDispatcher("/jsp/adminjsp/Admin_CaiDat.jsp").forward(request, response);
     }
@@ -45,19 +62,35 @@ public class AdminSettingController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
 
         String action = request.getParameter("action");
+        String adminKeyword = request.getParameter("adminKeyword");
+        adminKeyword = adminKeyword == null ? "" : adminKeyword.trim();
 
         if ("updatePermission".equals(action)) {
-            updatePermission(request);
-            request.getSession().setAttribute("settingMessage", "Lưu phân quyền thành công");
+            if (!canManageSetting(request)) {
+                request.getSession().setAttribute("settingMessage", "Bạn không có quyền phân quyền cho tài khoản khác");
+            } else {
+                updatePermission(request);
+                request.getSession().setAttribute("settingMessage", "Lưu phân quyền thành công");
+            }
         } else if ("updateStore".equals(action)) {
-            request.getSession().setAttribute("settingMessage", "Lưu thông tin cửa hàng thành công");
+            if (!canManageSetting(request)) {
+                request.getSession().setAttribute("settingMessage", "Bạn không có quyền cập nhật thông tin cửa hàng");
+            } else {
+                request.getSession().setAttribute("settingMessage", "Chức năng lưu thông tin cửa hàng đang được phát triển");
+            }
         } else if ("changePassword".equals(action)) {
-            request.getSession().setAttribute("settingMessage", "Chức năng đổi mật khẩu sẽ được xử lý ở phiên bản sau");
+            changePassword(request);
         } else {
             request.getSession().setAttribute("settingMessage", "Không tìm thấy hành động cài đặt");
         }
 
-        response.sendRedirect(request.getContextPath() + "/admin/setting");
+        String redirectUrl = request.getContextPath() + "/admin/setting";
+
+        if (!adminKeyword.isBlank()) {
+            redirectUrl += "?adminKeyword=" + URLEncoder.encode(adminKeyword, StandardCharsets.UTF_8);
+        }
+
+        response.sendRedirect(redirectUrl);
     }
 
     private void updatePermission(HttpServletRequest request) {
@@ -83,5 +116,85 @@ public class AdminSettingController extends HttpServlet {
 
         PermissionDao pDao = new PermissionDao();
         pDao.updateUserPermissions(adminId, permissionCodes);
+    }
+
+    private void changePassword(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+
+        if (session == null || session.getAttribute("user") == null) {
+            return;
+        }
+
+        User currentUser = (User) session.getAttribute("user");
+
+        if (currentUser.getGoogleId() != null) {
+            session.setAttribute("settingMessage", "Tài khoản đăng nhập bằng Google không thể đổi mật khẩu tại đây");
+            return;
+        }
+
+        String currentPassword = request.getParameter("currentPassword");
+        String newPassword = request.getParameter("newPassword");
+        String confirmPassword = request.getParameter("confirmPassword");
+
+        if (currentPassword == null || currentPassword.isBlank()
+                || newPassword == null || newPassword.isBlank()
+                || confirmPassword == null || confirmPassword.isBlank()) {
+            session.setAttribute("settingMessage", "Vui lòng nhập đầy đủ thông tin mật khẩu");
+            return;
+        }
+
+        if (!newPassword.equals(confirmPassword)) {
+            session.setAttribute("settingMessage", "Mật khẩu xác nhận không khớp");
+            return;
+        }
+
+        boolean strong =
+                newPassword.length() >= 8
+                        && newPassword.matches(".*[A-Z].*")
+                        && newPassword.matches(".*[a-z].*")
+                        && newPassword.matches(".*\\d.*")
+                        && newPassword.matches(".*[^A-Za-z0-9].*");
+
+        if (!strong) {
+            session.setAttribute("settingMessage", "Mật khẩu mới phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt");
+            return;
+        }
+
+        if (!PasswordUtil.verify(currentPassword, currentUser.getPassword())) {
+            session.setAttribute("settingMessage", "Mật khẩu hiện tại không đúng");
+            return;
+        }
+
+        String hashedPassword = PasswordUtil.hash(newPassword);
+
+        UserDao uDao = new UserDao();
+        boolean updated = uDao.updatePassword(currentUser.getUserId(), hashedPassword);
+
+        if (!updated) {
+            session.setAttribute("settingMessage", "Đổi mật khẩu thất bại");
+            return;
+        }
+
+        currentUser.setPassword(hashedPassword);
+        session.setAttribute("user", currentUser);
+        session.setAttribute("settingMessage", "Đổi mật khẩu thành công");
+    }
+
+    private boolean canManageSetting(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+
+        if (session == null) {
+            return false;
+        }
+
+        Object permissionTextObj = session.getAttribute("permissionCodesText");
+
+        if (permissionTextObj == null) {
+            return false;
+        }
+
+        String permissionCodesText = permissionTextObj.toString();
+
+        return permissionCodesText.contains(",MANAGE_SETTING,");
     }
 }

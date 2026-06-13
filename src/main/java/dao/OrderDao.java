@@ -748,18 +748,18 @@ public class OrderDao extends BaseDao {
         );
     }
 
-    public void updateStatus(int orderId, String status) {
+    public boolean updateStatus(int orderId, String status) {
         String sql = """
         UPDATE orders
         SET Status = :status
         WHERE Order_Id = :orderId
     """;
 
-        getJdbi().useHandle(handle ->
+        return getJdbi().withHandle(handle ->
                 handle.createUpdate(sql)
                         .bind("status", status)
                         .bind("orderId", orderId)
-                        .execute()
+                        .execute() > 0
         );
     }
 
@@ -836,13 +836,21 @@ public class OrderDao extends BaseDao {
     }
 
     public boolean markCashPaid(int orderId) {
+        return markManualPaymentPaid(orderId);
+    }
+
+    public boolean markManualPaymentPaid(int orderId) {
         String sql = """
         UPDATE orders
         SET Payment_Status = 'PAID',
-            Payment_Provider = 'COD',
+            Payment_Provider = CASE
+                WHEN Payment_Method_Id = 1 THEN 'COD'
+                WHEN Payment_Method_Id = 2 THEN 'BANKING'
+                ELSE Payment_Provider
+            END,
             Paid_At = NOW()
         WHERE Order_Id = :orderId
-          AND Payment_Method_Id = 1
+          AND Payment_Method_Id IN (1, 2)
           AND Payment_Status <> 'PAID'
         """;
 

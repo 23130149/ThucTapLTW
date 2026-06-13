@@ -84,6 +84,8 @@ public class ProductController extends HttpServlet {
         String keyword = clean(request.getParameter("keyword"));
         String status = clean(request.getParameter("status"));
         String priceRange = clean(request.getParameter("priceRange"));
+        String material = clean(request.getParameter("material"));
+        String usage = clean(request.getParameter("usage"));
         String sort = clean(request.getParameter("sort"));
         List<Integer> categoryIds = parseCategoryIds(request);
 
@@ -93,12 +95,12 @@ public class ProductController extends HttpServlet {
 
         int pageSize = 8;
         int currentPage = parsePage(request.getParameter("page"));
-        int productCount = productDao.countFilteredProducts(keyword, categoryIds, status, priceRange);
+        int productCount = productDao.countFilteredProducts(keyword, categoryIds, status, priceRange, material, usage);
         int totalPages = Math.max(1, (int) Math.ceil((double) productCount / pageSize));
 
         if (currentPage > totalPages) currentPage = totalPages;
 
-        List<Product> products = productDao.getFilteredProducts(keyword, categoryIds, status, priceRange, sort, currentPage, pageSize);
+        List<Product> products = productDao.getFilteredProducts(keyword, categoryIds, status, priceRange, material, usage, sort, currentPage, pageSize);
 
         HttpSession session = request.getSession(false);
         if (session != null && session.getAttribute("user") != null) {
@@ -113,6 +115,8 @@ public class ProductController extends HttpServlet {
         request.setAttribute("selectedCategoryIds", categoryIds);
         request.setAttribute("status", status);
         request.setAttribute("priceRange", priceRange);
+        request.setAttribute("material", material);
+        request.setAttribute("usage", usage);
         request.setAttribute("sort", sort);
         request.setAttribute("productCount", productCount);
         request.setAttribute("currentPage", currentPage);
