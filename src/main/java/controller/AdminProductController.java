@@ -7,10 +7,12 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 import model.Product;
+import util.AjaxUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @MultipartConfig
 @WebServlet(name = "AdminProductController", value = "/admin/products")
@@ -77,6 +79,8 @@ public class AdminProductController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         ProductDao pDao = new ProductDao();
         String action = request.getParameter("action");
+        boolean success = false;
+        String message = null;
 
         if ("add".equals(action)) {
             String name = request.getParameter("name");
@@ -94,6 +98,7 @@ public class AdminProductController extends HttpServlet {
             p.setProductDescription(description);
             p.setImageUrl(imageUrl);
             pDao.insertProduct(p);
+            success = true;
         }
         else if ("update".equals(action)) {
             String name = request.getParameter("name");
@@ -113,12 +118,29 @@ public class AdminProductController extends HttpServlet {
             p.setProductDescription(description);
             p.setImageUrl(imageUrl);
             pDao.updateProduct(p);
+            success = productId > 0;
         }
         else if ("delete".equals(action)) {
             try {
                 int productId = Integer.parseInt(request.getParameter("productId"));
-                pDao.deleteProduct(productId);
-            } catch (NumberFormatException ignored) {}
+                success = pDao.deleteProduct(productId);
+            } catch (NumberFormatException ignored) {
+                message = "Sản phẩm không hợp lệ.";
+            }
+        } else {
+            message = "Thao tác sản phẩm không hợp lệ.";
+        }
+        if (!success && message == null) {
+            message = "Không tìm thấy sản phẩm cần cập nhật.";
+        }
+        if (AjaxUtil.wantsJson(request)) {
+            Map<String, Object> payload = success
+                    ? AjaxUtil.ok("Đã cập nhật sản phẩm.")
+                    : AjaxUtil.error(message);
+            payload.put("action", action);
+            payload.put("productId", request.getParameter("productId"));
+            AjaxUtil.writeJson(response, payload);
+            return;
         }
         response.sendRedirect(request.getContextPath() + "/admin/products");
     }

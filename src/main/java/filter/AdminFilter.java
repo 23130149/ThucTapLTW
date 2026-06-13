@@ -5,8 +5,10 @@ import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.*;
 import model.User;
+import util.AjaxUtil;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Set;
 
 @WebFilter({"/admin/*", "/jsp/adminjsp/*"})
@@ -22,6 +24,11 @@ public class AdminFilter implements Filter {
         HttpSession session = req.getSession(false);
 
         if (session == null || session.getAttribute("user") == null) {
+            if (AjaxUtil.wantsJson(req)) {
+                AjaxUtil.writeJson(resp, HttpServletResponse.SC_UNAUTHORIZED,
+                        AjaxUtil.error("Phiên đăng nhập admin đã hết hạn. Vui lòng đăng nhập lại."));
+                return;
+            }
             resp.sendRedirect(req.getContextPath() + "/SignIn");
             return;
         }
@@ -29,39 +36,79 @@ public class AdminFilter implements Filter {
         User user = (User) session.getAttribute("user");
 
         if (user.getRole() == null || !"ADMIN".equalsIgnoreCase(user.getRole())) {
+            if (AjaxUtil.wantsJson(req)) {
+                AjaxUtil.writeJson(resp, HttpServletResponse.SC_FORBIDDEN,
+                        AjaxUtil.error("Tài khoản hiện tại không có quyền truy cập khu vực admin."));
+                return;
+            }
             resp.sendRedirect(req.getContextPath() + "/home");
             return;
         }
 
-        PermissionDao pDao = new PermissionDao();
-        Set<String> permissions = pDao.getPermissionCodesByUserId(user.getUserId());
+        try {
+            PermissionDao pDao = new PermissionDao();
+            Set<String> permissions = pDao.getPermissionCodesByUserId(user.getUserId());
 
-        if (permissions == null) {
-            permissions = Set.of();
-        }
+            if (permissions == null) {
+                permissions = Set.of();
+            }
 
-        session.setAttribute("permissions", permissions);
-        session.setAttribute("permissionCodesText", "," + String.join(",", permissions) + ",");
+            session.setAttribute("permissions", permissions);
+            session.setAttribute("permissionCodesText", "," + String.join(",", permissions) + ",");
 
-        String path = getPath(req);
-        String requiredPermission = getRequiredPermission(path);
+            String path = getPath(req);
+            String requiredPermission = getRequiredPermission(path);
 
-        if (requiredPermission != null && !permissions.contains(requiredPermission)) {
-            request.setAttribute("accessDenied", true);
-            request.setAttribute("accessDeniedMessage", "Bạn không có quyền quản lý trang này");
+            if (requiredPermission != null && !permissions.contains(requiredPermission)) {
+                if (AjaxUtil.wantsJson(req)) {
+                    AjaxUtil.writeJson(resp, HttpServletResponse.SC_FORBIDDEN,
+                            AjaxUtil.error("Bạn không có quyền thực hiện thao tác này."));
+                    return;
+                }
 
-            String jspPage = getJspPage(path);
+                request.setAttribute("accessDenied", true);
+                request.setAttribute("accessDeniedMessage", "Bạn không có quyền quản lý trang này");
 
-            if (jspPage != null) {
-                request.getRequestDispatcher(jspPage).forward(request, response);
+                String jspPage = getJspPage(path);
+
+                if (jspPage != null) {
+                    request.getRequestDispatcher(jspPage).forward(request, response);
+                    return;
+                }
+
+                request.getRequestDispatcher("/jsp/adminjsp/Admin_TongQuan.jsp").forward(request, response);
                 return;
             }
 
-            request.getRequestDispatcher("/jsp/adminjsp/Admin_TongQuan.jsp").forward(request, response);
-            return;
-        }
+            chain.doFilter(request, response);
+        } catch (Exception e) {
+            if (AjaxUtil.wantsJson(req) && !resp.isCommitted()) {
+                resp.reset();
+                Map<String, Object> payload = AjaxUtil.error("Không thể xử lý thao tác admin. Vui lòng kiểm tra lại dữ liệu hoặc ràng buộc trong CSDL.");
+                String detail = rootMessage(e);
+                if (detail != null && !detail.isBlank()) {
+                    payload.put("detail", detail);
+                }
+                AjaxUtil.writeJson(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, payload);
+                return;
+            }
 
-        chain.doFilter(request, response);
+            if (e instanceof ServletException servletException) {
+                throw servletException;
+            }
+            if (e instanceof IOException ioException) {
+                throw ioException;
+            }
+            throw new ServletException(e);
+        }
+    }
+
+    private String rootMessage(Throwable throwable) {
+        Throwable current = throwable;
+        while (current.getCause() != null) {
+            current = current.getCause();
+        }
+        return current.getMessage();
     }
 
     private String getPath(HttpServletRequest req) {

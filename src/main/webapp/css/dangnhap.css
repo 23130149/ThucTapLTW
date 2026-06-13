@@ -121,7 +121,14 @@ body {
 }
 
 .google-btn-wrap {
+    display: flex;
+    justify-content: center;
     overflow: hidden;
+}
+
+.google-btn-wrap > div {
+    display: flex;
+    justify-content: center;
 }
 
 .google-btn-wrap > div,
@@ -167,11 +174,18 @@ body {
 }
 
 .social-btn.fb {
+    width: calc(100% - 2px);
+    margin-inline: 1px;
     border: 1px solid #1877f2;
 }
 
 .social-btn.fb i {
+    left: 15px;
     color: #1877f2;
+}
+
+.social-btn.fb span {
+    transform: translateX(-4px);
 }
 
 .register-link {

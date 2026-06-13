@@ -271,12 +271,12 @@ public class ProductDao extends BaseDao {
         }
     }
 
-    public void deleteProduct(int productId) {
+    public boolean deleteProduct(int productId) {
         String sql = "delete from products where product_id = :id";
-        getJdbi().withHandle(handle ->
+        return getJdbi().withHandle(handle ->
                 handle.createUpdate(sql)
                         .bind("id", productId)
-                        .execute()
+                        .execute() > 0
         );
     }
 
@@ -293,6 +293,11 @@ public class ProductDao extends BaseDao {
     }
 
     public List<Product> getFilteredProducts(String keyword, String categoryId, String status, String priceRange, int page, int pageSize) {
+        return getFilteredProducts(keyword, categoryId, status, priceRange, null, null, page, pageSize);
+    }
+
+    public List<Product> getFilteredProducts(String keyword, String categoryId, String status, String priceRange,
+                                             String material, String usage, int page, int pageSize) {
         List<Integer> categoryIds = new ArrayList<>();
         String cleaned = clean(categoryId);
         if (cleaned != null) {
@@ -301,15 +306,20 @@ public class ProductDao extends BaseDao {
             } catch (NumberFormatException ignored) {
             }
         }
-        return getFilteredProducts(keyword, categoryIds, status, priceRange, null, page, pageSize);
+        return getFilteredProducts(keyword, categoryIds, status, priceRange, material, usage, null, page, pageSize);
     }
 
     public List<Product> getFilteredProducts(String keyword, List<Integer> categoryIds, String status, String priceRange,
                                              String sort, int page, int pageSize) {
+        return getFilteredProducts(keyword, categoryIds, status, priceRange, null, null, sort, page, pageSize);
+    }
+
+    public List<Product> getFilteredProducts(String keyword, List<Integer> categoryIds, String status, String priceRange,
+                                             String material, String usage, String sort, int page, int pageSize) {
         StringBuilder sql = new StringBuilder(PRODUCT_SELECT);
         Map<String, Object> params = new HashMap<>();
 
-        appendFilters(sql, params, keyword, categoryIds, status, priceRange);
+        appendFilters(sql, params, keyword, categoryIds, status, priceRange, material, usage);
         appendSort(sql, sort);
 
         int safePage = Math.max(page, 1);
@@ -329,6 +339,11 @@ public class ProductDao extends BaseDao {
     }
 
     public int countFilteredProducts(String keyword, String categoryId, String status, String priceRange) {
+        return countFilteredProducts(keyword, categoryId, status, priceRange, null, null);
+    }
+
+    public int countFilteredProducts(String keyword, String categoryId, String status, String priceRange,
+                                     String material, String usage) {
         List<Integer> categoryIds = new ArrayList<>();
         String cleaned = clean(categoryId);
         if (cleaned != null) {
@@ -337,10 +352,15 @@ public class ProductDao extends BaseDao {
             } catch (NumberFormatException ignored) {
             }
         }
-        return countFilteredProducts(keyword, categoryIds, status, priceRange);
+        return countFilteredProducts(keyword, categoryIds, status, priceRange, material, usage);
     }
 
     public int countFilteredProducts(String keyword, List<Integer> categoryIds, String status, String priceRange) {
+        return countFilteredProducts(keyword, categoryIds, status, priceRange, null, null);
+    }
+
+    public int countFilteredProducts(String keyword, List<Integer> categoryIds, String status, String priceRange,
+                                     String material, String usage) {
         StringBuilder sql = new StringBuilder("""
                 SELECT COUNT(*)
                 FROM products p
@@ -349,7 +369,7 @@ public class ProductDao extends BaseDao {
                 """);
 
         Map<String, Object> params = new HashMap<>();
-        appendFilters(sql, params, keyword, categoryIds, status, priceRange);
+        appendFilters(sql, params, keyword, categoryIds, status, priceRange, material, usage);
 
         return getJdbi().withHandle(handle -> {
             Query query = handle.createQuery(sql.toString());
@@ -361,14 +381,16 @@ public class ProductDao extends BaseDao {
 
     public List<Product> searchSuggestions(String keyword, int limit) {
         String cleanedKeyword = clean(keyword);
-        if (cleanedKeyword == null) {
-            return List.of();
-        }
 
         StringBuilder sql = new StringBuilder(PRODUCT_SELECT);
         Map<String, Object> params = new HashMap<>();
-        appendKeywordFilter(sql, params, cleanedKeyword);
-        sql.append(" ORDER BY COALESCE(s.sold, 0) DESC, p.product_id DESC LIMIT :limit");
+        if (cleanedKeyword != null) {
+            appendKeywordFilter(sql, params, cleanedKeyword);
+            appendSuggestionSort(sql, params, cleanedKeyword);
+        } else {
+            sql.append(" ORDER BY COALESCE(s.sold, 0) DESC, p.product_id DESC");
+        }
+        sql.append(" LIMIT :limit");
         params.put("limit", Math.max(1, Math.min(limit, 4)));
 
         return getJdbi().withHandle(handle -> {
@@ -378,41 +400,103 @@ public class ProductDao extends BaseDao {
         });
     }
 
+    private void appendSuggestionSort(StringBuilder sql, Map<String, Object> params, String keyword) {
+        List<String> terms = flattenKeywordTerms(keyword);
+        if (terms.isEmpty()) {
+            sql.append(" ORDER BY COALESCE(s.sold, 0) DESC, p.product_id DESC");
+            return;
+        }
+
+        sql.append(" ORDER BY (0");
+        for (int i = 0; i < terms.size(); i++) {
+            String exact = "rankExact" + i;
+            String prefix = "rankPrefix" + i;
+            String contains = "rankContains" + i;
+
+            sql.append(" + CASE WHEN LOWER(p.product_name) = LOWER(:").append(exact).append(") THEN 120 ELSE 0 END")
+                    .append(" + CASE WHEN LOWER(p.product_name) LIKE LOWER(:").append(prefix).append(") THEN 80 ELSE 0 END")
+                    .append(" + CASE WHEN LOWER(p.product_name) LIKE LOWER(:").append(contains).append(") THEN 55 ELSE 0 END")
+                    .append(" + CASE WHEN LOWER(c.name) LIKE LOWER(:").append(contains).append(") THEN 35 ELSE 0 END")
+                    .append(" + CASE WHEN LOWER(p.product_description) LIKE LOWER(:").append(contains).append(") THEN 15 ELSE 0 END");
+
+            params.put(exact, terms.get(i));
+            params.put(prefix, terms.get(i) + "%");
+            params.put(contains, "%" + terms.get(i) + "%");
+        }
+        sql.append(") DESC, COALESCE(s.sold, 0) DESC, p.product_id DESC");
+    }
+
     private void appendFilters(StringBuilder sql, Map<String, Object> params, String keyword, List<Integer> categoryIds,
-                               String status, String priceRange) {
+                               String status, String priceRange, String material, String usage) {
         appendKeywordFilter(sql, params, keyword);
         appendCategoryFilter(sql, categoryIds);
         appendStatusFilter(sql, status);
         appendPriceFilter(sql, priceRange);
+        appendMaterialFilter(sql, params, material);
+        appendUsageFilter(sql, params, usage);
     }
 
     private void appendKeywordFilter(StringBuilder sql, Map<String, Object> params, String keyword) {
         String cleaned = clean(keyword);
         if (cleaned == null) return;
 
-        List<String> terms = splitKeywordTerms(cleaned);
-        for (int i = 0; i < terms.size(); i++) {
-            String paramName = "keyword" + i;
-            sql.append(" AND (p.product_name LIKE :").append(paramName)
-                    .append(" OR p.product_description LIKE :").append(paramName)
-                    .append(" OR c.name LIKE :").append(paramName)
-                    .append(")");
-            params.put(paramName, "%" + terms.get(i) + "%");
+        List<List<String>> groups = splitKeywordGroups(cleaned);
+        for (int groupIndex = 0; groupIndex < groups.size(); groupIndex++) {
+            List<String> terms = groups.get(groupIndex);
+            if (terms.isEmpty()) continue;
+
+            sql.append(" AND (");
+            for (int termIndex = 0; termIndex < terms.size(); termIndex++) {
+                if (termIndex > 0) sql.append(" OR ");
+                String paramName = "keyword" + groupIndex + "_" + termIndex;
+                appendKeywordMatch(sql, paramName);
+                params.put(paramName, "%" + terms.get(termIndex) + "%");
+            }
+            sql.append(")");
         }
     }
 
-    private List<String> splitKeywordTerms(String keyword) {
-        List<String> terms = new ArrayList<>();
+    private void appendKeywordMatch(StringBuilder sql, String paramName) {
+        sql.append("(p.product_name LIKE :").append(paramName)
+                .append(" OR p.product_description LIKE :").append(paramName)
+                .append(" OR c.name LIKE :").append(paramName)
+                .append(")");
+    }
+
+    private List<List<String>> splitKeywordGroups(String keyword) {
+        List<List<String>> groups = new ArrayList<>();
         if (keyword.contains("+")) {
             for (String part : keyword.split("\\+")) {
-                String cleaned = clean(part);
-                if (cleaned != null) terms.add(cleaned);
+                List<String> group = splitWords(part);
+                if (!group.isEmpty()) groups.add(group);
             }
         } else {
-            String cleaned = clean(keyword);
-            if (cleaned != null) terms.add(cleaned);
+            List<String> words = splitWords(keyword);
+            if (!words.isEmpty()) groups.add(words);
+        }
+        return groups;
+    }
+
+    private List<String> flattenKeywordTerms(String keyword) {
+        List<String> terms = new ArrayList<>();
+        for (List<String> group : splitKeywordGroups(keyword)) {
+            terms.addAll(group);
         }
         return terms;
+    }
+
+    private List<String> splitWords(String value) {
+        String cleaned = clean(value);
+        if (cleaned == null) return List.of();
+
+        List<String> words = new ArrayList<>();
+        for (String word : cleaned.split("\\s+")) {
+            String safeWord = clean(word);
+            if (safeWord != null) {
+                words.add(safeWord);
+            }
+        }
+        return words;
     }
 
     private void appendCategoryFilter(StringBuilder sql, List<Integer> categoryIds) {
@@ -443,8 +527,52 @@ public class ProductDao extends BaseDao {
             case "0-100000" -> sql.append(" AND p.product_price BETWEEN 0 AND 100000");
             case "100000-300000" -> sql.append(" AND p.product_price BETWEEN 100000 AND 300000");
             case "300000-500000" -> sql.append(" AND p.product_price BETWEEN 300000 AND 500000");
+            case "100000-500000" -> sql.append(" AND p.product_price BETWEEN 100000 AND 500000");
             case "500000+" -> sql.append(" AND p.product_price > 500000");
         }
+    }
+
+    private void appendMaterialFilter(StringBuilder sql, Map<String, Object> params, String material) {
+        String cleaned = clean(material);
+        if (cleaned == null || "all".equals(cleaned)) return;
+
+        String label = switch (cleaned) {
+            case "len" -> "len";
+            case "vai" -> "vải";
+            case "go" -> "gỗ";
+            case "giay" -> "giấy";
+            case "da" -> "da";
+            case "hat" -> "hạt";
+            case "soi" -> "sợi";
+            default -> cleaned;
+        };
+
+        sql.append(" AND (p.product_name LIKE :material OR p.product_description LIKE :material OR c.name LIKE :material)");
+        params.put("material", "%" + label + "%");
+    }
+
+    private void appendUsageFilter(StringBuilder sql, Map<String, Object> params, String usage) {
+        String cleaned = clean(usage);
+        if (cleaned == null || "all".equals(cleaned)) return;
+
+        List<String> words = switch (cleaned) {
+            case "trang-tri" -> List.of("trang trí", "decor", "nhà", "phòng");
+            case "thoi-trang" -> List.of("thời trang", "phụ kiện", "túi", "vòng", "áo");
+            case "qua-tang" -> List.of("quà", "tặng", "sinh nhật", "kỷ niệm");
+            case "gia-dung" -> List.of("gia dụng", "bếp", "nhà", "khay", "ly");
+            default -> List.of(cleaned);
+        };
+
+        sql.append(" AND (");
+        for (int i = 0; i < words.size(); i++) {
+            if (i > 0) sql.append(" OR ");
+            String paramName = "usage" + i;
+            sql.append("p.product_name LIKE :").append(paramName)
+                    .append(" OR p.product_description LIKE :").append(paramName)
+                    .append(" OR c.name LIKE :").append(paramName);
+            params.put(paramName, "%" + words.get(i) + "%");
+        }
+        sql.append(")");
     }
 
     private void appendSort(StringBuilder sql, String sort) {

@@ -22,32 +22,42 @@ public class DBProperties {
     }
 
     public static String getDbHost() {
-        return prop.getProperty("db.host");
+        return get("db.host");
     }
 
     public static String getDbPort() {
-        return prop.getProperty("db.port");
+        return get("db.port");
     }
 
     public static String getUsername() {
-        return prop.getProperty("db.username");
+        return get("db.username");
     }
 
     public static String getPassword() {
-        return prop.getProperty("db.password");
+        return get("db.password");
     }
 
     public static String getDbName() {
-        return prop.getProperty("db.dbName");
+        return get("db.dbName");
     }
 
     public static String getDbOption() {
-        return prop.getProperty("db.dbOption");
+        return get("db.dbOption");
     }
 
     public static String get(String key) {
-        return prop.getProperty(key);
+        String value = System.getProperty(key);
+        if (value == null || value.isBlank()) {
+            value = System.getenv(toEnvName(key));
+        }
+        if (value == null || value.isBlank()) {
+            value = prop.getProperty(key);
+        }
+        return value == null ? "" : value.trim();
     }
 
+    private static String toEnvName(String key) {
+        return key.toUpperCase().replace('.', '_').replace('-', '_');
+    }
 }
 

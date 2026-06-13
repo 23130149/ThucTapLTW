@@ -454,14 +454,19 @@
                         </form>
                       </c:if>
 
-                      <c:if test="${order.paymentMethodId == 1 && order.paymentStatus != 'PAID' && (order.status == 'DELIVERED' || order.status == 'COMPLETED')}">
+                      <c:if test="${order.paymentStatus != 'PAID'
+                              && ((order.paymentMethodId == 1 && (order.status == 'DELIVERED' || order.status == 'COMPLETED'))
+                                  || (order.paymentMethodId == 2
+                                      && order.status != 'CANCELLED'
+                                      && order.status != 'PAYMENT_FAILED'
+                                      && order.status != 'RETURNED'))}">
                         <form method="post"
                               action="${pageContext.request.contextPath}/admin/orders"
                               class="inline-form">
-                          <input type="hidden" name="action" value="markCashPaid">
+                          <input type="hidden" name="action" value="markPaymentPaid">
                           <input type="hidden" name="orderId" value="${order.orderId}">
 
-                          <button type="submit" class="action-btn paid-btn" title="Xác nhận đã thu tiền mặt">
+                          <button type="submit" class="action-btn paid-btn" title="Xác nhận đã thu tiền">
                             <i class="bx bx-money"></i>
                             <span>Đã thu tiền</span>
                           </button>

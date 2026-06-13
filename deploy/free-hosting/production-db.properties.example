@@ -1,0 +1,23 @@
+# Template tham khao neu van muon build config vao WAR.
+# Khuyen nghi production nen dung VM options trong tomcat10-env.example thay vi dien secret vao file nay.
+
+db.host=localhost
+db.port=3306
+db.username=handmade_user
+db.password=CHANGE_ME_DB_PASSWORD
+db.dbName=project
+db.dbOption=useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Ho_Chi_Minh
+
+ghn.base_url=https://online-gateway.ghn.vn/shiip/public-api
+ghn.mode=simulation
+ghn.token=CHANGE_ME_GHN_TOKEN
+ghn.shop_id=CHANGE_ME_GHN_SHOP_ID
+ghn.from_district_id=CHANGE_ME_FROM_DISTRICT_ID
+ghn.from_ward_code=CHANGE_ME_FROM_WARD_CODE
+ghn.service_id=CHANGE_ME_SERVICE_ID
+ghn.from_name=Handmade House
+ghn.from_phone=CHANGE_ME_SHOP_PHONE
+ghn.from_address=CHANGE_ME_SHOP_ADDRESS
+ghn.from_ward_name=CHANGE_ME_SHOP_WARD
+ghn.from_district_name=CHANGE_ME_SHOP_DISTRICT
+ghn.from_province_name=CHANGE_ME_SHOP_PROVINCE

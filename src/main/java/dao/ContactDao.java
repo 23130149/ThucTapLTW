@@ -61,11 +61,11 @@ public class ContactDao extends BaseDao {
         );
     }
 
-    public void delete(int id) {
-        getJdbi().withHandle(h ->
+    public boolean delete(int id) {
+        return getJdbi().withHandle(h ->
                 h.createUpdate("DELETE FROM contact WHERE Contact_Id = :id")
                         .bind("id", id)
-                        .execute()
+                        .execute() > 0
         );
     }
     public List<Contact> search(String keyword) {
@@ -140,7 +140,7 @@ public class ContactDao extends BaseDao {
         );
     }
 
-    public void updateStatus(int contactId, String status) {
+    public boolean updateStatus(int contactId, String status) {
         String sql = """
         UPDATE contact
         SET Status = :status,
@@ -148,11 +148,11 @@ public class ContactDao extends BaseDao {
         WHERE Contact_Id = :contactId
     """;
 
-        getJdbi().withHandle(h ->
+        return getJdbi().withHandle(h ->
                 h.createUpdate(sql)
                         .bind("status", status)
                         .bind("contactId", contactId)
-                        .execute()
+                        .execute() > 0
         );
     }
     public List<Contact> findContacts(String keyword, String status) {
@@ -206,7 +206,7 @@ public class ContactDao extends BaseDao {
             return query.mapToBean(Contact.class).list();
         });
     }
-    public void replyContact(int contactId, String reply) {
+    public boolean replyContact(int contactId, String reply) {
         String sql = """
         UPDATE contact
         SET Reply = :reply,
@@ -216,11 +216,11 @@ public class ContactDao extends BaseDao {
         WHERE Contact_Id = :contactId
     """;
 
-        getJdbi().withHandle(h ->
+        return getJdbi().withHandle(h ->
                 h.createUpdate(sql)
                         .bind("reply", reply)
                         .bind("contactId", contactId)
-                        .execute()
+                        .execute() > 0
         );
     }
 }
