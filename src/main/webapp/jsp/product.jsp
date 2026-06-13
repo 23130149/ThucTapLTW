@@ -71,6 +71,31 @@
                     </div>
 
                     <div class="filter-card">
+                        <div class="filter-title">Vật liệu</div>
+                        <select name="material">
+                            <option value="" ${empty material ? 'selected' : ''}>Tất cả</option>
+                            <option value="len" ${material == 'len' ? 'selected' : ''}>Len</option>
+                            <option value="vai" ${material == 'vai' ? 'selected' : ''}>Vải</option>
+                            <option value="go" ${material == 'go' ? 'selected' : ''}>Gỗ</option>
+                            <option value="giay" ${material == 'giay' ? 'selected' : ''}>Giấy</option>
+                            <option value="da" ${material == 'da' ? 'selected' : ''}>Da</option>
+                            <option value="hat" ${material == 'hat' ? 'selected' : ''}>Hạt</option>
+                            <option value="soi" ${material == 'soi' ? 'selected' : ''}>Sợi</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-card">
+                        <div class="filter-title">Nhu cầu sử dụng</div>
+                        <select name="usage">
+                            <option value="" ${empty usage ? 'selected' : ''}>Tất cả</option>
+                            <option value="trang-tri" ${usage == 'trang-tri' ? 'selected' : ''}>Trang trí</option>
+                            <option value="thoi-trang" ${usage == 'thoi-trang' ? 'selected' : ''}>Thời trang</option>
+                            <option value="qua-tang" ${usage == 'qua-tang' ? 'selected' : ''}>Quà tặng</option>
+                            <option value="gia-dung" ${usage == 'gia-dung' ? 'selected' : ''}>Gia dụng</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-card">
                         <div class="filter-title">Sắp xếp</div>
                         <select name="sort">
                             <option value="" ${empty sort ? 'selected' : ''}>Mặc định</option>
@@ -109,6 +134,12 @@
                         <c:if test="${not empty status}">
                             <input type="hidden" name="status" value="${status}">
                         </c:if>
+                        <c:if test="${not empty material}">
+                            <input type="hidden" name="material" value="${material}">
+                        </c:if>
+                        <c:if test="${not empty usage}">
+                            <input type="hidden" name="usage" value="${usage}">
+                        </c:if>
                         <select name="sort" onchange="this.form.submit()">
                             <option value="" ${empty sort ? 'selected' : ''}>Mặc định</option>
                             <option value="newest" ${sort == 'newest' ? 'selected' : ''}>Mới nhất</option>
@@ -139,6 +170,12 @@
                     </c:if>
                     <c:if test="${not empty status}">
                         <span>${status == 'instock' ? 'Còn hàng' : 'Hết hàng'}</span>
+                    </c:if>
+                    <c:if test="${not empty material}">
+                        <span>Vật liệu: ${material}</span>
+                    </c:if>
+                    <c:if test="${not empty usage}">
+                        <span>Nhu cầu: ${usage}</span>
                     </c:if>
                 </div>
 
@@ -208,6 +245,8 @@
                                 <c:forEach items="${selectedCategoryIds}" var="cid"><c:param name="categoryId" value="${cid}"/></c:forEach>
                                 <c:if test="${not empty status}"><c:param name="status" value="${status}"/></c:if>
                                 <c:if test="${not empty priceRange}"><c:param name="priceRange" value="${priceRange}"/></c:if>
+                                <c:if test="${not empty material}"><c:param name="material" value="${material}"/></c:if>
+                                <c:if test="${not empty usage}"><c:param name="usage" value="${usage}"/></c:if>
                                 <c:if test="${not empty sort}"><c:param name="sort" value="${sort}"/></c:if>
                             </c:url>
                             <a href="${prevPageUrl}"><i class="bx bx-chevron-left"></i></a>
@@ -228,6 +267,8 @@
                                         <c:forEach items="${selectedCategoryIds}" var="cid"><c:param name="categoryId" value="${cid}"/></c:forEach>
                                         <c:if test="${not empty status}"><c:param name="status" value="${status}"/></c:if>
                                         <c:if test="${not empty priceRange}"><c:param name="priceRange" value="${priceRange}"/></c:if>
+                                        <c:if test="${not empty material}"><c:param name="material" value="${material}"/></c:if>
+                                        <c:if test="${not empty usage}"><c:param name="usage" value="${usage}"/></c:if>
                                         <c:if test="${not empty sort}"><c:param name="sort" value="${sort}"/></c:if>
                                     </c:url>
                                     <a href="${pageUrl}">${pageItem}</a>
@@ -242,6 +283,8 @@
                                 <c:forEach items="${selectedCategoryIds}" var="cid"><c:param name="categoryId" value="${cid}"/></c:forEach>
                                 <c:if test="${not empty status}"><c:param name="status" value="${status}"/></c:if>
                                 <c:if test="${not empty priceRange}"><c:param name="priceRange" value="${priceRange}"/></c:if>
+                                <c:if test="${not empty material}"><c:param name="material" value="${material}"/></c:if>
+                                <c:if test="${not empty usage}"><c:param name="usage" value="${usage}"/></c:if>
                                 <c:if test="${not empty sort}"><c:param name="sort" value="${sort}"/></c:if>
                             </c:url>
                             <a href="${nextPageUrl}"><i class="bx bx-chevron-right"></i></a>

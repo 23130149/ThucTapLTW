@@ -21,7 +21,7 @@
                     <i class="bx bx-cart-add"></i>
                 </div>
                 <h3 id="hhLoginTitle">Vui lòng đăng nhập</h3>
-                <p>Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng.</p>
+                <p>Bạn cần đăng nhập để thực hiện thao tác này.</p>
                 <a class="hh-login-button" href="${pageContext.request.contextPath}/SignIn?redirect=${sessionScope.redirectAfterLogin}">Đăng nhập</a>
             </div>
         </div>
@@ -34,7 +34,7 @@
                 <b>House</b>
             </a>
             <form class="hh-search-form" action="${pageContext.request.contextPath}/product" method="get" autocomplete="off">
-                <input class="hh-search-input" type="text" name="keyword" value="${headerKeyword}" placeholder="Tìm sản phẩm" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                <input class="hh-search-input" type="text" name="keyword" value="${headerKeyword}" placeholder="Tìm: túi + len" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                 <button class="hh-search-button" type="submit" aria-label="Tìm kiếm"><i class="bx bx-search-alt-2"></i></button>
             </form>
             <div class="hh-actions">
@@ -103,6 +103,27 @@
             document.querySelectorAll('form[action$="/Add-Cart"]').forEach(function (form) {
                 form.addEventListener('submit', openLoginModal);
             });
+
+            document.querySelectorAll('form[action$="/favorite-toggle"]').forEach(function (form) {
+                form.addEventListener('submit', openLoginModal);
+            });
+
+            document.addEventListener('click', function (event) {
+                const addCartLink = event.target.closest('a[href*="/Add-Cart"]');
+                if (addCartLink) {
+                    openLoginModal(event);
+                    event.stopImmediatePropagation();
+                }
+            }, true);
+
+            document.addEventListener('submit', function (event) {
+                const form = event.target;
+                if (!form || !form.matches('form[action$="/Add-Cart"], form[action$="/favorite-toggle"]')) {
+                    return;
+                }
+                openLoginModal(event);
+                event.stopImmediatePropagation();
+            }, true);
 
             closeButtons.forEach(function (button) {
                 button.addEventListener('click', closeLoginModal);

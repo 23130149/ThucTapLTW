@@ -6,9 +6,11 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 import model.User;
+import util.AjaxUtil;
 
 import java.io.IOException;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 @WebServlet(name = "DelSelectProduct", value = "/DelSelectProduct")
@@ -26,6 +28,10 @@ public class DelSelectProduct extends HttpServlet {
             session = request.getSession(true);
             session.setAttribute("loginMessage", "Vui lòng đăng nhập để xóa sản phẩm trong giỏ hàng.");
             session.setAttribute("redirectAfterLogin", "cart");
+            if (AjaxUtil.wantsJson(request)) {
+                AjaxUtil.writeJson(response, AjaxUtil.error("Vui lòng đăng nhập để xóa sản phẩm trong giỏ hàng."));
+                return;
+            }
             response.sendRedirect(request.getContextPath() + "/SignIn");
             return;
         }
@@ -57,6 +63,16 @@ public class DelSelectProduct extends HttpServlet {
 
         Cart cart = cartDao.getCartByUserId(user.getUserId());
         session.setAttribute("cart", cart);
+        if (AjaxUtil.wantsJson(request)) {
+            Map<String, Object> payload = deletedCount > 0
+                    ? AjaxUtil.ok("Đã xóa " + deletedCount + " sản phẩm.")
+                    : AjaxUtil.error("Vui lòng chọn sản phẩm cần xóa.");
+            payload.put("deletedIds", productIds);
+            payload.put("deletedCount", deletedCount);
+            payload.put("cart", AjaxUtil.cartSummary(cart));
+            AjaxUtil.writeJson(response, payload);
+            return;
+        }
         response.sendRedirect(request.getContextPath() + "/cart");
     }
 

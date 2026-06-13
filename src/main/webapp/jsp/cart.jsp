@@ -126,7 +126,9 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const checkAll = document.getElementById("checkAll");
-        const itemCheckboxes = document.querySelectorAll(".item-checkbox");
+        const getItemCheckboxes = function () {
+            return Array.from(document.querySelectorAll(".item-checkbox"));
+        };
 
         const selectedTotalTop = document.getElementById("selectedTotalTop");
         const selectedQuantityTop = document.getElementById("selectedQuantityTop");
@@ -134,7 +136,7 @@
         const selectedSubtotalBottom = document.getElementById("selectedSubtotalBottom");
         const selectedTotalBottom = document.getElementById("selectedTotalBottom");
 
-        if (!checkAll || itemCheckboxes.length === 0) {
+        if (!checkAll || getItemCheckboxes().length === 0) {
             return;
         }
 
@@ -146,6 +148,8 @@
             let total = 0;
             let quantity = 0;
             let checkedCount = 0;
+
+            const itemCheckboxes = getItemCheckboxes();
 
             itemCheckboxes.forEach(function (checkbox) {
                 const cartItem = checkbox.closest(".cart-item");
@@ -196,14 +200,14 @@
         }
 
         checkAll.addEventListener("change", function () {
-            itemCheckboxes.forEach(function (checkbox) {
+            getItemCheckboxes().forEach(function (checkbox) {
                 checkbox.checked = checkAll.checked;
             });
 
             updateSelectedTotal();
         });
 
-        itemCheckboxes.forEach(function (checkbox) {
+        getItemCheckboxes().forEach(function (checkbox) {
             checkbox.addEventListener("change", updateSelectedTotal);
         });
 
@@ -217,7 +221,7 @@
                     : cartSelectionForm.getAttribute("action");
 
                 const isCheckout = action && action.indexOf("/payment") !== -1;
-                const hasCheckedItem = Array.from(itemCheckboxes).some(function (checkbox) {
+                const hasCheckedItem = getItemCheckboxes().some(function (checkbox) {
                     return checkbox.checked;
                 });
 

@@ -67,7 +67,7 @@ public class CategoryDao extends BaseDao {
         );
     }
 
-    public void updateCategory(int categoryId, String name, String imageUrl) {
+    public boolean updateCategory(int categoryId, String name, String imageUrl) {
         String sql = """
                 UPDATE categories
                 SET name = :name,
@@ -75,25 +75,25 @@ public class CategoryDao extends BaseDao {
                 WHERE category_id = :categoryId
                 """;
 
-        getJdbi().useHandle(handle ->
+        return getJdbi().withHandle(handle ->
                 handle.createUpdate(sql)
                         .bind("name", name)
                         .bind("imageUrl", imageUrl)
                         .bind("categoryId", categoryId)
-                        .execute()
+                        .execute() > 0
         );
     }
 
-    public void deleteCategory(int categoryId) {
+    public boolean deleteCategory(int categoryId) {
         String sql = """
                 DELETE FROM categories
                 WHERE category_id = :categoryId
                 """;
 
-        getJdbi().useHandle(handle ->
+        return getJdbi().withHandle(handle ->
                 handle.createUpdate(sql)
                         .bind("categoryId", categoryId)
-                        .execute()
+                        .execute() > 0
         );
     }
 }

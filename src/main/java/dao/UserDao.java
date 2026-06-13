@@ -130,6 +130,26 @@ public class UserDao extends BaseDao {
         );
     }
 
+    public boolean updateUserNameIfBlank(int userId, String userName) {
+        if (userName == null || userName.isBlank()) {
+            return false;
+        }
+
+        String sql = """
+            UPDATE user
+            SET User_Name = :userName
+            WHERE User_Id = :userId
+              AND (User_Name IS NULL OR TRIM(User_Name) = '')
+        """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createUpdate(sql)
+                        .bind("userName", userName.trim())
+                        .bind("userId", userId)
+                        .execute()
+        ) > 0;
+    }
+
     public boolean updatePassword(int userId, String hashedPassword) {
         String sql = """
             UPDATE user
@@ -157,9 +177,14 @@ public class UserDao extends BaseDao {
     }
 
     public void insertGoogleUser(String email, String googleId) {
+        insertGoogleUser(email, googleId, null);
+    }
+
+    public void insertGoogleUser(String email, String googleId, String userName) {
         String sql = """
             INSERT INTO user (
                 Customer_Code,
+                User_Name,
                 Email,
                 Google_Id,
                 Role,
@@ -167,6 +192,7 @@ public class UserDao extends BaseDao {
             )
             VALUES (
                 :customerCode,
+                :userName,
                 :email,
                 :google_id,
                 'USER',
@@ -183,6 +209,7 @@ public class UserDao extends BaseDao {
 
             handle.createUpdate(sql)
                     .bind("customerCode", customerCode)
+                    .bind("userName", userName == null || userName.isBlank() ? null : userName.trim())
                     .bind("email", email)
                     .bind("google_id", googleId)
                     .execute();
@@ -555,8 +582,8 @@ public class UserDao extends BaseDao {
         );
     }
 
-    public void deleteCustomer(int userId) {
-        getJdbi().useTransaction(handle -> {
+    public boolean deleteCustomer(int userId) {
+        return getJdbi().inTransaction(handle -> {
             handle.createUpdate("DELETE FROM favorite_products WHERE User_Id = :id")
                     .bind("id", userId)
                     .execute();
@@ -573,9 +600,9 @@ public class UserDao extends BaseDao {
                     .bind("id", userId)
                     .execute();
 
-            handle.createUpdate("DELETE FROM user WHERE User_Id = :id AND Role = 'USER'")
+            return handle.createUpdate("DELETE FROM user WHERE User_Id = :id AND Role = 'USER'")
                     .bind("id", userId)
-                    .execute();
+                    .execute() > 0;
         });
     }
     public List<User> filterCustomers(String keyword,

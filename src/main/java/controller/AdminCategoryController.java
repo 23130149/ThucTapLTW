@@ -6,9 +6,11 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 import model.Category;
+import util.AjaxUtil;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @WebServlet(name = "AdminCategoryController", value = "/admin/category")
 public class AdminCategoryController extends HttpServlet {
@@ -21,7 +23,16 @@ public class AdminCategoryController extends HttpServlet {
 
         if ("delete".equals(action)) {
             int categoryId = Integer.parseInt(request.getParameter("id"));
-            cDao.deleteCategory(categoryId);
+            boolean success = cDao.deleteCategory(categoryId);
+            if (AjaxUtil.wantsJson(request)) {
+                Map<String, Object> payload = success
+                        ? AjaxUtil.ok("Đã xóa danh mục.")
+                        : AjaxUtil.error("Không tìm thấy danh mục cần xóa.");
+                payload.put("action", action);
+                payload.put("categoryId", categoryId);
+                AjaxUtil.writeJson(response, payload);
+                return;
+            }
             response.sendRedirect(request.getContextPath() + "/admin/category");
             return;
         }
@@ -55,6 +66,8 @@ public class AdminCategoryController extends HttpServlet {
 
         CategoryDao cDao = new CategoryDao();
         String action = request.getParameter("action");
+        boolean success = false;
+        String message = null;
 
         if ("add".equals(action)) {
             String name = request.getParameter("name");
@@ -62,8 +75,19 @@ public class AdminCategoryController extends HttpServlet {
 
             if (name != null && !name.trim().isEmpty()) {
                 cDao.addCategory(name.trim(), imageUrl);
+                success = true;
+            } else {
+                message = "Vui lòng nhập tên danh mục.";
             }
 
+            if (AjaxUtil.wantsJson(request)) {
+                Map<String, Object> payload = success
+                        ? AjaxUtil.ok("Đã thêm danh mục.")
+                        : AjaxUtil.error(message);
+                payload.put("action", action);
+                AjaxUtil.writeJson(response, payload);
+                return;
+            }
             response.sendRedirect(request.getContextPath() + "/admin/category");
             return;
         }
@@ -76,13 +100,31 @@ public class AdminCategoryController extends HttpServlet {
             if (idParam != null && !idParam.trim().isEmpty()
                     && name != null && !name.trim().isEmpty()) {
                 int categoryId = Integer.parseInt(idParam);
-                cDao.updateCategory(categoryId, name.trim(), imageUrl);
+                success = cDao.updateCategory(categoryId, name.trim(), imageUrl);
+            } else {
+                message = "Thông tin danh mục không hợp lệ.";
+            }
+            if (!success && message == null) {
+                message = "Không tìm thấy danh mục cần cập nhật.";
             }
 
+            if (AjaxUtil.wantsJson(request)) {
+                Map<String, Object> payload = success
+                        ? AjaxUtil.ok("Đã cập nhật danh mục.")
+                        : AjaxUtil.error(message);
+                payload.put("action", action);
+                payload.put("categoryId", idParam);
+                AjaxUtil.writeJson(response, payload);
+                return;
+            }
             response.sendRedirect(request.getContextPath() + "/admin/category");
             return;
         }
 
+        if (AjaxUtil.wantsJson(request)) {
+            AjaxUtil.writeJson(response, AjaxUtil.error("Thao tác danh mục không hợp lệ."));
+            return;
+        }
         response.sendRedirect(request.getContextPath() + "/admin/category");
     }
 }

@@ -6,6 +6,7 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 import model.Review;
+import util.AjaxUtil;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -72,32 +73,51 @@ public class AdminReviewController extends HttpServlet {
 
         ReviewDao rDao = new ReviewDao();
         String action = request.getParameter("action");
+        boolean success = false;
+        String message = null;
 
         if ("reply".equals(action)) {
             int reviewId = parseInt(request.getParameter("reviewId"), 0);
             String replyText = request.getParameter("replyText");
 
             if (reviewId > 0 && replyText != null && !replyText.trim().isEmpty()) {
-                rDao.updateShopReply(reviewId, replyText.trim());
-                request.getSession().setAttribute("reviewMessage", "Đã lưu phản hồi đánh giá thành công");
+                success = rDao.updateShopReply(reviewId, replyText.trim());
+                message = success ? "Đã lưu phản hồi đánh giá thành công" : "Không tìm thấy đánh giá cần phản hồi";
             } else {
-                request.getSession().setAttribute("reviewError", "Vui lòng nhập nội dung phản hồi");
+                message = "Vui lòng nhập nội dung phản hồi";
             }
         } else if ("approve".equals(action) || "hide".equals(action)) {
             int reviewId = parseInt(request.getParameter("reviewId"), 0);
             String newStatus = "approve".equals(action) ? "APPROVED" : "HIDDEN";
 
             if (reviewId > 0) {
-                rDao.updateReviewStatus(reviewId, newStatus);
-                request.getSession().setAttribute(
-                        "reviewMessage",
-                        "APPROVED".equals(newStatus)
-                                ? "Đã duyệt đánh giá và hiển thị trên trang sản phẩm"
-                                : "Đã ẩn đánh giá khỏi trang sản phẩm"
-                );
+                success = rDao.updateReviewStatus(reviewId, newStatus);
+                message = success
+                        ? ("APPROVED".equals(newStatus)
+                            ? "Đã duyệt đánh giá và hiển thị trên trang sản phẩm"
+                            : "Đã ẩn đánh giá khỏi trang sản phẩm")
+                        : "Không tìm thấy đánh giá cần xử lý";
             } else {
-                request.getSession().setAttribute("reviewError", "Không tìm thấy đánh giá cần xử lý");
+                message = "Không tìm thấy đánh giá cần xử lý";
             }
+        } else {
+            message = "Thao tác đánh giá không hợp lệ";
+        }
+
+        if (success) {
+            request.getSession().setAttribute("reviewMessage", message);
+        } else {
+            request.getSession().setAttribute("reviewError", message);
+        }
+
+        if (AjaxUtil.wantsJson(request)) {
+            Map<String, Object> payload = success
+                    ? AjaxUtil.ok(message)
+                    : AjaxUtil.error(message == null ? "Không thể cập nhật đánh giá." : message);
+            payload.put("action", action);
+            payload.put("reviewId", request.getParameter("reviewId"));
+            AjaxUtil.writeJson(response, payload);
+            return;
         }
 
         response.sendRedirect(buildReviewRedirect(request));

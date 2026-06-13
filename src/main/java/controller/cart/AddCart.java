@@ -8,8 +8,10 @@ import jakarta.servlet.annotation.*;
 import model.Product;
 import model.User;
 import service.ProductService;
+import util.AjaxUtil;
 
 import java.io.IOException;
+import java.util.Map;
 
 @WebServlet(name = "AddCart", value = "/Add-Cart")
 public class AddCart extends HttpServlet {
@@ -27,6 +29,10 @@ public class AddCart extends HttpServlet {
             String referer = request.getHeader("Referer");
             session.setAttribute("showLoginModal", true);
             session.setAttribute("redirectAfterLogin", getLocalRedirect(request, referer));
+            if (AjaxUtil.wantsJson(request)) {
+                AjaxUtil.writeJson(response, AjaxUtil.error("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng."));
+                return;
+            }
             response.sendRedirect(getLocalReferer(request, referer));
             return;
         }
@@ -35,6 +41,10 @@ public class AddCart extends HttpServlet {
         String qRaw = request.getParameter("quantity");
 
         if (idRaw == null || idRaw.trim().isEmpty()) {
+            if (AjaxUtil.wantsJson(request)) {
+                AjaxUtil.writeJson(response, AjaxUtil.error("Thiếu sản phẩm cần thêm vào giỏ hàng."));
+                return;
+            }
             response.sendRedirect(request.getContextPath() + "/product");
             return;
         }
@@ -49,6 +59,10 @@ public class AddCart extends HttpServlet {
             }
 
         } catch (NumberFormatException e) {
+            if (AjaxUtil.wantsJson(request)) {
+                AjaxUtil.writeJson(response, AjaxUtil.error("Sản phẩm không hợp lệ."));
+                return;
+            }
             response.sendRedirect(request.getContextPath() + "/product");
             return;
         }
@@ -67,6 +81,10 @@ public class AddCart extends HttpServlet {
         Product p = ps.getProductById(id);
 
         if (p == null) {
+            if (AjaxUtil.wantsJson(request)) {
+                AjaxUtil.writeJson(response, AjaxUtil.error("Không tìm thấy sản phẩm."));
+                return;
+            }
             response.sendRedirect(request.getContextPath() + "/product");
             return;
         }
@@ -75,6 +93,15 @@ public class AddCart extends HttpServlet {
         Cart cart = cartDao.getCartByUserId(user.getUserId());
 
         session.setAttribute("cart", cart);
+
+        if (AjaxUtil.wantsJson(request) && !"1".equals(request.getParameter("buyNow"))) {
+            Map<String, Object> payload = AjaxUtil.ok("Đã thêm sản phẩm vào giỏ hàng.");
+            payload.put("productId", id);
+            payload.put("cart", AjaxUtil.cartSummary(cart));
+            AjaxUtil.writeJson(response, payload);
+            return;
+        }
+
         session.setAttribute("toastMessage", "Đã thêm sản phẩm vào giỏ hàng");
         session.setAttribute("toastType", "hh-toast-cart");
         session.setAttribute("toastIcon", "bx-cart-add");
