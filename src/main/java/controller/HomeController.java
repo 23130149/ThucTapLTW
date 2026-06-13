@@ -8,6 +8,7 @@ import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 import model.Product;
 import model.User;
+import dao.BannerDao;
 
 import java.io.IOException;
 import java.util.List;
@@ -20,6 +21,7 @@ public class HomeController extends HttpServlet {
         CategoryDao cDao = new CategoryDao();
         ProductDao pDao = new ProductDao();
         FavoriteDao favoriteDao = new FavoriteDao();
+        BannerDao bDao = new BannerDao();
 
         List<Product> featuredProducts = pDao.getFeaturedProducts();
         HttpSession session = request.getSession(false);
@@ -29,6 +31,7 @@ public class HomeController extends HttpServlet {
             featuredProducts.forEach(p -> p.setFavorite(favoriteIds.contains(p.getProductId())));
         }
 
+        request.setAttribute("bannerList", bDao.findActiveBanners());
         request.setAttribute("categoryList", cDao.getAllCategories());
         request.setAttribute("productList", featuredProducts);
         request.getRequestDispatcher("/jsp/home.jsp").forward(request, response);

@@ -19,24 +19,6 @@ public class AdminCategoryController extends HttpServlet {
         CategoryDao cDao = new CategoryDao();
         OrderDao oDao = new OrderDao();
 
-        String action = request.getParameter("action");
-
-        if ("delete".equals(action)) {
-            int categoryId = Integer.parseInt(request.getParameter("id"));
-            boolean success = cDao.deleteCategory(categoryId);
-            if (AjaxUtil.wantsJson(request)) {
-                Map<String, Object> payload = success
-                        ? AjaxUtil.ok("Đã xóa danh mục.")
-                        : AjaxUtil.error("Không tìm thấy danh mục cần xóa.");
-                payload.put("action", action);
-                payload.put("categoryId", categoryId);
-                AjaxUtil.writeJson(response, payload);
-                return;
-            }
-            response.sendRedirect(request.getContextPath() + "/admin/category");
-            return;
-        }
-
         String keyword = request.getParameter("keyword");
         List<Category> list;
 
@@ -99,8 +81,12 @@ public class AdminCategoryController extends HttpServlet {
 
             if (idParam != null && !idParam.trim().isEmpty()
                     && name != null && !name.trim().isEmpty()) {
-                int categoryId = Integer.parseInt(idParam);
-                success = cDao.updateCategory(categoryId, name.trim(), imageUrl);
+                try {
+                    int categoryId = Integer.parseInt(idParam);
+                    success = cDao.updateCategory(categoryId, name.trim(), imageUrl);
+                } catch (NumberFormatException e) {
+                    message = "Mã danh mục không hợp lệ.";
+                }
             } else {
                 message = "Thông tin danh mục không hợp lệ.";
             }
@@ -117,6 +103,37 @@ public class AdminCategoryController extends HttpServlet {
                 AjaxUtil.writeJson(response, payload);
                 return;
             }
+            response.sendRedirect(request.getContextPath() + "/admin/category");
+            return;
+        }
+        if ("delete".equals(action)) {
+            String idParam = request.getParameter("categoryId");
+
+            if (idParam != null && !idParam.trim().isEmpty()) {
+                try {
+                    int categoryId = Integer.parseInt(idParam);
+                    success = cDao.deleteCategory(categoryId);
+                } catch (NumberFormatException e) {
+                    message = "Mã danh mục không hợp lệ.";
+                }
+            } else {
+                message = "Thông tin danh mục không hợp lệ.";
+            }
+
+            if (!success && message == null) {
+                message = "Không tìm thấy danh mục cần xóa.";
+            }
+
+            if (AjaxUtil.wantsJson(request)) {
+                Map<String, Object> payload = success
+                        ? AjaxUtil.ok("Đã xóa danh mục.")
+                        : AjaxUtil.error(message);
+                payload.put("action", action);
+                payload.put("categoryId", idParam);
+                AjaxUtil.writeJson(response, payload);
+                return;
+            }
+
             response.sendRedirect(request.getContextPath() + "/admin/category");
             return;
         }

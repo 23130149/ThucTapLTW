@@ -549,6 +549,7 @@ public class OrderDao extends BaseDao {
             (
                 SELECT COUNT(*)
                 FROM contact
+                WHERE Status = 'NEW'
             )
             +
             (
@@ -589,12 +590,13 @@ public class OrderDao extends BaseDao {
 
             UNION ALL
 
-            SELECT 
+            SELECT
                 'CONTACT' AS type,
                 CONCAT('Liên hệ mới: ', Subject) AS message,
                 Create_At AS createdAt,
                 '/admin/contacts' AS url
             FROM contact
+                 WHERE Status = 'NEW'
 
             UNION ALL
 

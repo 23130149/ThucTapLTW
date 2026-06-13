@@ -78,7 +78,7 @@ a {
 
 .slidebar-nav li.active a {
     color: #11998e;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .logout {
@@ -92,6 +92,7 @@ a {
     align-items: center;
     gap: 10px;
     font-size: 14px;
+    font-weight: 600;
 }
 
 .main-content {
