@@ -1,6 +1,7 @@
 package controller.payment;
 
 import dao.CartDao;
+import dao.NotificationDao;
 import dao.OrderDao;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -8,6 +9,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import model.Order;
 import model.User;
 import service.VnpayService;
 
@@ -23,6 +25,7 @@ public class VnpayReturnController extends HttpServlet {
     private final VnpayService vnpayService = new VnpayService();
     private final OrderDao orderDao = new OrderDao();
     private final CartDao cartDao = new CartDao();
+    private final NotificationDao notificationDao = new NotificationDao();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -40,6 +43,7 @@ public class VnpayReturnController extends HttpServlet {
 
         if (validSignature && "00".equals(responseCode) && "00".equals(transactionStatus)) {
             orderDao.markVnpayPaid(orderCode, transactionNo, responseCode);
+            notifyPayment(orderCode, "Thanh toán VNPAY thành công", "Đơn hàng " + orderCode + " đã được xác nhận thanh toán.");
             removePaidProductsFromCart(session, orderCode);
 
             if (session != null) {
@@ -54,12 +58,33 @@ public class VnpayReturnController extends HttpServlet {
         }
 
         orderDao.markVnpayFailed(orderCode, responseCode == null ? "INVALID" : responseCode);
+        notifyPayment(orderCode, "Thanh toán VNPAY không thành công", "Bạn có thể thử thanh toán lại hoặc chọn phương thức khác.");
 
         if (session != null) {
             session.setAttribute("paymentError", "Thanh toán VNPAY không thành công hoặc dữ liệu không hợp lệ.");
         }
 
         response.sendRedirect(request.getContextPath() + "/payment");
+    }
+
+
+    private void notifyPayment(String orderCode, String title, String message) {
+        if (orderCode == null || orderCode.isBlank()) {
+            return;
+        }
+        Order order = orderDao.getOrderByCode(orderCode);
+        if (order == null || order.getUserId() <= 0) {
+            return;
+        }
+        notificationDao.addOrRefreshSafe(
+                order.getUserId(),
+                "ORDER_PAYMENT",
+                title,
+                message,
+                "/OrderDetail?orderId=" + order.getOrderId(),
+                "ORDER",
+                order.getOrderId()
+        );
     }
 
     private Map<String, String> extractParams(HttpServletRequest request) {

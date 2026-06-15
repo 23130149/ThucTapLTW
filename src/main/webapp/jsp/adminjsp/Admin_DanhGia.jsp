@@ -8,7 +8,8 @@
     <meta charset="UTF-8">
     <title>Admin</title>
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/Admin_DanhGia.css?v=3">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/Admin_DanhGia.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin-font-standard.css">
 </head>
 <body>
 <aside class="sliderbar">
@@ -30,7 +31,7 @@
     </nav>
     <div class="logout">
         <a href="${pageContext.request.contextPath}/home">
-            <i class="bx bx-log-out"></i> Đăng xuất
+            <i class="bx bx-home-alt-2"></i> Trang chủ
         </a>
     </div>
 </aside>
@@ -217,6 +218,16 @@
                     <option value="APPROVED" ${currentStatus == 'APPROVED' ? 'selected' : ''}>Đã duyệt</option>
                     <option value="HIDDEN" ${currentStatus == 'HIDDEN' ? 'selected' : ''}>Đã ẩn</option>
                 </select>
+
+                <select name="categoryId" class="filter-select" onchange="this.form.submit()">
+                    <option value="" ${empty currentCategoryId ? 'selected' : ''}>Tất cả danh mục</option>
+                    <c:forEach items="${categories}" var="category">
+                        <option value="${category.categoryId}"
+                            ${currentCategoryId == category.categoryId ? 'selected' : ''}>
+                            <c:out value="${category.name}"/>
+                        </option>
+                    </c:forEach>
+                </select>
             </form>
         <div class="review-list-container">
             <c:choose>
@@ -269,7 +280,11 @@
                                 </div>
 
                                 <p class="review-product">
-                                    Sản phẩm: <c:out value="${review.productName}"/>
+                                    Sản phẩm:
+                                    <a href="${pageContext.request.contextPath}/product-detail?id=${review.productId}"
+                                       target="_blank" rel="noopener">
+                                        <c:out value="${review.productName}"/>
+                                    </a>
                                 </p>
 
                                 <span class="review-item-date">
@@ -300,6 +315,72 @@
                                     </span>
                                 </div>
 
+                                <c:if test="${not empty review.replies}">
+                                    <div class="customer-reply-list">
+                                        <p class="customer-reply-heading">
+                                            <i class="bx bx-message-rounded-dots"></i>
+                                            Phản hồi của người dùng
+                                        </p>
+
+                                        <c:forEach var="reply" items="${review.replies}">
+                                            <div class="customer-reply-item">
+                                                <div class="customer-reply-top">
+                                                    <strong><c:out value="${reply.userName}"/></strong>
+                                                    <span class="status-tag status-${fn:toLowerCase(reply.status)}">
+                                                        <c:choose>
+                                                            <c:when test="${reply.status == 'PENDING'}">Chờ duyệt</c:when>
+                                                            <c:when test="${reply.status == 'APPROVED'}">Đã duyệt</c:when>
+                                                            <c:when test="${reply.status == 'HIDDEN'}">Đã ẩn</c:when>
+                                                            <c:otherwise>${reply.status}</c:otherwise>
+                                                        </c:choose>
+                                                    </span>
+                                                </div>
+
+                                                <p><c:out value="${reply.replyText}"/></p>
+                                                <small>${reply.createAt}</small>
+
+                                                <c:if test="${fn:contains(sessionScope.permissionCodesText, ',MANAGE_REVIEW,')}">
+                                                    <div class="review-action-row compact">
+                                                        <c:if test="${reply.status == 'PENDING' || reply.status == 'HIDDEN'}">
+                                                            <form method="post"
+                                                                  action="${pageContext.request.contextPath}/admin/reviews"
+                                                                  class="review-status-form">
+                                                                <input type="hidden" name="action" value="approveReply">
+                                                                <input type="hidden" name="replyId" value="${reply.replyId}">
+                                                                <input type="hidden" name="keyword" value="${fn:escapeXml(keyword)}">
+                                                                <input type="hidden" name="rating" value="${currentRating}">
+                                                                <input type="hidden" name="status" value="${currentStatus}">
+                                                                <input type="hidden" name="categoryId" value="${currentCategoryId}">
+                                                                <button type="submit" class="review-action-btn approve-btn">
+                                                                    <i class="bx bx-check-circle"></i>
+                                                                    Duyệt phản hồi
+                                                                </button>
+                                                            </form>
+                                                        </c:if>
+
+                                                        <c:if test="${reply.status == 'PENDING' || reply.status == 'APPROVED'}">
+                                                            <form method="post"
+                                                                  action="${pageContext.request.contextPath}/admin/reviews"
+                                                                  class="review-status-form">
+                                                                <input type="hidden" name="action" value="hideReply">
+                                                                <input type="hidden" name="replyId" value="${reply.replyId}">
+                                                                <input type="hidden" name="keyword" value="${fn:escapeXml(keyword)}">
+                                                                <input type="hidden" name="rating" value="${currentRating}">
+                                                                <input type="hidden" name="status" value="${currentStatus}">
+                                                                <input type="hidden" name="categoryId" value="${currentCategoryId}">
+                                                                <button type="submit" class="review-action-btn hide-btn">
+                                                                    <i class="bx bx-hide"></i>
+                                                                    Ẩn phản hồi
+                                                                </button>
+                                                            </form>
+                                                        </c:if>
+                                                    </div>
+                                                </c:if>
+                                            </div>
+                                        </c:forEach>
+                                    </div>
+                                </c:if>
+
                                 <c:choose>
                                     <c:when test="${fn:contains(sessionScope.permissionCodesText, ',MANAGE_REVIEW,')}">
                                         <div class="review-action-row">
@@ -312,6 +393,7 @@
                                                     <input type="hidden" name="keyword" value="${fn:escapeXml(keyword)}">
                                                     <input type="hidden" name="rating" value="${currentRating}">
                                                     <input type="hidden" name="status" value="${currentStatus}">
+                                                    <input type="hidden" name="categoryId" value="${currentCategoryId}">
                                                     <button type="submit" class="review-action-btn approve-btn">
                                                         <i class="bx bx-check-circle"></i>
                                                         Duyệt hiển thị
@@ -328,6 +410,7 @@
                                                     <input type="hidden" name="keyword" value="${fn:escapeXml(keyword)}">
                                                     <input type="hidden" name="rating" value="${currentRating}">
                                                     <input type="hidden" name="status" value="${currentStatus}">
+                                                    <input type="hidden" name="categoryId" value="${currentCategoryId}">
                                                     <button type="submit" class="review-action-btn hide-btn">
                                                         <i class="bx bx-hide"></i>
                                                         Ẩn đánh giá
@@ -345,6 +428,7 @@
                                             <input type="hidden" name="keyword" value="${fn:escapeXml(keyword)}">
                                             <input type="hidden" name="rating" value="${currentRating}">
                                             <input type="hidden" name="status" value="${currentStatus}">
+                                            <input type="hidden" name="categoryId" value="${currentCategoryId}">
 
                                             <textarea name="replyText"
                                                       placeholder="Nhập phản hồi cho khách hàng..."
@@ -371,6 +455,7 @@
     </c:otherwise>
     </c:choose>
 </main>
+<script defer src="${pageContext.request.contextPath}/js/ajax-enhance.js?v=20260615-1"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const wrappers = document.querySelectorAll(".notification-wrapper");

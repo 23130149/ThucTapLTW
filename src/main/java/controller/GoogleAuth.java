@@ -3,6 +3,7 @@ package controller;
 import dao.CartDao;
 import dao.UserDao;
 import model.User;
+import util.GoogleTokenVerifier;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -32,29 +33,38 @@ public class GoogleAuth extends HttpServlet {
             return;
         }
 
-        String[] parts = credential.split("\\.");
-        String payloadJson = new String(
-                java.util.Base64.getUrlDecoder().decode(parts[1])
-        );
+        HttpSession session = request.getSession();
+        User user;
+        try {
+            com.google.gson.JsonObject json = GoogleTokenVerifier.verify(credential, getServletContext());
+            String email = json.get("email").getAsString();
+            String googleId = json.get("sub").getAsString();
+            String userName = json.has("name") && !json.get("name").isJsonNull()
+                    ? json.get("name").getAsString()
+                    : null;
 
-        com.google.gson.JsonObject json =
-                com.google.gson.JsonParser.parseString(payloadJson).getAsJsonObject();
-
-        String email = json.get("email").getAsString();
-        String googleId = json.get("sub").getAsString();
-
-        User user = userDao.findByEmail(email);
+            user = userDao.findByEmail(email);
+            if (user == null) {
+                userDao.insertGoogleUser(email, googleId, userName);
+                user = userDao.findByEmail(email);
+            }
+        } catch (Exception e) {
+            session.setAttribute("loginMessage", "Không thể xác minh tài khoản Google. Vui lòng thử lại.");
+            response.sendRedirect(request.getContextPath() + "/SignIn");
+            return;
+        }
 
         if (user == null) {
-            userDao.insertGoogleUser(email, googleId);
-            user = userDao.findByEmail(email);
+            session.setAttribute("loginMessage", "Không thể tạo tài khoản Google.");
+            response.sendRedirect(request.getContextPath() + "/SignIn");
+            return;
         }
-        HttpSession session = request.getSession();
+
         session.setAttribute("cart", cartDao.getCartByUserId(user.getUserId()));
         session.setAttribute("user", user);
 
         if ("ADMIN".equalsIgnoreCase(user.getRole())) {
-            response.sendRedirect(request.getContextPath() + "/jsp/adminjsp/Admin_Tongquan.jsp");
+            response.sendRedirect(request.getContextPath() + "/admin/dashboard");
         } else {
             String redirectAfterLogin = (String) session.getAttribute("redirectAfterLogin");
             session.removeAttribute("redirectAfterLogin");

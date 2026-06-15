@@ -100,9 +100,15 @@ public class CartDao extends BaseDao {
 
         String sql = """
                 INSERT INTO cart_items (Cart_Id, Product_Id, Quantity)
-                VALUES (:cartId, :productId, :quantity)
+                SELECT :cartId, p.Product_Id, LEAST(:quantity, p.Stock_Quantity)
+                FROM products p
+                WHERE p.Product_Id = :productId
+                  AND p.Stock_Quantity > 0
                 ON DUPLICATE KEY UPDATE
-                    Quantity = Quantity + VALUES(Quantity),
+                    Quantity = LEAST(
+                        Quantity + VALUES(Quantity),
+                        (SELECT p2.Stock_Quantity FROM products p2 WHERE p2.Product_Id = :productId)
+                    ),
                     Updated_At = NOW()
                 """;
 
@@ -126,7 +132,11 @@ public class CartDao extends BaseDao {
         int updated = getJdbi().withHandle(handle ->
                 handle.createUpdate("""
                                 UPDATE cart_items
-                                SET Quantity = :quantity, Updated_At = NOW()
+                                SET Quantity = LEAST(
+                                        :quantity,
+                                        (SELECT p.Stock_Quantity FROM products p WHERE p.Product_Id = :productId)
+                                    ),
+                                    Updated_At = NOW()
                                 WHERE Cart_Id = :cartId AND Product_Id = :productId
                                 """)
                         .bind("quantity", quantity)
@@ -134,6 +144,22 @@ public class CartDao extends BaseDao {
                         .bind("productId", productId)
                         .execute()
         );
+
+        if (updated > 0) {
+            getJdbi().useHandle(handle ->
+                    handle.createUpdate("""
+                                    DELETE ci
+                                    FROM cart_items ci
+                                    JOIN products p ON p.Product_Id = ci.Product_Id
+                                    WHERE ci.Cart_Id = :cartId
+                                      AND ci.Product_Id = :productId
+                                      AND p.Stock_Quantity <= 0
+                                    """)
+                            .bind("cartId", cartId)
+                            .bind("productId", productId)
+                            .execute()
+            );
+        }
 
         return updated > 0;
     }

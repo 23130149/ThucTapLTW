@@ -1,21 +1,16 @@
-# Copy cac dong JAVA_OPTS nay vao /etc/default/tomcat10 tren server.
-# Doi tat ca CHANGE_ME truoc khi restart Tomcat.
-
 JAVA_OPTS="$JAVA_OPTS -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Ho_Chi_Minh"
-
-# Database production
 JAVA_OPTS="$JAVA_OPTS -Ddb.host=localhost"
 JAVA_OPTS="$JAVA_OPTS -Ddb.port=3306"
 JAVA_OPTS="$JAVA_OPTS -Ddb.username=handmade_user"
 JAVA_OPTS="$JAVA_OPTS -Ddb.password=CHANGE_ME_DB_PASSWORD"
 JAVA_OPTS="$JAVA_OPTS -Ddb.dbName=project"
 JAVA_OPTS="$JAVA_OPTS -Ddb.dbOption=useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Ho_Chi_Minh"
-
-# Google reCAPTCHA v2 Checkbox
 JAVA_OPTS="$JAVA_OPTS -DRECAPTCHA_SITE_KEY=CHANGE_ME_RECAPTCHA_SITE_KEY"
 JAVA_OPTS="$JAVA_OPTS -DRECAPTCHA_SECRET_KEY=CHANGE_ME_RECAPTCHA_SECRET_KEY"
-
-# GHN
+JAVA_OPTS="$JAVA_OPTS -DSMTP_FROM_EMAIL=CHANGE_ME_SMTP_FROM_EMAIL"
+JAVA_OPTS="$JAVA_OPTS -DSMTP_APP_PASSWORD=CHANGE_ME_SMTP_APP_PASSWORD"
+JAVA_OPTS="$JAVA_OPTS -DVNPAY_TMN_CODE=CHANGE_ME_VNPAY_TMN_CODE"
+JAVA_OPTS="$JAVA_OPTS -DVNPAY_HASH_SECRET=CHANGE_ME_VNPAY_HASH_SECRET"
 JAVA_OPTS="$JAVA_OPTS -Dghn.mode=simulation"
 JAVA_OPTS="$JAVA_OPTS -Dghn.base_url=https://online-gateway.ghn.vn/shiip/public-api"
 JAVA_OPTS="$JAVA_OPTS -Dghn.token=CHANGE_ME_GHN_TOKEN"

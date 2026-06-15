@@ -176,6 +176,9 @@
                     <input type="hidden" name="action" value="cancel">
                     <label for="cancelReason">Lý do hủy đơn</label>
                     <textarea id="cancelReason" name="reason" rows="3" required placeholder="Ví dụ: Tôi đặt nhầm sản phẩm..."></textarea>
+                    <p class="order-policy-note">
+                        Bạn có thể hủy đơn trong vòng 24 giờ kể từ khi đặt hàng nếu đơn còn đang chờ xử lý, đang xử lý hoặc đã xác nhận. Sau khi nhận hàng, hãy dùng yêu cầu trả hàng nếu cần hỗ trợ.
+                    </p>
                     <button type="submit" class="btn-account-danger"
                             onclick="return confirm('Xác nhận hủy đơn hàng này?')">
                         <i class='bx bx-x-circle'></i>
@@ -190,6 +193,9 @@
                     <input type="hidden" name="action" value="return">
                     <label for="returnReason">Lý do trả hàng</label>
                     <textarea id="returnReason" name="reason" rows="3" required placeholder="Mô tả lý do muốn trả hàng..."></textarea>
+                    <p class="order-policy-note">
+                        Yêu cầu trả hàng chỉ áp dụng sau khi đơn hàng đã hoàn thành.
+                    </p>
                     <label for="returnImage">Ảnh minh chứng nếu có</label>
                     <input type="file" id="returnImage" name="returnImage" accept="image/*">
                     <button type="submit" class="btn-account-secondary">
@@ -210,6 +216,14 @@
             <i class='bx bx-store'></i>
             Tiếp tục mua sắm
         </a>
+        <form action="${pageContext.request.contextPath}/Reorder" method="post" class="order-detail-reorder-form">
+            <input type="hidden" name="orderId" value="${order.orderId}">
+            <button type="submit" class="btn-account-primary"
+                    onclick="return confirm('Thêm lại các sản phẩm còn hàng trong đơn này vào giỏ?')">
+                <i class='bx bx-cart-add'></i>
+                Mua lại đơn hàng
+            </button>
+        </form>
     </div>
 </main>
 

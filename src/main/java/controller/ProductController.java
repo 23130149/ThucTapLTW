@@ -34,6 +34,31 @@ public class ProductController extends HttpServlet {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
+    private String materialLabel(String material) {
+        return switch (material == null ? "" : material) {
+            case "len", "len-crochet" -> "Len / crochet";
+            case "nhua" -> "Nhựa / resin";
+            case "sap-nen" -> "Sáp / nến thơm";
+            case "go" -> "Gỗ";
+            case "vai", "da", "vai-da" -> "Vải / da";
+            case "gom-su" -> "Gốm / sứ";
+            case "kim-loai" -> "Kim loại";
+            default -> material;
+        };
+    }
+
+    private String usageLabel(String usage) {
+        return switch (usage == null ? "" : usage) {
+            case "trang-tri", "trang-tri-nha" -> "Trang trí nhà cửa";
+            case "thoi-trang", "phu-kien-ca-nhan" -> "Phụ kiện cá nhân";
+            case "thu-gian-huong-thom" -> "Thư giãn / hương thơm";
+            case "dien-thoai" -> "Ốp lưng điện thoại";
+            case "thu-cung" -> "Đồ dùng thú cưng";
+            case "qua-tang" -> "Quà tặng";
+            default -> usage;
+        };
+    }
+
     private List<Integer> parseCategoryIds(HttpServletRequest request) {
         String[] values = request.getParameterValues("categoryId");
         Set<Integer> ids = new LinkedHashSet<>();
@@ -117,6 +142,8 @@ public class ProductController extends HttpServlet {
         request.setAttribute("priceRange", priceRange);
         request.setAttribute("material", material);
         request.setAttribute("usage", usage);
+        request.setAttribute("materialLabel", materialLabel(material));
+        request.setAttribute("usageLabel", usageLabel(usage));
         request.setAttribute("sort", sort);
         request.setAttribute("productCount", productCount);
         request.setAttribute("currentPage", currentPage);

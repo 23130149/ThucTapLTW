@@ -159,6 +159,17 @@
     <div class="review-list">
       <h3>Bình luận từ khách hàng (${reviewCount})</h3>
 
+      <div class="review-rating-filters" aria-label="Lọc đánh giá theo số sao">
+        <a class="${empty selectedRating ? 'active' : ''}"
+           href="${pageContext.request.contextPath}/product-detail?id=${product.productId}">Tất cả (${reviewCount})</a>
+        <c:forEach var="star" begin="1" end="5">
+          <a class="${selectedRating == star ? 'active' : ''}"
+             href="${pageContext.request.contextPath}/product-detail?id=${product.productId}&amp;rating=${star}">
+            ${star} <i class="bx bxs-star"></i> (${reviewRatingCounts[star]})
+          </a>
+        </c:forEach>
+      </div>
+
       <c:if test="${not empty sessionScope.reviewError}">
         <div class="review-message error">
           ${sessionScope.reviewError}
@@ -225,11 +236,11 @@
         <p>Chưa có đánh giá nào.</p>
       </c:if>
       <c:forEach var="r" items="${reviews}">
-        <div class="review-item">
+        <div class="review-item" id="review-${r.reviewId}">
           <div class="review-header">
-            <span class="user-avatar">${fn:substring(r.userName,0,1)}</span>
+            <span class="user-avatar"><c:out value="${fn:substring(r.userName,0,1)}"/></span>
             <div class="user-info">
-              <p class="user-name">${r.userName}</p>
+              <p class="user-name"><c:out value="${r.userName}"/></p>
               <div class="review-rating">
                 <c:forEach begin="1" end="5" var="i">
                   <i class="bx ${i <= r.rating ? 'bxs-star' : 'bx-star'}"></i>
@@ -238,7 +249,40 @@
               </div>
             </div>
           </div>
-          <p class="review-text">${r.comment}</p>
+          <p class="review-text"><c:out value="${r.comment}"/></p>
+          <div class="review-actions">
+            <form action="${pageContext.request.contextPath}/review-like"
+                  method="post"
+                  class="review-like-form ${r.likedByCurrentUser ? 'liked' : ''}">
+              <input type="hidden" name="productId" value="${product.productId}">
+              <input type="hidden" name="reviewId" value="${r.reviewId}">
+              <button type="submit">
+                <i class="bx bx-like"></i>
+                Hữu ích <span data-helpful-count>${r.helpfulCount}</span>
+              </button>
+            </form>
+          </div>
+
+          <c:if test="${not empty r.replies}">
+            <div class="review-replies">
+              <c:forEach var="reply" items="${r.replies}">
+                <div class="review-reply">
+                  <strong><c:out value="${reply.userName}"/></strong>
+                  <span><c:out value="${reply.replyText}"/></span>
+                </div>
+              </c:forEach>
+            </div>
+          </c:if>
+
+          <c:if test="${isLoggedIn}">
+            <form action="${pageContext.request.contextPath}/review-reply" method="post" class="review-reply-form">
+              <input type="hidden" name="productId" value="${product.productId}">
+              <input type="hidden" name="reviewId" value="${r.reviewId}">
+              <input type="text" name="replyText" minlength="2" maxlength="500"
+                     placeholder="Trả lời đánh giá này..." required>
+              <button type="submit" aria-label="Gửi phản hồi"><i class="bx bx-send"></i></button>
+            </form>
+          </c:if>
           <c:if test="${not empty r.shopReply}">
             <div class="shop-response">
               <p class="response-title">

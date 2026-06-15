@@ -582,8 +582,49 @@ public class UserDao extends BaseDao {
         );
     }
 
+    public boolean hasOrders(int userId) {
+        String sql = """
+        SELECT COUNT(*)
+        FROM orders
+        WHERE User_Id = :userId
+    """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("userId", userId)
+                        .mapTo(Integer.class)
+                        .one() > 0
+        );
+    }
+
     public boolean deleteCustomer(int userId) {
         return getJdbi().inTransaction(handle -> {
+            int orderCount = handle.createQuery("""
+            SELECT COUNT(*)
+            FROM orders
+            WHERE User_Id = :id
+        """)
+                    .bind("id", userId)
+                    .mapTo(Integer.class)
+                    .one();
+
+            if (orderCount > 0) {
+                return false;
+            }
+
+            handle.createUpdate("""
+            DELETE ci
+            FROM cart_items ci
+            INNER JOIN carts c ON ci.Cart_Id = c.Cart_Id
+            WHERE c.User_Id = :id
+        """)
+                    .bind("id", userId)
+                    .execute();
+
+            handle.createUpdate("DELETE FROM carts WHERE User_Id = :id")
+                    .bind("id", userId)
+                    .execute();
+
             handle.createUpdate("DELETE FROM favorite_products WHERE User_Id = :id")
                     .bind("id", userId)
                     .execute();
@@ -600,7 +641,11 @@ public class UserDao extends BaseDao {
                     .bind("id", userId)
                     .execute();
 
-            return handle.createUpdate("DELETE FROM user WHERE User_Id = :id AND Role = 'USER'")
+            return handle.createUpdate("""
+            DELETE FROM user
+            WHERE User_Id = :id
+              AND Role = 'USER'
+        """)
                     .bind("id", userId)
                     .execute() > 0;
         });

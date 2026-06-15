@@ -2,9 +2,11 @@ package controller;
 
 import dao.CategoryDao;
 import dao.OrderDao;
-import jakarta.servlet.*;
-import jakarta.servlet.http.*;
-import jakarta.servlet.annotation.*;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import model.Category;
 import util.AjaxUtil;
 
@@ -20,20 +22,8 @@ public class AdminCategoryController extends HttpServlet {
         OrderDao oDao = new OrderDao();
 
         String action = request.getParameter("action");
-
         if ("delete".equals(action)) {
-            int categoryId = Integer.parseInt(request.getParameter("id"));
-            boolean success = cDao.deleteCategory(categoryId);
-            if (AjaxUtil.wantsJson(request)) {
-                Map<String, Object> payload = success
-                        ? AjaxUtil.ok("Đã xóa danh mục.")
-                        : AjaxUtil.error("Không tìm thấy danh mục cần xóa.");
-                payload.put("action", action);
-                payload.put("categoryId", categoryId);
-                AjaxUtil.writeJson(response, payload);
-                return;
-            }
-            response.sendRedirect(request.getContextPath() + "/admin/category");
+            handleDelete(request, response, cDao, request.getParameter("id"));
             return;
         }
 
@@ -63,7 +53,6 @@ public class AdminCategoryController extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
         CategoryDao cDao = new CategoryDao();
         String action = request.getParameter("action");
         boolean success = false;
@@ -80,15 +69,8 @@ public class AdminCategoryController extends HttpServlet {
                 message = "Vui lòng nhập tên danh mục.";
             }
 
-            if (AjaxUtil.wantsJson(request)) {
-                Map<String, Object> payload = success
-                        ? AjaxUtil.ok("Đã thêm danh mục.")
-                        : AjaxUtil.error(message);
-                payload.put("action", action);
-                AjaxUtil.writeJson(response, payload);
-                return;
-            }
-            response.sendRedirect(request.getContextPath() + "/admin/category");
+            writeResultOrRedirect(request, response, success, message, action, null,
+                    "Đã thêm danh mục.");
             return;
         }
 
@@ -99,30 +81,77 @@ public class AdminCategoryController extends HttpServlet {
 
             if (idParam != null && !idParam.trim().isEmpty()
                     && name != null && !name.trim().isEmpty()) {
-                int categoryId = Integer.parseInt(idParam);
-                success = cDao.updateCategory(categoryId, name.trim(), imageUrl);
+                try {
+                    int categoryId = Integer.parseInt(idParam);
+                    success = cDao.updateCategory(categoryId, name.trim(), imageUrl);
+                } catch (NumberFormatException e) {
+                    message = "Mã danh mục không hợp lệ.";
+                }
             } else {
                 message = "Thông tin danh mục không hợp lệ.";
             }
+
             if (!success && message == null) {
                 message = "Không tìm thấy danh mục cần cập nhật.";
             }
 
-            if (AjaxUtil.wantsJson(request)) {
-                Map<String, Object> payload = success
-                        ? AjaxUtil.ok("Đã cập nhật danh mục.")
-                        : AjaxUtil.error(message);
-                payload.put("action", action);
-                payload.put("categoryId", idParam);
-                AjaxUtil.writeJson(response, payload);
-                return;
-            }
-            response.sendRedirect(request.getContextPath() + "/admin/category");
+            writeResultOrRedirect(request, response, success, message, action, idParam,
+                    "Đã cập nhật danh mục.");
+            return;
+        }
+
+        if ("delete".equals(action)) {
+            handleDelete(request, response, cDao, request.getParameter("categoryId"));
             return;
         }
 
         if (AjaxUtil.wantsJson(request)) {
             AjaxUtil.writeJson(response, AjaxUtil.error("Thao tác danh mục không hợp lệ."));
+            return;
+        }
+        response.sendRedirect(request.getContextPath() + "/admin/category");
+    }
+
+    private void handleDelete(HttpServletRequest request, HttpServletResponse response,
+                              CategoryDao cDao, String idParam) throws IOException {
+        boolean success = false;
+        String message = null;
+
+        if (idParam != null && !idParam.trim().isEmpty()) {
+            try {
+                int categoryId = Integer.parseInt(idParam);
+                if (cDao.hasProducts(categoryId)) {
+                    message = "Không thể xóa danh mục đang chứa sản phẩm.";
+                } else {
+                    success = cDao.deleteCategory(categoryId);
+                }
+            } catch (NumberFormatException e) {
+                message = "Mã danh mục không hợp lệ.";
+            }
+        } else {
+            message = "Thông tin danh mục không hợp lệ.";
+        }
+
+        if (!success && message == null) {
+            message = "Không tìm thấy danh mục cần xóa.";
+        }
+
+        writeResultOrRedirect(request, response, success, message, "delete", idParam,
+                "Đã xóa danh mục.");
+    }
+
+    private void writeResultOrRedirect(HttpServletRequest request, HttpServletResponse response,
+                                       boolean success, String message, String action,
+                                       String categoryId, String successMessage) throws IOException {
+        if (AjaxUtil.wantsJson(request)) {
+            Map<String, Object> payload = success
+                    ? AjaxUtil.ok(successMessage)
+                    : AjaxUtil.error(message);
+            payload.put("action", action);
+            if (categoryId != null) {
+                payload.put("categoryId", categoryId);
+            }
+            AjaxUtil.writeJson(response, payload);
             return;
         }
         response.sendRedirect(request.getContextPath() + "/admin/category");

@@ -16,9 +16,11 @@ import model.Order;
 import model.OrderItem;
 import model.Product;
 import model.User;
+import util.AjaxUtil;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @WebServlet("/Reorder")
 public class ReorderController extends HttpServlet {
@@ -34,6 +36,10 @@ public class ReorderController extends HttpServlet {
         User user = (User) session.getAttribute("user");
 
         if (user == null) {
+            if (AjaxUtil.wantsJson(request)) {
+                AjaxUtil.writeJson(response, AjaxUtil.error("Vui lòng đăng nhập để mua lại đơn hàng."));
+                return;
+            }
             session.setAttribute("loginMessage", "Vui lòng đăng nhập để mua lại đơn hàng.");
             response.sendRedirect(request.getContextPath() + "/SignIn?redirect=OrderHistory");
             return;
@@ -43,6 +49,10 @@ public class ReorderController extends HttpServlet {
         try {
             orderId = Integer.parseInt(request.getParameter("orderId"));
         } catch (Exception e) {
+            if (AjaxUtil.wantsJson(request)) {
+                AjaxUtil.writeJson(response, AjaxUtil.error("Không tìm thấy đơn hàng cần mua lại."));
+                return;
+            }
             session.setAttribute("orderMessage", "Không tìm thấy đơn hàng cần mua lại.");
             response.sendRedirect(request.getContextPath() + "/OrderHistory");
             return;
@@ -50,6 +60,10 @@ public class ReorderController extends HttpServlet {
 
         Order order = orderDao.getOrderByIdAndUser(orderId, user.getUserId());
         if (order == null) {
+            if (AjaxUtil.wantsJson(request)) {
+                AjaxUtil.writeJson(response, AjaxUtil.error("Đơn hàng không thuộc tài khoản của bạn."));
+                return;
+            }
             session.setAttribute("orderMessage", "Đơn hàng không thuộc tài khoản của bạn.");
             response.sendRedirect(request.getContextPath() + "/OrderHistory");
             return;
@@ -89,11 +103,21 @@ public class ReorderController extends HttpServlet {
             if (skipped > 0) {
                 message += " Một số sản phẩm đã hết hàng hoặc vượt tồn kho nên không thêm.";
             }
+            if (AjaxUtil.wantsJson(request)) {
+                Map<String, Object> payload = AjaxUtil.ok(message);
+                payload.put("cart", AjaxUtil.cartSummary((Cart) session.getAttribute("cart")));
+                AjaxUtil.writeJson(response, payload);
+                return;
+            }
             session.setAttribute("toastMessage", message);
             session.setAttribute("toastType", "hh-toast-cart");
             session.setAttribute("toastIcon", "bx-cart-add");
             response.sendRedirect(request.getContextPath() + "/cart");
         } else {
+            if (AjaxUtil.wantsJson(request)) {
+                AjaxUtil.writeJson(response, AjaxUtil.error("Không thể mua lại vì các sản phẩm trong đơn đã hết hàng hoặc vượt tồn kho."));
+                return;
+            }
             session.setAttribute("orderMessage", "Không thể mua lại vì các sản phẩm trong đơn đã hết hàng hoặc vượt tồn kho.");
             response.sendRedirect(request.getContextPath() + "/OrderHistory");
         }

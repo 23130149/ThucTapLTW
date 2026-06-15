@@ -33,35 +33,141 @@
         const style = document.createElement("style");
         style.id = "hh-search-suggest-style";
         style.textContent = `
-            .hh-search-form .hh-suggest-box{
-                top:calc(100% + 6px)!important;
+            .hh-search-form,
+            .search-form.search-suggest-ready{
+                position:relative!important;
+                overflow:visible!important;
+            }
+            .hh-suggest-box,
+            .search-suggestion-box{
+                display:none;
+                position:absolute!important;
+                top:calc(100% + 8px)!important;
                 left:0!important;
                 right:0!important;
+                max-height:390px!important;
+                overflow-y:auto!important;
                 padding:10px!important;
+                border:1px solid rgba(17,153,142,.16)!important;
                 border-radius:18px!important;
+                background:#fff!important;
+                box-shadow:0 22px 45px rgba(15,23,42,.16)!important;
+                z-index:10050!important;
             }
-            .hh-search-form .hh-suggest-title{
-                padding:4px 0 10px!important;
-                background:transparent!important;
-                border-bottom:0!important;
-                color:#1f2933!important;
-                font-size:15px!important;
-                text-transform:none!important;
+            .hh-suggest-box.show,
+            .search-suggestion-box.show{
+                display:block!important;
+            }
+            .hh-suggest-box,
+            .hh-suggest-box *,
+            .search-suggestion-box,
+            .search-suggestion-box *{
+                font-family:"Poppins",sans-serif!important;
                 letter-spacing:0!important;
+                word-spacing:0!important;
+                font-stretch:normal!important;
+                text-rendering:geometricPrecision!important;
             }
-            .hh-search-form .hh-suggest-item{
-                grid-template-columns:74px minmax(0,1fr)!important;
-                padding:8px 10px!important;
-                gap:14px!important;
+            .hh-suggest-title,
+            .search-suggestion-title{
+                padding:4px 4px 10px!important;
+                border:0!important;
+                background:transparent!important;
+                color:#17363a!important;
+                font-size:14px!important;
+                font-weight:700!important;
+                line-height:1.35!important;
+                text-transform:none!important;
             }
-            .hh-search-form .hh-suggest-item img{
-                width:74px!important;
-                height:74px!important;
+            .hh-suggest-item,
+            .search-suggestion-item{
+                display:grid!important;
+                grid-template-columns:64px minmax(0,1fr)!important;
+                gap:12px!important;
+                align-items:center!important;
+                padding:9px!important;
                 border-radius:14px!important;
+                color:#263238!important;
+                text-decoration:none!important;
+                transition:background .18s ease,transform .18s ease!important;
             }
-            .hh-search-form .hh-suggest-bottom{
+            .hh-suggest-item:hover,
+            .search-suggestion-item:hover{
+                background:#effdf6!important;
+                transform:translateY(-1px)!important;
+            }
+            .hh-suggest-item img,
+            .search-suggestion-item img{
+                width:64px!important;
+                height:64px!important;
+                border-radius:13px!important;
+                object-fit:cover!important;
+                background:#f3f4f6!important;
+            }
+            .hh-suggest-info,
+            .suggestion-info{
+                min-width:0!important;
+                display:grid!important;
+                gap:3px!important;
+            }
+            .hh-suggest-info strong,
+            .suggestion-info strong{
+                display:-webkit-box!important;
+                overflow:hidden!important;
+                -webkit-line-clamp:2!important;
+                -webkit-box-orient:vertical!important;
+                color:#17363a!important;
+                font-size:14px!important;
+                font-weight:600!important;
+                line-height:1.5!important;
+                white-space:normal!important;
+                text-overflow:clip!important;
+            }
+            .hh-suggest-info small,
+            .suggestion-info small{
+                overflow:hidden!important;
+                color:#64748b!important;
+                font-size:12px!important;
+                font-weight:500!important;
+                line-height:1.35!important;
+                text-overflow:ellipsis!important;
+                white-space:nowrap!important;
+            }
+            .hh-suggest-bottom,
+            .suggestion-bottom{
+                display:flex!important;
+                align-items:center!important;
                 justify-content:flex-start!important;
-                gap:14px!important;
+                gap:12px!important;
+                min-width:0!important;
+                margin-top:1px!important;
+            }
+            .hh-suggest-bottom b,
+            .suggestion-bottom b{
+                color:#ff4d6d!important;
+                font-size:13px!important;
+                font-weight:700!important;
+                line-height:1.35!important;
+                white-space:nowrap!important;
+            }
+            .hh-suggest-bottom span,
+            .suggestion-bottom span{
+                overflow:hidden!important;
+                color:#11998e!important;
+                font-size:12px!important;
+                font-weight:700!important;
+                line-height:1.35!important;
+                text-overflow:ellipsis!important;
+                white-space:nowrap!important;
+            }
+            .hh-suggest-empty,
+            .search-suggestion-empty{
+                padding:16px 12px!important;
+                color:#64748b!important;
+                font-size:14px!important;
+                font-weight:600!important;
+                line-height:1.5!important;
+                text-align:center!important;
             }
         `;
         document.head.appendChild(style);

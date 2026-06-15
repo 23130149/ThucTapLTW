@@ -38,12 +38,57 @@ public class ProductDao extends BaseDao {
             """;
 
     public List<Product> getFeaturedProducts() {
-        String sql = "select p.Product_Id, p.Product_Name, p.Product_Price,  p.Category_Id, c.Name AS categoryName,(select pi.image_url from product_images pi where pi.product_id = p.product_id order by pi.image_id ASC limit 1) as imageUrl from products p join categories c on p.Category_Id = c.Category_Id order by p.Product_Id desc limit 8";
-        return getJdbi().withHandle(
-                handle ->
-                        handle.createQuery(sql)
-                                .mapToBean(Product.class)
-                                .list());
+        return getFeaturedProducts(-1, 8);
+    }
+
+    public List<Product> getFeaturedProducts(int userId, int limit) {
+        String sql = """
+                SELECT
+                    p.Product_Id AS productId,
+                    p.Category_Id AS categoryId,
+                    p.Product_Name AS productName,
+                    c.Name AS categoryName,
+                    p.Product_Price AS productPrice,
+                    p.Stock_Quantity AS stockQuantity,
+                    p.Product_Description AS productDescription,
+                    COALESCE(s.Sold, 0) AS sold,
+                    (SELECT pi.Image_Url
+                     FROM product_images pi
+                     WHERE pi.Product_Id = p.Product_Id
+                     ORDER BY pi.Image_Id ASC
+                     LIMIT 1) AS imageUrl
+                FROM products p
+                JOIN categories c ON c.Category_Id = p.Category_Id
+                LEFT JOIN (
+                    SELECT oi.Product_Id, SUM(oi.Quantity) AS Sold
+                    FROM order_items oi
+                    JOIN orders o ON o.Order_Id = oi.Order_Id
+                    WHERE o.Status NOT IN ('CANCELLED', 'PAYMENT_FAILED')
+                    GROUP BY oi.Product_Id
+                ) s ON s.Product_Id = p.Product_Id
+                LEFT JOIN (
+                    SELECT DISTINCT purchased.Category_Id
+                    FROM orders user_order
+                    JOIN order_items user_item ON user_item.Order_Id = user_order.Order_Id
+                    JOIN products purchased ON purchased.Product_Id = user_item.Product_Id
+                    WHERE user_order.User_Id = :userId
+                      AND user_order.Status NOT IN ('CANCELLED', 'PAYMENT_FAILED')
+                ) preferred ON preferred.Category_Id = p.Category_Id
+                WHERE p.Stock_Quantity > 0
+                ORDER BY
+                    CASE WHEN :userId > 0 AND preferred.Category_Id IS NOT NULL THEN 0 ELSE 1 END,
+                    COALESCE(s.Sold, 0) DESC,
+                    p.Product_Id DESC
+                LIMIT :limit
+                """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("userId", userId)
+                        .bind("limit", Math.max(1, limit))
+                        .mapToBean(Product.class)
+                        .list()
+        );
     }
 
     public List<Product> getListProduct() {
@@ -184,6 +229,7 @@ public class ProductDao extends BaseDao {
                     p.Product_Price AS productPrice,
                     p.Stock_Quantity AS stockQuantity,
                     p.Product_Description AS productDescription,
+                    COALESCE(s.Sold, 0) AS sold,
                     (SELECT pi.Image_Url
                      FROM product_images pi
                      WHERE pi.Product_Id = p.Product_Id
@@ -191,8 +237,15 @@ public class ProductDao extends BaseDao {
                      LIMIT 1) AS imageUrl
                 FROM products p
                 JOIN categories c ON p.Category_Id = c.Category_Id
+                LEFT JOIN (
+                    SELECT oi.Product_Id, SUM(oi.Quantity) AS Sold
+                    FROM order_items oi
+                    JOIN orders o ON o.Order_Id = oi.Order_Id
+                    WHERE o.Status IN ('CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'COMPLETED')
+                    GROUP BY oi.Product_Id
+                ) s ON s.Product_Id = p.Product_Id
                 WHERE p.Category_Id = :categoryId AND p.Product_Id <> :currentProductId
-                ORDER BY p.Product_Id DESC
+                ORDER BY COALESCE(s.Sold, 0) DESC, p.Product_Id DESC
                 LIMIT :limit
                 """;
 
@@ -401,7 +454,7 @@ public class ProductDao extends BaseDao {
     }
 
     private void appendSuggestionSort(StringBuilder sql, Map<String, Object> params, String keyword) {
-        List<String> terms = flattenKeywordTerms(keyword);
+        List<String> terms = expandSearchTerms(flattenKeywordTerms(keyword));
         if (terms.isEmpty()) {
             sql.append(" ORDER BY COALESCE(s.sold, 0) DESC, p.product_id DESC");
             return;
@@ -442,7 +495,7 @@ public class ProductDao extends BaseDao {
 
         List<List<String>> groups = splitKeywordGroups(cleaned);
         for (int groupIndex = 0; groupIndex < groups.size(); groupIndex++) {
-            List<String> terms = groups.get(groupIndex);
+            List<String> terms = expandSearchTerms(groups.get(groupIndex));
             if (terms.isEmpty()) continue;
 
             sql.append(" AND (");
@@ -499,6 +552,36 @@ public class ProductDao extends BaseDao {
         return words;
     }
 
+    private List<String> expandSearchTerms(List<String> words) {
+        List<String> expanded = new ArrayList<>();
+        for (String word : words) {
+            addUnique(expanded, word);
+            switch (word.toLowerCase()) {
+                case "op" -> addUnique(expanded, "ốp");
+                case "lung" -> addUnique(expanded, "lưng");
+                case "dien" -> addUnique(expanded, "điện");
+                case "thoai" -> addUnique(expanded, "thoại");
+                case "go" -> addUnique(expanded, "gỗ");
+                case "vai" -> addUnique(expanded, "vải");
+                case "nhua" -> addUnique(expanded, "nhựa");
+                case "nen" -> addUnique(expanded, "nến");
+                case "thom" -> addUnique(expanded, "thơm");
+                case "doremon" -> {
+                    addUnique(expanded, "đoremon");
+                    addUnique(expanded, "doraemon");
+                }
+            }
+        }
+        return expanded;
+    }
+
+    private void addUnique(List<String> values, String value) {
+        String cleaned = clean(value);
+        if (cleaned != null && !values.contains(cleaned)) {
+            values.add(cleaned);
+        }
+    }
+
     private void appendCategoryFilter(StringBuilder sql, List<Integer> categoryIds) {
         if (categoryIds == null || categoryIds.isEmpty()) return;
         sql.append(" AND p.category_id IN (<categoryIds>)");
@@ -536,19 +619,18 @@ public class ProductDao extends BaseDao {
         String cleaned = clean(material);
         if (cleaned == null || "all".equals(cleaned)) return;
 
-        String label = switch (cleaned) {
-            case "len" -> "len";
-            case "vai" -> "vải";
-            case "go" -> "gỗ";
-            case "giay" -> "giấy";
-            case "da" -> "da";
-            case "hat" -> "hạt";
-            case "soi" -> "sợi";
-            default -> cleaned;
+        List<String> words = switch (cleaned) {
+            case "len-crochet", "len" -> List.of("len", "crochet", "đan", "móc", "sợi", "yarn");
+            case "nhua" -> List.of("nhựa", "resin", "mica", "silicone", "ốp", "case");
+            case "sap-nen" -> List.of("sáp", "nến", "thơm", "hương", "wax");
+            case "go" -> List.of("gỗ", "wood");
+            case "vai-da", "vai", "da" -> List.of("vải", "da", "canvas", "tote", "balo", "túi");
+            case "gom-su" -> List.of("gốm", "sứ", "bình hoa", "lọ hoa", "chậu");
+            case "kim-loai" -> List.of("kim loại", "inox", "thép", "bạc");
+            default -> List.of(cleaned);
         };
 
-        sql.append(" AND (p.product_name LIKE :material OR p.product_description LIKE :material OR c.name LIKE :material)");
-        params.put("material", "%" + label + "%");
+        appendAnyTextMatch(sql, params, "material", words);
     }
 
     private void appendUsageFilter(StringBuilder sql, Map<String, Object> params, String usage) {
@@ -556,21 +638,51 @@ public class ProductDao extends BaseDao {
         if (cleaned == null || "all".equals(cleaned)) return;
 
         List<String> words = switch (cleaned) {
-            case "trang-tri" -> List.of("trang trí", "decor", "nhà", "phòng");
-            case "thoi-trang" -> List.of("thời trang", "phụ kiện", "túi", "vòng", "áo");
-            case "qua-tang" -> List.of("quà", "tặng", "sinh nhật", "kỷ niệm");
-            case "gia-dung" -> List.of("gia dụng", "bếp", "nhà", "khay", "ly");
+            case "trang-tri-nha", "trang-tri" -> List.of("trang trí", "decor", "phòng", "bàn", "tường", "đèn", "thảm", "khung", "lọ hoa", "chuông gió", "đồng hồ");
+            case "phu-kien-ca-nhan", "thoi-trang" -> List.of("móc", "vòng", "túi", "ví", "mũ", "khăn", "găng", "tất", "áo", "sweater", "cardigan", "beanie", "charm");
+            case "thu-gian-huong-thom" -> List.of("nến", "thơm", "hương");
+            case "dien-thoai" -> List.of("ốp", "case", "điện thoại");
+            case "thu-cung" -> List.of("thú cưng", "mèo", "chó", "chuồng", "bát", "bàn chải");
+            case "qua-tang" -> List.of("quà", "tặng", "cute", "dễ thương", "couple", "sinh nhật", "kỷ niệm", "set");
             default -> List.of(cleaned);
         };
+        List<Integer> categoryIds = switch (cleaned) {
+            case "trang-tri-nha", "trang-tri" -> List.of(8);
+            case "phu-kien-ca-nhan", "thoi-trang" -> List.of(1, 2, 4, 7);
+            case "thu-gian-huong-thom" -> List.of(3);
+            case "dien-thoai" -> List.of(5);
+            case "thu-cung" -> List.of(6);
+            default -> List.of();
+        };
 
+        appendAnyTextOrCategoryMatch(sql, params, "usage", words, categoryIds);
+    }
+
+    private void appendAnyTextMatch(StringBuilder sql, Map<String, Object> params, String prefix, List<String> words) {
+        appendAnyTextOrCategoryMatch(sql, params, prefix, words, List.of());
+    }
+
+    private void appendAnyTextOrCategoryMatch(StringBuilder sql, Map<String, Object> params, String prefix,
+                                              List<String> words, List<Integer> categoryIds) {
         sql.append(" AND (");
+        boolean hasCondition = false;
         for (int i = 0; i < words.size(); i++) {
-            if (i > 0) sql.append(" OR ");
-            String paramName = "usage" + i;
+            if (hasCondition) sql.append(" OR ");
+            String paramName = prefix + i;
             sql.append("p.product_name LIKE :").append(paramName)
                     .append(" OR p.product_description LIKE :").append(paramName)
                     .append(" OR c.name LIKE :").append(paramName);
             params.put(paramName, "%" + words.get(i) + "%");
+            hasCondition = true;
+        }
+        if (categoryIds != null && !categoryIds.isEmpty()) {
+            if (hasCondition) sql.append(" OR ");
+            sql.append("p.category_id IN (");
+            for (int i = 0; i < categoryIds.size(); i++) {
+                if (i > 0) sql.append(", ");
+                sql.append(categoryIds.get(i));
+            }
+            sql.append(")");
         }
         sql.append(")");
     }

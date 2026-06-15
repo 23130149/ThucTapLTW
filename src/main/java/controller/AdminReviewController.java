@@ -1,11 +1,14 @@
 package controller;
 
+import dao.CategoryDao;
+import dao.NotificationDao;
 import dao.OrderDao;
 import dao.ReviewDao;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 import model.Review;
+import model.ReviewReply;
 import util.AjaxUtil;
 
 import java.io.IOException;
@@ -20,14 +23,16 @@ public class AdminReviewController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         OrderDao oDao = new OrderDao();
         ReviewDao rDao = new ReviewDao();
+        CategoryDao cDao = new CategoryDao();
 
         String keyword = request.getParameter("keyword");
         keyword = keyword == null ? "" : keyword.trim();
 
         Integer rating = parseRating(request.getParameter("rating"));
         String status = normalizeStatus(request.getParameter("status"));
+        Integer categoryId = parsePositiveInt(request.getParameter("categoryId"));
 
-        List<Review> reviews = rDao.getAdminReviews(keyword, rating, status);
+        List<Review> reviews = rDao.getAdminReviews(keyword, rating, status, categoryId);
         Map<Integer, Integer> ratingCounts = rDao.countAllReviewsByRating();
 
         for (int i = 1; i <= 5; i++) {
@@ -35,7 +40,7 @@ public class AdminReviewController extends HttpServlet {
         }
 
         int totalReviews = rDao.countAllReviews();
-        int pendingCount = rDao.countReviewsByStatus("PENDING");
+        int pendingCount = rDao.countPendingModerationItems();
         int fiveStarCount = ratingCounts.getOrDefault(5, 0);
         int fourStarCount = ratingCounts.getOrDefault(4, 0);
         int threeStarCount = ratingCounts.getOrDefault(3, 0);
@@ -50,6 +55,8 @@ public class AdminReviewController extends HttpServlet {
         request.setAttribute("keyword", keyword);
         request.setAttribute("currentRating", rating);
         request.setAttribute("currentStatus", status);
+        request.setAttribute("currentCategoryId", categoryId);
+        request.setAttribute("categories", cDao.getAllCategories());
         request.setAttribute("totalReviews", totalReviews);
         request.setAttribute("averageRating", rDao.getAverageRatingAll());
         request.setAttribute("pendingCount", pendingCount);
@@ -72,6 +79,7 @@ public class AdminReviewController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
 
         ReviewDao rDao = new ReviewDao();
+        NotificationDao notificationDao = new NotificationDao();
         String action = request.getParameter("action");
         boolean success = false;
         String message = null;
@@ -83,8 +91,52 @@ public class AdminReviewController extends HttpServlet {
             if (reviewId > 0 && replyText != null && !replyText.trim().isEmpty()) {
                 success = rDao.updateShopReply(reviewId, replyText.trim());
                 message = success ? "Đã lưu phản hồi đánh giá thành công" : "Không tìm thấy đánh giá cần phản hồi";
+                if (success) {
+                    Review review = rDao.findReviewNotificationInfo(reviewId);
+                    if (review != null && review.getUserId() != null && review.getUserId() > 0
+                            && "APPROVED".equalsIgnoreCase(review.getStatus())) {
+                        notificationDao.addOrRefreshSafe(
+                                review.getUserId(),
+                                "REVIEW_REPLY",
+                                "Shop đã phản hồi đánh giá của bạn",
+                                "Sản phẩm: " + safeText(review.getProductName()),
+                                "/product-detail?id=" + review.getProductId() + "#review-" + reviewId,
+                                "REVIEW",
+                                reviewId
+                        );
+                    }
+                }
             } else {
                 message = "Vui lòng nhập nội dung phản hồi";
+            }
+        } else if ("approveReply".equals(action) || "hideReply".equals(action)) {
+            int replyId = parseInt(request.getParameter("replyId"), 0);
+            String newStatus = "approveReply".equals(action) ? "APPROVED" : "HIDDEN";
+
+            if (replyId > 0) {
+                ReviewReply reply = rDao.findReplyById(replyId);
+                success = rDao.updateReplyStatus(replyId, newStatus);
+                message = success
+                        ? ("APPROVED".equals(newStatus)
+                            ? "Đã duyệt phản hồi của người dùng"
+                            : "Đã ẩn phản hồi của người dùng")
+                        : "Không tìm thấy phản hồi cần xử lý";
+
+                if (success && "APPROVED".equals(newStatus) && reply != null) {
+                    Review review = rDao.findReviewNotificationInfo(reply.getReviewId());
+                    if (review != null && review.getUserId() != null && review.getUserId() > 0
+                            && reply.getUserId() != null && !review.getUserId().equals(reply.getUserId())) {
+                        notificationDao.addSafe(
+                                review.getUserId(),
+                                "REVIEW_REPLY",
+                                safeText(reply.getUserName()) + " đã trả lời đánh giá của bạn",
+                                "Sản phẩm: " + safeText(review.getProductName()),
+                                "/product-detail?id=" + review.getProductId() + "#review-" + review.getReviewId()
+                        );
+                    }
+                }
+            } else {
+                message = "Không tìm thấy phản hồi cần xử lý";
             }
         } else if ("approve".equals(action) || "hide".equals(action)) {
             int reviewId = parseInt(request.getParameter("reviewId"), 0);
@@ -97,6 +149,33 @@ public class AdminReviewController extends HttpServlet {
                             ? "Đã duyệt đánh giá và hiển thị trên trang sản phẩm"
                             : "Đã ẩn đánh giá khỏi trang sản phẩm")
                         : "Không tìm thấy đánh giá cần xử lý";
+                if (success) {
+                    Review review = rDao.findReviewNotificationInfo(reviewId);
+                    if (review != null && review.getUserId() != null && review.getUserId() > 0) {
+                        if ("APPROVED".equals(newStatus)) {
+                            boolean hasShopReply = review.getShopReply() != null && !review.getShopReply().isBlank();
+                            notificationDao.addOrRefreshSafe(
+                                    review.getUserId(),
+                                    hasShopReply ? "REVIEW_REPLY" : "REVIEW_STATUS",
+                                    hasShopReply ? "Đánh giá của bạn đã được duyệt và có phản hồi" : "Đánh giá của bạn đã được duyệt",
+                                    "Sản phẩm: " + safeText(review.getProductName()),
+                                    "/product-detail?id=" + review.getProductId() + "#review-" + reviewId,
+                                    "REVIEW",
+                                    reviewId
+                            );
+                        } else {
+                            notificationDao.addOrRefreshSafe(
+                                    review.getUserId(),
+                                    "REVIEW_STATUS",
+                                    "Đánh giá của bạn đã được ẩn",
+                                    "Sản phẩm: " + safeText(review.getProductName()),
+                                    "/product-detail?id=" + review.getProductId(),
+                                    "REVIEW",
+                                    reviewId
+                            );
+                        }
+                    }
+                }
             } else {
                 message = "Không tìm thấy đánh giá cần xử lý";
             }
@@ -123,6 +202,14 @@ public class AdminReviewController extends HttpServlet {
         response.sendRedirect(buildReviewRedirect(request));
     }
 
+
+    private String safeText(String value) {
+        if (value == null || value.isBlank()) {
+            return "sản phẩm";
+        }
+        return value.trim();
+    }
+
     private Integer parseRating(String value) {
         int rating = parseInt(value, 0);
         return rating >= 1 && rating <= 5 ? rating : null;
@@ -134,6 +221,11 @@ public class AdminReviewController extends HttpServlet {
         } catch (NumberFormatException e) {
             return defaultValue;
         }
+    }
+
+    private Integer parsePositiveInt(String value) {
+        int result = parseInt(value, 0);
+        return result > 0 ? result : null;
     }
 
     private String normalizeStatus(String status) {
@@ -154,6 +246,7 @@ public class AdminReviewController extends HttpServlet {
         String keyword = request.getParameter("keyword");
         String rating = request.getParameter("rating");
         String status = request.getParameter("status");
+        String categoryId = request.getParameter("categoryId");
 
         StringBuilder redirect = new StringBuilder(request.getContextPath()).append("/admin/reviews");
         boolean hasParam = false;
@@ -176,6 +269,13 @@ public class AdminReviewController extends HttpServlet {
             redirect.append(hasParam ? "&" : "?")
                     .append("status=")
                     .append(URLEncoder.encode(status.trim(), StandardCharsets.UTF_8));
+            hasParam = true;
+        }
+
+        if (categoryId != null && !categoryId.isBlank()) {
+            redirect.append(hasParam ? "&" : "?")
+                    .append("categoryId=")
+                    .append(URLEncoder.encode(categoryId.trim(), StandardCharsets.UTF_8));
         }
 
         return redirect.toString();

@@ -77,7 +77,7 @@
 
           <tbody>
           <c:forEach var="order" items="${orderList}">
-            <tr>
+            <tr data-order-row="${order.orderId}">
               <td>
                 <a class="order-code-link"
                    href="${pageContext.request.contextPath}/OrderDetail?orderId=${order.orderId}">
@@ -87,7 +87,7 @@
               <td>${util:formatDateTime(order.createAt)}</td>
               <td>${util:formatMoney(order.totalPrice)}</td>
               <td>
-                <span class="order-status ${order.status}">
+                <span class="order-status ${order.status}" data-order-status>
                   ${order.statusLabel}
                 </span>
               </td>
@@ -96,6 +96,15 @@
                    href="${pageContext.request.contextPath}/OrderDetail?orderId=${order.orderId}">
                   Xem chi tiết
                 </a>
+
+                <form action="${pageContext.request.contextPath}/Reorder" method="post" class="order-reorder-form">
+                  <input type="hidden" name="orderId" value="${order.orderId}">
+                  <button type="submit" class="btn-reorder"
+                          onclick="return confirm('Thêm lại các sản phẩm còn hàng trong đơn này vào giỏ?')">
+                    <i class='bx bx-cart-add'></i>
+                    Mua lại
+                  </button>
+                </form>
 
                 <c:if test="${order.status == 'DELIVERED' && order.ghnDelivered}">
                   <form action="${pageContext.request.contextPath}/OrderHistory" method="post" class="order-received-form">

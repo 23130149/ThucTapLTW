@@ -1,5 +1,6 @@
 package controller;
 
+import dao.NotificationDao;
 import dao.OrderDao;
 import dao.OrderItemDao;
 import dao.UserAddressDao;
@@ -11,6 +12,7 @@ import model.OrderItem;
 import model.UserAddress;
 import service.GhnService;
 import util.AjaxUtil;
+import util.FormatUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -108,6 +110,7 @@ public class AdminOrderController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         OrderDao orderDao = new OrderDao();
+        NotificationDao notificationDao = new NotificationDao();
         OrderItemDao orderItemDao = new OrderItemDao();
         UserAddressDao userAddressDao = new UserAddressDao();
         GhnService ghnService = new GhnService();
@@ -127,7 +130,12 @@ public class AdminOrderController extends HttpServlet {
 
                 if (status != null && Set.of("PROCESSING", "CONFIRMED", "RETURNED", "RETURN_REJECTED").contains(status)) {
                     success = orderDao.updateStatus(orderId, status);
-                    if (!success) {
+                    if (success) {
+                        Order updatedOrder = orderDao.getOrderById(orderId);
+                        notifyOrder(notificationDao, updatedOrder, "ORDER_STATUS",
+                                "Đơn hàng của bạn đã cập nhật trạng thái",
+                                "Trạng thái mới: " + FormatUtil.orderStatusLabel(status));
+                    } else {
                         message = "Không tìm thấy đơn hàng cần cập nhật.";
                     }
                 } else {
@@ -152,6 +160,10 @@ public class AdminOrderController extends HttpServlet {
                         message = "Không thể lưu vận đơn GHN vào đơn hàng.";
                     } else {
                         success = true;
+                        Order updatedOrder = orderDao.getOrderById(orderId);
+                        notifyOrder(notificationDao, updatedOrder, "ORDER_SHIPPING",
+                                "Đơn hàng của bạn đã có vận đơn",
+                                "Mã vận đơn GHN: " + result.getOrderCode());
                     }
                 }
             } catch (NumberFormatException e) {
@@ -173,7 +185,12 @@ public class AdminOrderController extends HttpServlet {
                             order.getGhnOrderCode(), order.getGhnStatus()
                     );
                     success = orderDao.updateGhnStatus(orderId, result);
-                    if (!success) {
+                    if (success) {
+                        Order updatedOrder = orderDao.getOrderById(orderId);
+                        notifyOrder(notificationDao, updatedOrder, "ORDER_SHIPPING",
+                                "Trạng thái giao hàng đã cập nhật",
+                                "GHN: " + FormatUtil.ghnStatusLabel(result.getStatus()));
+                    } else {
                         message = "Không thể cập nhật trạng thái GHN cho đơn hàng.";
                     }
                 }
@@ -192,6 +209,10 @@ public class AdminOrderController extends HttpServlet {
                     message = "Không thể xác nhận thanh toán cho đơn hàng này.";
                 } else {
                     success = true;
+                    Order updatedOrder = orderDao.getOrderById(orderId);
+                    notifyOrder(notificationDao, updatedOrder, "ORDER_PAYMENT",
+                            "Thanh toán đơn hàng đã được xác nhận",
+                            "Đơn hàng " + orderCode(updatedOrder) + " đã được ghi nhận thanh toán.");
                 }
             } catch (NumberFormatException e) {
                 message = "Mã đơn hàng không hợp lệ.";
@@ -217,4 +238,26 @@ public class AdminOrderController extends HttpServlet {
         }
         response.sendRedirect(request.getContextPath() + "/admin/orders");
     }
+    private void notifyOrder(NotificationDao notificationDao, Order order, String type, String title, String message) {
+        if (order == null || order.getUserId() <= 0) {
+            return;
+        }
+        notificationDao.addOrRefreshSafe(
+                order.getUserId(),
+                type,
+                title,
+                message,
+                "/OrderDetail?orderId=" + order.getOrderId(),
+                "ORDER",
+                order.getOrderId()
+        );
+    }
+
+    private String orderCode(Order order) {
+        if (order == null || order.getOrderCode() == null || order.getOrderCode().isBlank()) {
+            return "của bạn";
+        }
+        return order.getOrderCode();
+    }
+
 }

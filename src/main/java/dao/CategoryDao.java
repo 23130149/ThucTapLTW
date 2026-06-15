@@ -96,5 +96,16 @@ public class CategoryDao extends BaseDao {
                         .execute() > 0
         );
     }
+
+    public boolean hasProducts(int categoryId) {
+        String sql = "SELECT COUNT(*) FROM products WHERE category_id = :categoryId";
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("categoryId", categoryId)
+                        .mapTo(Integer.class)
+                        .one() > 0
+        );
+    }
 }
 

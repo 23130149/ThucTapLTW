@@ -124,8 +124,6 @@
             <form action="${pageContext.request.contextPath}/ChangePassword"
                   method="post">
 
-                <input type="hidden" name="action" value="confirm">
-
                 <p class="otp-note">
                     📧 Mã OTP đã được gửi về email của bạn (hiệu lực 2 phút)
                 </p>
@@ -137,15 +135,17 @@
 
                 <div class="form-row">
                     <label>Mật khẩu mới</label>
-                    <input type="password" name="newPassword" required>
+                    <input type="password" id="newPassword" name="newPassword" required>
+                    <p id="passwordMsg" class="msg"></p>
                 </div>
 
                 <div class="form-row">
                     <label>Nhập lại mật khẩu mới</label>
-                    <input type="password" name="confirmPassword" required>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required>
+                    <p id="confirmMsg" class="msg"></p>
                 </div>
 
-                <button type="submit" class="btn-save">
+                <button type="submit" name="action" value="confirm" class="btn-save">
                     Xác nhận đổi mật khẩu
                 </button>
 
@@ -155,13 +155,10 @@
                             Gửi lại OTP sau <b>${resendRemain}</b> giây
                         </c:when>
                         <c:otherwise>
-                            <form action="${pageContext.request.contextPath}/ChangePassword"
-                                  method="post">
-                                <input type="hidden" name="action" value="sendOtp">
-                                <button type="submit" class="btn-back">
-                                    Gửi lại OTP
-                                </button>
-                            </form>
+                            <button type="submit" name="action" value="sendOtp"
+                                    formnovalidate class="btn-back">
+                                Gửi lại OTP
+                            </button>
                         </c:otherwise>
                     </c:choose>
                 </div>

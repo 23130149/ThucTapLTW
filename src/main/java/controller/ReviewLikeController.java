@@ -37,17 +37,19 @@ public class ReviewLikeController extends HttpServlet {
             return;
         }
 
-        if (reviewId > 0) {
+        boolean allowed = reviewId > 0 && productId > 0 && reviewDao.isApprovedReviewForProduct(reviewId, productId);
+
+        if (allowed) {
             reviewDao.toggleLike(reviewId, user.getUserId());
         }
 
         if (AjaxUtil.wantsJson(request)) {
-            Map<String, Object> payload = reviewId > 0
+            Map<String, Object> payload = allowed
                     ? AjaxUtil.ok("Đã cập nhật lượt thích.")
                     : AjaxUtil.error("Không tìm thấy đánh giá.");
             payload.put("reviewId", reviewId);
-            payload.put("liked", reviewId > 0 && reviewDao.hasUserLiked(reviewId, user.getUserId()));
-            payload.put("helpfulCount", reviewId > 0 ? reviewDao.countLikes(reviewId) : 0);
+            payload.put("liked", allowed && reviewDao.hasUserLiked(reviewId, user.getUserId()));
+            payload.put("helpfulCount", allowed ? reviewDao.countLikes(reviewId) : 0);
             AjaxUtil.writeJson(response, payload);
             return;
         }

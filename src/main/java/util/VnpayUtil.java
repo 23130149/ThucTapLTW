@@ -72,9 +72,30 @@ public class VnpayUtil {
     }
 
     public static String buildAbsoluteUrl(HttpServletRequest request, String path) {
-        String scheme = request.getScheme();
-        String serverName = request.getServerName();
+        String scheme = firstHeaderValue(request.getHeader("X-Forwarded-Proto"));
+        if (scheme == null || scheme.isBlank()) {
+            scheme = request.getScheme();
+        }
+
+        String forwardedHost = firstHeaderValue(request.getHeader("X-Forwarded-Host"));
+        String serverName = forwardedHost;
         int serverPort = request.getServerPort();
+        boolean hostAlreadyHasPort = false;
+
+        if (serverName == null || serverName.isBlank()) {
+            serverName = request.getServerName();
+        } else {
+            hostAlreadyHasPort = serverName.contains(":");
+        }
+
+        String forwardedPort = firstHeaderValue(request.getHeader("X-Forwarded-Port"));
+        if (forwardedPort != null && !forwardedPort.isBlank()) {
+            try {
+                serverPort = Integer.parseInt(forwardedPort);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
         String contextPath = request.getContextPath();
 
         boolean defaultPort = ("http".equalsIgnoreCase(scheme) && serverPort == 80)
@@ -83,7 +104,7 @@ public class VnpayUtil {
         StringBuilder url = new StringBuilder();
         url.append(scheme).append("://").append(serverName);
 
-        if (!defaultPort) {
+        if (!hostAlreadyHasPort && !defaultPort && forwardedHost == null) {
             url.append(":").append(serverPort);
         }
 
@@ -91,5 +112,12 @@ public class VnpayUtil {
         url.append(path.startsWith("/") ? path : "/" + path);
 
         return url.toString();
+    }
+
+    private static String firstHeaderValue(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+        return value.split(",")[0].trim();
     }
 }

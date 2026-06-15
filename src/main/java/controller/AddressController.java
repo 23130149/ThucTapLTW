@@ -30,7 +30,10 @@ public class AddressController extends HttpServlet {
         }
         String deleteId = request.getParameter("delete");
         if (deleteId != null) {
-            addressDao.deleteById(Integer.parseInt(deleteId));
+            try {
+                addressDao.deleteByIdAndUserId(Integer.parseInt(deleteId), user.getUserId());
+            } catch (NumberFormatException ignored) {
+            }
             response.sendRedirect(request.getContextPath() + "/Address");
             return;
         }
@@ -42,8 +45,11 @@ public class AddressController extends HttpServlet {
 
         String editId = request.getParameter("edit");
         if (editId != null) {
-            UserAddress editAddress =
-                    addressDao.findById(Integer.parseInt(editId));
+            UserAddress editAddress = null;
+            try {
+                editAddress = addressDao.findByIdAndUserId(Integer.parseInt(editId), user.getUserId());
+            } catch (NumberFormatException ignored) {
+            }
             request.setAttribute("address", editAddress);
         } else {
             request.setAttribute("address", new UserAddress());
@@ -83,6 +89,13 @@ public class AddressController extends HttpServlet {
         String ward = normalize(request.getParameter("ward"));
         String street = normalize(request.getParameter("street"));
 
+        if (province.isBlank() || district.isBlank() || street.isBlank()) {
+            request.getSession().setAttribute("addressError",
+                    "Vui lòng nhập đầy đủ tỉnh/thành phố, quận/huyện và địa chỉ chi tiết.");
+            response.sendRedirect(getRedirectUrl(request, addressId));
+            return;
+        }
+
         if (!ward.isBlank() && !district.isBlank()) {
             district = ward + ", " + district;
         }
@@ -101,7 +114,21 @@ public class AddressController extends HttpServlet {
             addressDao.update(address);
         }
 
-        response.sendRedirect(request.getContextPath() + "/Address");
+        request.getSession().setAttribute("toastMessage",
+                addressId == 0 ? "Đã thêm địa chỉ nhận hàng." : "Đã cập nhật địa chỉ nhận hàng.");
+        request.getSession().setAttribute("toastType", "hh-toast-success");
+        request.getSession().setAttribute("toastIcon", "bx-map");
+        response.sendRedirect(getRedirectUrl(request, 0));
+    }
+
+    private String getRedirectUrl(HttpServletRequest request, int editAddressId) {
+        String returnTo = normalize(request.getParameter("returnTo"));
+        if ("payment".equalsIgnoreCase(returnTo)) {
+            return request.getContextPath() + "/payment";
+        }
+
+        return request.getContextPath() + "/Address"
+                + (editAddressId > 0 ? "?edit=" + editAddressId : "");
     }
 
     private String normalize(String value) {

@@ -55,9 +55,26 @@ public class RegisterController extends HttpServlet {
                 }
             }
             else {
+                fullName = normalize(fullName);
+                email = normalize(email).toLowerCase();
+
                 if (RecaptchaUtil.isConfigured(getServletContext())
                         && !RecaptchaUtil.verify(request, getServletContext())) {
                     request.setAttribute("error", "Vui lòng xác nhận bạn không phải robot.");
+                    prepareRecaptcha(request);
+                    request.getRequestDispatcher("/jsp/register.jsp").forward(request, response);
+                    return;
+                }
+
+                if (!isValidFullName(fullName)) {
+                    request.setAttribute("error", "Họ tên phải có ít nhất 2 ký tự và không chứa ký tự đặc biệt.");
+                    prepareRecaptcha(request);
+                    request.getRequestDispatcher("/jsp/register.jsp").forward(request, response);
+                    return;
+                }
+
+                if (!isStrongPassword(password)) {
+                    request.setAttribute("error", "Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.");
                     prepareRecaptcha(request);
                     request.getRequestDispatcher("/jsp/register.jsp").forward(request, response);
                     return;
@@ -143,7 +160,7 @@ public class RegisterController extends HttpServlet {
             session.removeAttribute("reg_otp");
             session.removeAttribute("reg_otp_time");
 
-            response.sendRedirect(request.getContextPath() + "/jsp/signin.jsp?success=1");
+            response.sendRedirect(request.getContextPath() + "/SignIn?success=1");
         }
     }
 
@@ -159,5 +176,25 @@ public class RegisterController extends HttpServlet {
     private void prepareRecaptcha(HttpServletRequest request) {
         request.setAttribute("recaptchaSiteKey", RecaptchaUtil.getSiteKey(getServletContext()));
         request.setAttribute("recaptchaConfigured", RecaptchaUtil.isConfigured(getServletContext()));
+    }
+
+    private boolean isStrongPassword(String password) {
+        return password != null
+                && password.length() >= 8
+                && password.matches(".*[A-Z].*")
+                && password.matches(".*[a-z].*")
+                && password.matches(".*\\d.*")
+                && password.matches(".*[^A-Za-z0-9].*");
+    }
+
+    private boolean isValidFullName(String fullName) {
+        return fullName != null
+                && fullName.length() >= 2
+                && fullName.length() <= 100
+                && fullName.matches("[\\p{L} .'-]+");
+    }
+
+    private String normalize(String value) {
+        return value == null ? "" : value.trim().replaceAll("\\s+", " ");
     }
 }

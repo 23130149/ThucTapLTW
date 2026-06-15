@@ -58,6 +58,10 @@
                                     <i class='bx bx-plus-circle'></i>
                                     Thêm địa chỉ
                                 </a>
+                                <button type="button" class="manage-address inline-address-toggle" id="inlineAddressToggle">
+                                    <i class='bx bx-edit-alt'></i>
+                                    Thêm nhanh tại đây
+                                </button>
                             </c:when>
                             <c:otherwise>
                                 <div class="address-dropdown" id="addressDropdown">
@@ -80,6 +84,14 @@
                                                        value="${addr.userAddressId}"
                                                        data-title="Địa chỉ nhận hàng ${status.index + 1}"
                                                        data-full-address="${addr.street}, ${addr.district}, ${addr.province}, ${addr.country}"
+                                                       data-address-id="${addr.userAddressId}"
+                                                       data-country="${addr.country}"
+                                                       data-province="${addr.province}"
+                                                       data-district="${addr.district}"
+                                                       data-street="${addr.street}"
+                                                       data-province-id="${addr.provinceId}"
+                                                       data-district-id="${addr.districtId}"
+                                                       data-ward-code="${addr.wardCode}"
                                                     ${status.first || addr.userAddressId == address.userAddressId ? "checked" : ""}>
 
                                                 <span class="address-custom-radio"></span>
@@ -95,12 +107,58 @@
                                     </div>
                                 </div>
 
-                                <a href="${pageContext.request.contextPath}/Address" class="manage-address">
-                                    <i class='bx bx-plus-circle'></i>
-                                    Thêm địa chỉ
-                                </a>
+                                <div class="address-manage-actions">
+                                    <button type="button" class="manage-address inline-address-toggle" id="inlineAddressToggle">
+                                        <i class='bx bx-edit-alt'></i>
+                                        Sửa địa chỉ đang chọn
+                                    </button>
+                                    <button type="button" class="manage-address inline-address-toggle" id="inlineAddressAdd">
+                                        <i class='bx bx-plus-circle'></i>
+                                        Thêm địa chỉ mới
+                                    </button>
+                                </div>
                             </c:otherwise>
                         </c:choose>
+
+                        <div class="inline-address-editor" id="inlineAddressEditor">
+                            <div class="inline-address-editor-header">
+                                <strong id="inlineAddressEditorTitle">Thêm địa chỉ nhận hàng</strong>
+                                <button type="button" id="inlineAddressClose" aria-label="Đóng">
+                                    <i class="bx bx-x"></i>
+                                </button>
+                            </div>
+                            <input type="hidden" name="returnTo" value="payment" form="inlineAddressForm">
+                            <input type="hidden" name="userAddressId" id="inlineAddressId" value="0" form="inlineAddressForm">
+                            <input type="hidden" name="provinceId" id="inlineProvinceId" form="inlineAddressForm">
+                            <input type="hidden" name="districtId" id="inlineDistrictId" form="inlineAddressForm">
+                            <input type="hidden" name="wardCode" id="inlineWardCode" form="inlineAddressForm">
+                            <div class="form-grid">
+                                <div class="field">
+                                    <label>Quốc gia</label>
+                                    <input type="text" name="country" id="inlineCountry" value="Việt Nam"
+                                           required form="inlineAddressForm">
+                                </div>
+                                <div class="field">
+                                    <label>Tỉnh/Thành phố</label>
+                                    <input type="text" name="province" id="inlineProvince"
+                                           required form="inlineAddressForm">
+                                </div>
+                                <div class="field">
+                                    <label>Quận/Huyện và Phường/Xã</label>
+                                    <input type="text" name="district" id="inlineDistrict"
+                                           required form="inlineAddressForm">
+                                </div>
+                                <div class="field">
+                                    <label>Đường/Số nhà</label>
+                                    <input type="text" name="street" id="inlineStreet"
+                                           required form="inlineAddressForm">
+                                </div>
+                            </div>
+                            <button type="submit" class="inline-address-save" form="inlineAddressForm">
+                                <i class="bx bx-save"></i>
+                                Lưu và quay lại thanh toán
+                            </button>
+                        </div>
 
                         <div class="form-grid" style="margin-top: 24px;">
                             <div class="field">
@@ -239,6 +297,7 @@
             </aside>
         </div>
     </form>
+    <form id="inlineAddressForm" action="${pageContext.request.contextPath}/Address" method="post"></form>
 </main>
 
 <jsp:include page="/jsp/footer.jsp"/>
@@ -253,6 +312,8 @@
     const distanceKmInput = document.getElementById('distanceKmInput');
     const distanceNote = document.getElementById('distanceNote');
     const checkoutForm = document.getElementById('checkoutForm');
+    const inlineAddressEditor = document.getElementById('inlineAddressEditor');
+    const inlineAddressEditorTitle = document.getElementById('inlineAddressEditorTitle');
 
     function formatVnd(value) {
         return new Intl.NumberFormat('vi-VN').format(Math.max(0, Math.round(value))) + '₫';
@@ -323,6 +384,33 @@
         selectedAddressTitle.textContent = input.dataset.title || 'Địa chỉ nhận hàng';
         selectedAddressDetail.textContent = input.dataset.fullAddress || '';
     }
+
+    function fillInlineAddress(input) {
+        const isEditing = !!input;
+        document.getElementById('inlineAddressId').value = isEditing ? (input.dataset.addressId || '0') : '0';
+        document.getElementById('inlineCountry').value = isEditing ? (input.dataset.country || 'Việt Nam') : 'Việt Nam';
+        document.getElementById('inlineProvince').value = isEditing ? (input.dataset.province || '') : '';
+        document.getElementById('inlineDistrict').value = isEditing ? (input.dataset.district || '') : '';
+        document.getElementById('inlineStreet').value = isEditing ? (input.dataset.street || '') : '';
+        document.getElementById('inlineProvinceId').value = isEditing ? (input.dataset.provinceId || '') : '';
+        document.getElementById('inlineDistrictId').value = isEditing ? (input.dataset.districtId || '') : '';
+        document.getElementById('inlineWardCode').value = isEditing ? (input.dataset.wardCode || '') : '';
+        inlineAddressEditorTitle.textContent = isEditing ? 'Sửa địa chỉ đang chọn' : 'Thêm địa chỉ nhận hàng';
+        inlineAddressEditor.classList.add('show');
+        document.getElementById('inlineStreet').focus();
+    }
+
+    document.getElementById('inlineAddressToggle')?.addEventListener('click', function () {
+        fillInlineAddress(document.querySelector("input[name='addressId']:checked"));
+    });
+
+    document.getElementById('inlineAddressAdd')?.addEventListener('click', function () {
+        fillInlineAddress(null);
+    });
+
+    document.getElementById('inlineAddressClose')?.addEventListener('click', function () {
+        inlineAddressEditor.classList.remove('show');
+    });
 
     if (addressDropdownToggle && addressDropdown) {
         addressDropdownToggle.addEventListener('click', function () {

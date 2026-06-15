@@ -9,13 +9,14 @@
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet"
           href="${pageContext.request.contextPath}/css/Admin_DanhMuc.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin-font-standard.css">
 </head>
 <body>
 <aside class="sliderbar">
     <div class="slidebar-header">
         <h2 class="logo">Handmade House</h2>
     </div>
-    <div class="slidebar-nav">
+    <nav class="slidebar-nav">
         <ul>
             <li><a href="${pageContext.request.contextPath}/admin/dashboard"><i class="bx bx-chart"></i>Tổng quan</a></li>
             <li class="active"><a href="${pageContext.request.contextPath}/admin/category"><i class="bx bx-category"></i>Danh mục</a></li>
@@ -27,10 +28,10 @@
             <li><a href="${pageContext.request.contextPath}/admin/banner"><i class="bx bx-image"></i>Banner</a></li>
             <li><a href="${pageContext.request.contextPath}/admin/setting"><i class="bx bx-cog"></i>Cài đặt</a></li>
         </ul>
-    </div>
+    </nav>
     <div class="logout">
         <a href="${pageContext.request.contextPath}/home">
-            <i class="bx bx-log-out"></i> Đăng xuất
+            <i class="bx bx-home-alt-2"></i> Trang chủ
         </a>
     </div>
 </aside>
@@ -164,10 +165,16 @@
                                                     <i class="bx bx-edit action-icon"></i>
                                                 </button>
 
-                                                <a href="${pageContext.request.contextPath}/admin/category?action=delete&id=${category.categoryId}"
-                                                   onclick="return confirm('Bạn có chắc muốn xóa danh mục này không?')">
-                                                    <i class="bx bx-trash action-icon"></i>
-                                                </a>
+                                                <form method="post"
+                                                      action="${pageContext.request.contextPath}/admin/category"
+                                                      style="display:inline;"
+                                                      onsubmit="return confirm('Bạn có chắc muốn xóa danh mục này không?')">
+                                                    <input type="hidden" name="action" value="delete">
+                                                    <input type="hidden" name="categoryId" value="${category.categoryId}">
+                                                    <button type="submit" class="action-btn">
+                                                        <i class="bx bx-trash action-icon"></i>
+                                                    </button>
+                                                </form>
                                             </c:when>
 
                                             <c:otherwise>
@@ -291,6 +298,7 @@
         });
     </script>
 </c:if>
+<script defer src="${pageContext.request.contextPath}/js/ajax-enhance.js?v=20260615-1"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const wrappers = document.querySelectorAll(".notification-wrapper");

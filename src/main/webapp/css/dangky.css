@@ -9,6 +9,11 @@
      margin: 4px 10px;
  }
 
+.rule-msg {
+    color: #5f6b66;
+    line-height: 1.45;
+}
+
 .otp-form {
     max-width: 420px;
     margin: auto;
@@ -43,7 +48,7 @@
     padding: 16px;
     font-size: 24px;
     text-align: center;
-    letter-spacing: 10px;
+    letter-spacing: 0;
     border-radius: 10px;
     border: 2px solid #ddd;
 }
@@ -200,7 +205,7 @@ body {
     padding: 16px;
     font-size: 24px;
     text-align: center;
-    letter-spacing: 10px;
+    letter-spacing: 0;
     border-radius: 10px;
     border: 2px solid #ddd;
 }

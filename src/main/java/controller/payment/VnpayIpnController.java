@@ -1,6 +1,7 @@
 package controller.payment;
 
 import dao.CartDao;
+import dao.NotificationDao;
 import dao.OrderDao;
 import dao.OrderItemDao;
 import jakarta.servlet.ServletException;
@@ -24,6 +25,7 @@ public class VnpayIpnController extends HttpServlet {
 
     private final VnpayService vnpayService = new VnpayService();
     private final OrderDao orderDao = new OrderDao();
+    private final NotificationDao notificationDao = new NotificationDao();
     private final OrderItemDao orderItemDao = new OrderItemDao();
     private final CartDao cartDao = new CartDao();
 
@@ -66,6 +68,7 @@ public class VnpayIpnController extends HttpServlet {
 
             if (updated) {
                 removeOrderItemsFromCart(order);
+                notifyPayment(order, "Thanh toán VNPAY thành công", "Đơn hàng " + orderCode + " đã được xác nhận thanh toán.");
             }
 
             response.getWriter().write("{\"RspCode\":\"00\",\"Message\":\"Confirm Success\"}");
@@ -74,6 +77,22 @@ public class VnpayIpnController extends HttpServlet {
 
         orderDao.markVnpayFailed(orderCode, responseCode == null ? "INVALID" : responseCode);
         response.getWriter().write("{\"RspCode\":\"00\",\"Message\":\"Confirm Failed Payment\"}");
+    }
+
+
+    private void notifyPayment(Order order, String title, String message) {
+        if (order == null || order.getUserId() <= 0) {
+            return;
+        }
+        notificationDao.addOrRefreshSafe(
+                order.getUserId(),
+                "ORDER_PAYMENT",
+                title,
+                message,
+                "/OrderDetail?orderId=" + order.getOrderId(),
+                "ORDER",
+                order.getOrderId()
+        );
     }
 
     private Map<String, String> extractParams(HttpServletRequest request) {

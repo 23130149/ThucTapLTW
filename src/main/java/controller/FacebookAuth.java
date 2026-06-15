@@ -25,11 +25,12 @@ public class FacebookAuth extends HttpServlet {
     private CartDao cartDao;
 
     private static final String DEFAULT_APP_ID = "958762956904556";
-    private static final String DEFAULT_APP_SECRET = "410f52cb6a34ed40a2ebf24d05c41c02";
     private static final String APP_ID_PARAM = "facebook.appId";
     private static final String APP_SECRET_PARAM = "facebook.appSecret";
     private static final String APP_ID_ENV = "FACEBOOK_APP_ID";
     private static final String APP_SECRET_ENV = "FACEBOOK_APP_SECRET";
+    private static final String REDIRECT_URI_PARAM = "facebook.redirectUri";
+    private static final String REDIRECT_URI_ENV = "FACEBOOK_REDIRECT_URI";
 
     @Override
     public void init() {
@@ -157,10 +158,19 @@ public class FacebookAuth extends HttpServlet {
     }
 
     private String buildRedirectUri(HttpServletRequest request) {
+        String configuredRedirectUri = getConfig(REDIRECT_URI_PARAM, REDIRECT_URI_ENV, "");
+        if (!configuredRedirectUri.isBlank()) {
+            return configuredRedirectUri;
+        }
+
         String scheme = firstNonBlank(request.getHeader("X-Forwarded-Proto"), request.getScheme());
-        String host = firstNonBlank(request.getHeader("X-Forwarded-Host"), request.getServerName());
-        if (!host.contains(":") && shouldAppendPort(scheme, request.getServerPort())) {
-            host += ":" + request.getServerPort();
+        String forwardedHost = firstHeaderValue(request.getHeader("X-Forwarded-Host"));
+        String host = firstNonBlank(forwardedHost, request.getServerName());
+        String forwardedPort = firstHeaderValue(request.getHeader("X-Forwarded-Port"));
+        int port = parsePort(forwardedPort, request.getServerPort());
+
+        if (!host.contains(":") && shouldAppendPort(scheme, port, forwardedHost != null || forwardedPort != null)) {
+            host += ":" + port;
         }
 
         return scheme + "://"
@@ -217,7 +227,7 @@ public class FacebookAuth extends HttpServlet {
     }
 
     private String getAppSecret() {
-        return getConfig(APP_SECRET_PARAM, APP_SECRET_ENV, DEFAULT_APP_SECRET);
+        return getConfig(APP_SECRET_PARAM, APP_SECRET_ENV, "");
     }
 
     private String getConfig(String contextParam, String envName, String defaultValue) {
@@ -237,14 +247,35 @@ public class FacebookAuth extends HttpServlet {
         return value == null ? "" : value.trim();
     }
 
-    private boolean shouldAppendPort(String scheme, int port) {
+    private boolean shouldAppendPort(String scheme, int port, boolean forwardedRequest) {
+        if (forwardedRequest && ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))) {
+            return false;
+        }
         return port > 0
-                && !("http".equalsIgnoreCase(scheme) && port == 80)
-                && !("https".equalsIgnoreCase(scheme) && port == 443);
+                && port != 80
+                && port != 443;
     }
 
     private String firstNonBlank(String first, String second) {
         return first != null && !first.isBlank() ? first.trim() : Objects.toString(second, "").trim();
+    }
+
+    private String firstHeaderValue(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+        return value.split(",")[0].trim();
+    }
+
+    private int parsePort(String raw, int fallback) {
+        if (raw == null || raw.isBlank()) {
+            return fallback;
+        }
+        try {
+            return Integer.parseInt(raw.trim());
+        } catch (NumberFormatException ignored) {
+            return fallback;
+        }
     }
 
     private boolean isSafeRedirect(String redirectAfterLogin) {

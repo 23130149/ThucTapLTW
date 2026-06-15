@@ -204,6 +204,16 @@ body {
     opacity: 0.55;
 }
 
+.cart-item.out-of-stock {
+    border-color: #f3b6b2;
+    background: #fff8f7;
+}
+
+.cart-item.out-of-stock img {
+    filter: grayscale(0.7);
+    opacity: 0.65;
+}
+
 .item-checkbox {
     width: 22px;
     height: 22px;
@@ -238,6 +248,17 @@ body {
     font-weight: 700;
 }
 
+.cart-stock {
+    margin-top: 5px;
+    color: #11998e;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.cart-stock.out-of-stock {
+    color: #b42318;
+}
+
 .qty-box {
     display: flex;
     align-items: center;
@@ -265,6 +286,14 @@ body {
 .qty-btn:hover {
     background: #11998e;
     color: white;
+}
+
+.qty-btn.disabled,
+.qty-btn.disabled:hover {
+    border-color: #d0d5dd;
+    background: #f2f4f7;
+    color: #98a2b3;
+    cursor: not-allowed;
 }
 
 .qty {

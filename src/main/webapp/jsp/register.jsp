@@ -30,25 +30,25 @@
                     <input type="text" name="fullName" placeholder="Họ Tên" required>
                     <i class='bx bx-user'></i>
                 </div>
-                <p id="nameMsg" class="msg"></p>
+                <p id="nameMsg" class="msg rule-msg">Ít nhất 2 ký tự, không chứa số hoặc ký tự đặc biệt.</p>
 
                 <div class="input-field">
                     <input type="email" name="email" placeholder="Email" required>
                     <i class='bx bx-envelope'></i>
                 </div>
-                <p id="emailMsg" class="msg"></p>
+                <p id="emailMsg" class="msg rule-msg">Sử dụng địa chỉ Gmail hợp lệ.</p>
 
                 <div class="input-field">
                     <input type="password" name="password" placeholder="Mật khẩu" required>
                     <i class='bx bx-lock'></i>
                 </div>
-                <p id="passwordMsg" class="msg"></p>
+                <p id="passwordMsg" class="msg rule-msg">Ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.</p>
 
                 <div class="input-field">
                     <input type="password" name="confirmPassword" placeholder="Xác nhận mật khẩu" required>
                     <i class='bx bx-lock'></i>
                 </div>
-                <p id="confirmMsg" class="msg"></p>
+                <p id="confirmMsg" class="msg rule-msg">Nhập lại đúng mật khẩu phía trên.</p>
             </div>
             <c:if test="${recaptchaConfigured}">
                 <div class="captcha-box">
@@ -129,14 +129,20 @@
             el.style.color = ok ? "green" : "red";
         }
 
-        fullName.addEventListener("input", () => {
-            const regex = /^([A-ZÀ-Ỹ][a-zà-ỹ]+)(\s[A-ZÀ-Ỹ][a-zà-ỹ]+)*$/;
-            showMsg(nameMsg, "Viết hoa chữ cái đầu mỗi từ", regex.test(fullName.value.trim()));
-        });
-        email.addEventListener("input", () => {
-            showMsg(emailMsg, "Email phải kết thúc bằng @gmail.com", email.value.endsWith("@gmail.com"));
-        });
-        password.addEventListener("input", () => {
+        function validateName() {
+            const value = fullName.value.trim().replace(/\s+/g, " ");
+            const ok = value.length >= 2 && value.length <= 100 && /^[\p{L} .'-]+$/u.test(value);
+            showMsg(nameMsg, "Ít nhất 2 ký tự, không chứa số hoặc ký tự đặc biệt", ok);
+            return ok;
+        }
+
+        function validateEmail() {
+            const ok = /^[^\s@]+@gmail\.com$/i.test(email.value.trim());
+            showMsg(emailMsg, "Email phải kết thúc bằng @gmail.com", ok);
+            return ok;
+        }
+
+        function validatePassword() {
             const v = password.value;
             const ok =
                 /[A-Z]/.test(v) &&
@@ -144,20 +150,32 @@
                 /\d/.test(v) &&
                 /[^A-Za-z0-9]/.test(v) &&
                 v.length >= 8;
-            showMsg(passwordMsg, "Ít nhất 8 ký tự, có chữ hoa, thường và con số", ok);
+            showMsg(passwordMsg, "Ít nhất 8 ký tự, có chữ hoa, chữ thường, số và ký tự đặc biệt", ok);
+            return ok;
+        }
+
+        function validateConfirmPassword() {
+            const ok = confirmPassword.value === password.value && confirmPassword.value !== "";
+            showMsg(confirmMsg, "Mật khẩu xác nhận phải trùng khớp", ok);
+            return ok;
+        }
+
+        fullName.addEventListener("input", validateName);
+        email.addEventListener("input", validateEmail);
+        password.addEventListener("input", function () {
+            validatePassword();
+            if (confirmPassword.value) validateConfirmPassword();
         });
-        confirmPassword.addEventListener("input", () => {
-            showMsg(confirmMsg,
-                "Mật khẩu xác nhận phải trùng khớp",
-                confirmPassword.value === password.value && confirmPassword.value !== "");
-        });
+        confirmPassword.addEventListener("input", validateConfirmPassword);
+
         form.addEventListener("submit", e => {
-            if (
-                nameMsg.style.color !== "green" ||
-                emailMsg.style.color !== "green" ||
-                passwordMsg.style.color !== "green" ||
-                confirmMsg.style.color !== "green"
-            ) {
+            const validationResults = [
+                validateName(),
+                validateEmail(),
+                validatePassword(),
+                validateConfirmPassword()
+            ];
+            if (!validationResults.every(Boolean)) {
                 e.preventDefault();
                 alert("Vui lòng nhập đúng thông tin!");
             }
@@ -196,5 +214,6 @@
 <c:if test="${recaptchaConfigured}">
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </c:if>
+<script defer src="${pageContext.request.contextPath}/js/password-toggle.js?v=20260615-1"></script>
 </body>
 </html>

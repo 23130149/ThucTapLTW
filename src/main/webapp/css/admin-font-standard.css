@@ -1,0 +1,41 @@
+body,
+button,
+input,
+select,
+textarea,
+.sliderbar,
+.sliderbar *,
+.main-content,
+.main-content *,
+.modal-overlay,
+.modal-overlay * {
+    font-family: "Poppins", sans-serif !important;
+    letter-spacing: 0 !important;
+    word-spacing: 0 !important;
+    font-stretch: normal !important;
+    font-synthesis: none;
+}
+
+button,
+input,
+select,
+textarea {
+    line-height: 1.35;
+}
+
+.filter-select,
+.search-review-box,
+.search-contact-box,
+.search-customer-box,
+.admin-search-box {
+    min-height: 42px;
+}
+
+.status,
+.status-tag,
+.status-badge,
+.review-action-btn,
+.btn-save,
+.small-btn {
+    white-space: nowrap;
+}

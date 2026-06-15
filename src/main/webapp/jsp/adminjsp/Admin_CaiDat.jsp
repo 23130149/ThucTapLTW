@@ -9,6 +9,7 @@
         <title>Admin - Cài đặt</title>
         <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/Admin_CaiDat.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin-font-standard.css">
     </head>
     <body>
     <aside class="sliderbar">
@@ -30,7 +31,7 @@
         </nav>
         <div class="logout">
             <a href="${pageContext.request.contextPath}/home">
-                <i class="bx bx-log-out"></i> Đăng xuất
+                <i class="bx bx-home-alt-2"></i> Trang chủ
             </a>
         </div>
     </aside>
@@ -123,27 +124,31 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="storeName">Tên cửa hàng</label>
-                            <input id="storeName" type="text" name="storeName" value="Handmade House">
+                            <input id="storeName" type="text" name="storeName"
+                                   value="${fn:escapeXml(storeSetting.storeName)}" required>
                         </div>
 
                         <div class="form-group">
                             <label for="storeEmail">Email liên hệ</label>
-                            <input id="storeEmail" type="email" name="storeEmail" value="handmadehouse23@handmade.vn">
+                            <input id="storeEmail" type="email" name="storeEmail"
+                                   value="${fn:escapeXml(storeSetting.storeEmail)}">
                         </div>
 
                         <div class="form-group">
                             <label for="storePhone">Số điện thoại</label>
-                            <input id="storePhone" type="text" name="storePhone" value="0944912685">
+                            <input id="storePhone" type="text" name="storePhone"
+                                   value="${fn:escapeXml(storeSetting.storePhone)}">
                         </div>
 
                         <div class="form-group">
                             <label for="storeWebsite">Website</label>
-                            <input id="storeWebsite" type="text" name="storeWebsite" value="https://handmadehouse.com">
+                            <input id="storeWebsite" type="text" name="storeWebsite"
+                                   value="${fn:escapeXml(storeSetting.storeWebsite)}">
                         </div>
 
                         <div class="form-group full-width">
                             <label for="storeAddress">Địa chỉ</label>
-                            <textarea id="storeAddress" name="storeAddress" rows="3">Khu phố 6, Phường Linh Trung, TP. Thủ Đức, TP. Hồ Chí Minh</textarea>
+                            <textarea id="storeAddress" name="storeAddress" rows="3"><c:out value="${storeSetting.storeAddress}"/></textarea>
                         </div>
                     </div>
 
@@ -350,5 +355,6 @@
             });
         });
     </script>
+    <script defer src="${pageContext.request.contextPath}/js/password-toggle.js?v=20260615-1"></script>
     </body>
     </html>

@@ -117,5 +117,6 @@
     });
   </script>
 </c:if>
+<script defer src="${pageContext.request.contextPath}/js/password-toggle.js?v=20260615-1"></script>
 </body>
 </html>

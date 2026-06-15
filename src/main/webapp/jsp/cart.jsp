@@ -80,14 +80,14 @@
 
                 <div class="cart-list">
                     <c:forEach items="${sessionScope.cart.data.values()}" var="item">
-                        <div class="cart-item">
+                        <div class="cart-item ${item.product.stockQuantity <= 0 ? 'out-of-stock' : ''}">
                             <input type="checkbox"
                                    class="item-checkbox"
                                    name="productIds"
                                    value="${item.product.productId}"
                                    data-total="${item.total}"
                                    data-quantity="${item.quantity}"
-                                   checked>
+                                   ${item.product.stockQuantity > 0 ? 'checked' : 'disabled'}>
 
                             <img src="${item.product.imageUrl}" alt="${item.product.productName}"
                                  onerror="this.src='${pageContext.request.contextPath}/images/no-image.png'">
@@ -97,12 +97,36 @@
                                 <div class="unit-price">
                                     <fmt:formatNumber value="${item.price}" type="number" maxFractionDigits="0"/> đ
                                 </div>
+                                <div class="cart-stock ${item.product.stockQuantity <= 0 ? 'out-of-stock' : ''}">
+                                    <c:choose>
+                                        <c:when test="${item.product.stockQuantity > 0}">
+                                            Còn ${item.product.stockQuantity} sản phẩm trong kho
+                                        </c:when>
+                                        <c:otherwise>
+                                            Hết hàng · chỉ có thể xóa khỏi giỏ
+                                        </c:otherwise>
+                                    </c:choose>
+                                </div>
                             </div>
 
                             <div class="qty-box">
-                                <a class="qty-btn" href="${pageContext.request.contextPath}/CartUpdate?productId=${item.product.productId}&amp;action=dec">−</a>
+                                <c:choose>
+                                    <c:when test="${item.product.stockQuantity > 0}">
+                                        <a class="qty-btn" href="${pageContext.request.contextPath}/CartUpdate?productId=${item.product.productId}&amp;action=dec">−</a>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="qty-btn disabled">−</span>
+                                    </c:otherwise>
+                                </c:choose>
                                 <span class="qty">${item.quantity}</span>
-                                <a class="qty-btn" href="${pageContext.request.contextPath}/CartUpdate?productId=${item.product.productId}&amp;action=inc">+</a>
+                                <c:choose>
+                                    <c:when test="${item.product.stockQuantity > item.quantity}">
+                                        <a class="qty-btn" href="${pageContext.request.contextPath}/CartUpdate?productId=${item.product.productId}&amp;action=inc">+</a>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="qty-btn disabled">+</span>
+                                    </c:otherwise>
+                                </c:choose>
                             </div>
 
                             <div class="item-total-price">

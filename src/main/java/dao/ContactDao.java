@@ -206,6 +206,35 @@ public class ContactDao extends BaseDao {
             return query.mapToBean(Contact.class).list();
         });
     }
+
+    public List<Contact> findByUserId(int userId) {
+        String sql = """
+        SELECT
+            Contact_Id     AS contactId,
+            Contact_Name   AS contactName,
+            Contact_Email  AS contactEmail,
+            Phone          AS phone,
+            Subject        AS subject,
+            Message        AS message,
+            User_Id        AS userId,
+            Create_At      AS createAt,
+            Update_At      AS updateAt,
+            COALESCE(Status, 'NEW') AS status,
+            Reply AS reply,
+            Reply_At AS replyAt
+        FROM contact
+        WHERE User_Id = :userId
+        ORDER BY Create_At DESC, Contact_Id DESC
+    """;
+
+        return getJdbi().withHandle(h ->
+                h.createQuery(sql)
+                        .bind("userId", userId)
+                        .mapToBean(Contact.class)
+                        .list()
+        );
+    }
+
     public boolean replyContact(int contactId, String reply) {
         String sql = """
         UPDATE contact

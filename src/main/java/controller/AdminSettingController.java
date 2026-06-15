@@ -2,11 +2,13 @@ package controller;
 
 import dao.OrderDao;
 import dao.PermissionDao;
+import dao.StoreSettingDao;
 import dao.UserDao;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 import model.User;
+import model.StoreSetting;
 import util.PasswordUtil;
 
 import java.io.IOException;
@@ -25,6 +27,7 @@ public class AdminSettingController extends HttpServlet {
         OrderDao oDao = new OrderDao();
         UserDao uDao = new UserDao();
         PermissionDao pDao = new PermissionDao();
+        StoreSettingDao storeSettingDao = new StoreSettingDao();
 
         String adminKeyword = request.getParameter("adminKeyword");
         adminKeyword = adminKeyword == null ? "" : adminKeyword.trim();
@@ -53,6 +56,9 @@ public class AdminSettingController extends HttpServlet {
         request.setAttribute("adminPermissionMap", adminPermissionMap);
         request.setAttribute("adminKeyword", adminKeyword);
         request.setAttribute("canManageSetting", canManageSetting);
+        StoreSetting storeSetting = storeSettingDao.getStoreSetting();
+        request.setAttribute("storeSetting", storeSetting);
+        getServletContext().setAttribute("storeSetting", storeSetting);
 
         request.getRequestDispatcher("/jsp/adminjsp/Admin_CaiDat.jsp").forward(request, response);
     }
@@ -76,7 +82,7 @@ public class AdminSettingController extends HttpServlet {
             if (!canManageSetting(request)) {
                 request.getSession().setAttribute("settingMessage", "Bạn không có quyền cập nhật thông tin cửa hàng");
             } else {
-                request.getSession().setAttribute("settingMessage", "Chức năng lưu thông tin cửa hàng đang được phát triển");
+                updateStore(request);
             }
         } else if ("changePassword".equals(action)) {
             changePassword(request);
@@ -116,6 +122,32 @@ public class AdminSettingController extends HttpServlet {
 
         PermissionDao pDao = new PermissionDao();
         pDao.updateUserPermissions(adminId, permissionCodes);
+    }
+
+    private void updateStore(HttpServletRequest request) {
+        StoreSetting setting = new StoreSetting();
+        setting.setStoreName(clean(request.getParameter("storeName")));
+        setting.setStoreEmail(clean(request.getParameter("storeEmail")));
+        setting.setStorePhone(clean(request.getParameter("storePhone")));
+        setting.setStoreWebsite(clean(request.getParameter("storeWebsite")));
+        setting.setStoreAddress(clean(request.getParameter("storeAddress")));
+
+        if (setting.getStoreName().length() < 2
+                || (!setting.getStoreEmail().isBlank()
+                    && !setting.getStoreEmail().matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"))
+                || (!setting.getStorePhone().isBlank()
+                    && !setting.getStorePhone().matches("^[0-9+ .()-]{8,20}$"))) {
+            request.getSession().setAttribute("settingMessage", "Thông tin cửa hàng chưa hợp lệ.");
+            return;
+        }
+
+        StoreSettingDao storeSettingDao = new StoreSettingDao();
+        if (storeSettingDao.save(setting)) {
+            getServletContext().setAttribute("storeSetting", setting);
+            request.getSession().setAttribute("settingMessage", "Lưu thông tin cửa hàng thành công");
+        } else {
+            request.getSession().setAttribute("settingMessage", "Không thể lưu thông tin cửa hàng");
+        }
     }
 
     private void changePassword(HttpServletRequest request) {
@@ -196,5 +228,9 @@ public class AdminSettingController extends HttpServlet {
         String permissionCodesText = permissionTextObj.toString();
 
         return permissionCodesText.contains(",MANAGE_SETTING,");
+    }
+
+    private String clean(String value) {
+        return value == null ? "" : value.trim().replaceAll("\\s+", " ");
     }
 }

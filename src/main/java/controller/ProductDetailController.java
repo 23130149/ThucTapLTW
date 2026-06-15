@@ -15,6 +15,7 @@ import util.RecaptchaUtil;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @WebServlet(name = "ProductDetailController", value = "/product-detail")
@@ -47,7 +48,7 @@ public class ProductDetailController extends HttpServlet {
         }
 
         List<ProductImage> productImages = pDao.getImagesByProductId(productId);
-        List<Product> relatedProducts = pDao.getRelatedProducts(product.getCategoryId(), product.getProductId(), 4);
+        List<Product> relatedProducts = pDao.getRelatedProducts(product.getCategoryId(), product.getProductId(), 8);
 
         HttpSession session = request.getSession(false);
         Integer currentUserId = null;
@@ -66,9 +67,11 @@ public class ProductDetailController extends HttpServlet {
             canReview = orderDao.hasUserPurchasedProduct(user.getUserId(), productId);
         }
 
-        List<Review> reviews = rDao.getReviewsByProductId(productId, null, currentUserId);
+        Integer selectedRating = parseRating(request.getParameter("rating"));
+        List<Review> reviews = rDao.getReviewsByProductId(productId, selectedRating, currentUserId);
         double avgRating = rDao.getAverageRating(productId);
         int reviewCount = rDao.countReviews(productId);
+        Map<Integer, Integer> reviewRatingCounts = rDao.countReviewsByRating(productId);
 
         request.setAttribute("product", product);
         request.setAttribute("productImages", productImages);
@@ -76,6 +79,8 @@ public class ProductDetailController extends HttpServlet {
         request.setAttribute("reviews", reviews);
         request.setAttribute("avgRating", avgRating);
         request.setAttribute("reviewCount", reviewCount);
+        request.setAttribute("selectedRating", selectedRating);
+        request.setAttribute("reviewRatingCounts", reviewRatingCounts);
         request.setAttribute("isLoggedIn", isLoggedIn);
         request.setAttribute("canReview", canReview);
         request.setAttribute("recaptchaSiteKey", RecaptchaUtil.getSiteKey(getServletContext()));
@@ -86,5 +91,14 @@ public class ProductDetailController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
+    }
+
+    private Integer parseRating(String value) {
+        try {
+            int rating = Integer.parseInt(value);
+            return rating >= 1 && rating <= 5 ? rating : null;
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

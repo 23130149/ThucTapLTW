@@ -1,11 +1,13 @@
 package controller;
 
 import dao.ContactDao;
+import dao.NotificationDao;
 import dao.OrderDao;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 import model.Contact;
+import service.EmailService;
 import util.AjaxUtil;
 
 import java.io.IOException;
@@ -58,6 +60,7 @@ public class AdminContactController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
 
         ContactDao contactDao = new ContactDao();
+        NotificationDao notificationDao = new NotificationDao();
         String action = request.getParameter("action");
         boolean success = false;
         String message = null;
@@ -76,7 +79,35 @@ public class AdminContactController extends HttpServlet {
                 String reply = request.getParameter("reply");
 
                 if (reply != null && !reply.trim().isEmpty()) {
-                    success = contactDao.replyContact(contactId, reply.trim());
+                    String cleanReply = reply.trim();
+                    success = contactDao.replyContact(contactId, cleanReply);
+                    if (success) {
+                        Contact contact = contactDao.findById(contactId);
+                        if (contact != null) {
+                            Integer receiverUserId = contact.getUserId();
+                            if ((receiverUserId == null || receiverUserId <= 0)
+                                    && contact.getContactEmail() != null && !contact.getContactEmail().isBlank()) {
+                                receiverUserId = notificationDao.findUserIdByEmail(contact.getContactEmail());
+                            }
+                            if (receiverUserId != null && receiverUserId > 0) {
+                                notificationDao.addOrRefreshSafe(
+                                        receiverUserId,
+                                        "CONTACT_REPLY",
+                                        "Admin đã phản hồi liên hệ của bạn",
+                                        "Liên hệ: " + safeText(contact.getSubject()),
+                                        "/contact?detailId=" + contactId + "#contact-" + contactId,
+                                        "CONTACT",
+                                        contactId
+                                );
+                            }
+                            EmailService.sendContactReplyEmail(
+                                    contact.getContactEmail(),
+                                    "Handmade House phản hồi liên hệ của bạn",
+                                    contact.getSubject(),
+                                    cleanReply
+                            );
+                        }
+                    }
                 } else {
                     message = "Vui lòng nhập nội dung phản hồi.";
                 }
@@ -108,6 +139,14 @@ public class AdminContactController extends HttpServlet {
         }
         response.sendRedirect(request.getContextPath() + "/admin/contacts");
     }
+
+    private String safeText(String value) {
+        if (value == null || value.isBlank()) {
+            return "Không có tiêu đề";
+        }
+        return value.trim();
+    }
+
     private String normalizeStatus(String status) {
         if (status == null) return "NEW";
 

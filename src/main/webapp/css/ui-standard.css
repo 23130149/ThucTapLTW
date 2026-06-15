@@ -44,3 +44,64 @@ body{background:linear-gradient(180deg,#fbfffd 0,#fafafa 280px)!important}main,.
 .favourite-page .add-to-cart,.favorite-page .add-to-cart{width:100%!important;min-height:42px!important;border-radius:14px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;background:linear-gradient(135deg,#11998e,#38ef7d)!important;color:#fff!important;font-weight:800!important;text-decoration:none!important}
 .hh-header-inner{grid-template-columns:250px minmax(360px,1fr) 150px!important;gap:30px!important}
 @media(max-width:900px){.hh-header-inner{grid-template-columns:1fr auto!important;gap:12px!important}}
+
+h1,
+h2,
+.about-us-container>h1,
+.cart-header,
+.product-hero h1,
+.payment-page h1,
+.profile-edit-page>h1,
+.favourite-hero h1,
+.banner h2,
+.legal-container h1,
+.wrapper h1 {
+    font-weight: 700 !important;
+    letter-spacing: 0 !important;
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+}
+
+.hh-logo span,
+.hh-logo b,
+.hh-footer-brand h3,
+.hh-footer-col h4,
+.filter-title,
+.product-card h3,
+.product-item h3,
+.product-name {
+    letter-spacing: 0 !important;
+    text-rendering: optimizeLegibility;
+}
+
+body,
+button,
+input,
+select,
+textarea,
+.search-form,
+.search-form *,
+.filter-select,
+.status-tag,
+.status,
+.product-card,
+.product-card *,
+.product-item,
+.product-item * {
+    font-family: "Poppins", sans-serif !important;
+    letter-spacing: 0 !important;
+    word-spacing: 0 !important;
+    font-stretch: normal !important;
+    font-synthesis: none;
+}
+
+.hh-suggest-info strong,
+.suggestion-info strong {
+    font-weight: 600 !important;
+    line-height: 1.5 !important;
+}
+
+.hh-suggest-bottom b,
+.suggestion-bottom b {
+    font-weight: 700 !important;
+}

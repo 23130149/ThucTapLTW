@@ -45,6 +45,7 @@ public class ReviewDao extends BaseDao {
                     Review_Id INT NOT NULL,
                     User_Id INT NOT NULL,
                     Reply_Text TEXT NOT NULL,
+                    Status VARCHAR(30) DEFAULT 'PENDING',
                     Create_At DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
                 """;
@@ -57,6 +58,7 @@ public class ReviewDao extends BaseDao {
 
         tryAddColumn("ALTER TABLE reviews ADD COLUMN Status VARCHAR(30) DEFAULT 'APPROVED'");
         tryAddColumn("ALTER TABLE reviews ADD COLUMN Shop_Reply TEXT NULL");
+        tryAddColumn("ALTER TABLE review_replies ADD COLUMN Status VARCHAR(30) DEFAULT 'PENDING'");
     }
 
     private void tryAddColumn(String sql) {
@@ -108,13 +110,17 @@ public class ReviewDao extends BaseDao {
         });
 
         for (Review review : reviews) {
-            review.setReplies(getRepliesByReviewId(review.getReviewId()));
+            review.setReplies(getRepliesByReviewId(review.getReviewId(), false));
         }
 
         return reviews;
     }
 
     public List<ReviewReply> getRepliesByReviewId(int reviewId) {
+        return getRepliesByReviewId(reviewId, false);
+    }
+
+    public List<ReviewReply> getRepliesByReviewId(int reviewId, boolean includeAll) {
         String sql = """
                 SELECT
                     rr.Reply_Id AS replyId,
@@ -122,16 +128,19 @@ public class ReviewDao extends BaseDao {
                     rr.User_Id AS userId,
                     COALESCE(u.User_Name, u.Email, 'Khách hàng') AS userName,
                     rr.Reply_Text AS replyText,
+                    COALESCE(rr.Status, 'APPROVED') AS status,
                     rr.Create_At AS createAt
                 FROM review_replies rr
                 LEFT JOIN `user` u ON u.User_Id = rr.User_Id
                 WHERE rr.Review_Id = :reviewId
+                  AND (:includeAll = TRUE OR COALESCE(rr.Status, 'APPROVED') = 'APPROVED')
                 ORDER BY rr.Create_At ASC, rr.Reply_Id ASC
                 """;
 
         return getJdbi().withHandle(handle ->
                 handle.createQuery(sql)
                         .bind("reviewId", reviewId)
+                        .bind("includeAll", includeAll)
                         .mapToBean(ReviewReply.class)
                         .list()
         );
@@ -220,6 +229,10 @@ public class ReviewDao extends BaseDao {
     }
 
     public void toggleLike(int reviewId, int userId) {
+        if (!isApprovedReview(reviewId)) {
+            return;
+        }
+
         boolean liked = getJdbi().withHandle(handle ->
                 handle.createQuery("""
                                 SELECT COUNT(*)
@@ -283,9 +296,13 @@ public class ReviewDao extends BaseDao {
     }
 
     public void addReply(int reviewId, int userId, String replyText) {
+        if (!isApprovedReview(reviewId)) {
+            return;
+        }
+
         String sql = """
-                INSERT INTO review_replies (Review_Id, User_Id, Reply_Text, Create_At)
-                VALUES (:reviewId, :userId, :replyText, NOW())
+                INSERT INTO review_replies (Review_Id, User_Id, Reply_Text, Status, Create_At)
+                VALUES (:reviewId, :userId, :replyText, 'PENDING', NOW())
                 """;
 
         getJdbi().useHandle(handle ->
@@ -298,10 +315,14 @@ public class ReviewDao extends BaseDao {
     }
 
     public List<Review> getAdminReviews() {
-        return getAdminReviews("", null, null);
+        return getAdminReviews("", null, null, null);
     }
 
     public List<Review> getAdminReviews(String keyword, Integer rating, String status) {
+        return getAdminReviews(keyword, rating, status, null);
+    }
+
+    public List<Review> getAdminReviews(String keyword, Integer rating, String status, Integer categoryId) {
         StringBuilder sql = new StringBuilder("""
                 SELECT
                     r.Review_Id AS reviewId,
@@ -324,6 +345,7 @@ public class ReviewDao extends BaseDao {
         boolean hasKeyword = keyword != null && !keyword.isBlank();
         boolean hasRating = rating != null && rating >= 1 && rating <= 5;
         boolean hasStatus = status != null && !status.isBlank();
+        boolean hasCategory = categoryId != null && categoryId > 0;
 
         if (hasKeyword) {
             sql.append("""
@@ -341,12 +363,39 @@ public class ReviewDao extends BaseDao {
         }
 
         if (hasStatus) {
-            sql.append(" AND COALESCE(r.Status, 'APPROVED') = :status ");
+            if ("PENDING".equalsIgnoreCase(status) || "HIDDEN".equalsIgnoreCase(status)) {
+                sql.append("""
+                         AND (
+                            COALESCE(r.Status, 'APPROVED') = :status
+                            OR EXISTS (
+                                SELECT 1
+                                FROM review_replies rr_filter
+                                WHERE rr_filter.Review_Id = r.Review_Id
+                                  AND COALESCE(rr_filter.Status, 'APPROVED') = :status
+                            )
+                        )
+                        """);
+            } else {
+                sql.append(" AND COALESCE(r.Status, 'APPROVED') = :status ");
+            }
+        }
+
+        if (hasCategory) {
+            sql.append(" AND p.Category_Id = :categoryId ");
         }
 
         sql.append("""
                  ORDER BY
-                    CASE WHEN COALESCE(r.Status, 'APPROVED') = 'PENDING' THEN 0 ELSE 1 END,
+                    CASE
+                        WHEN COALESCE(r.Status, 'APPROVED') = 'PENDING'
+                            OR EXISTS (
+                                SELECT 1
+                                FROM review_replies rr_pending
+                                WHERE rr_pending.Review_Id = r.Review_Id
+                                  AND COALESCE(rr_pending.Status, 'APPROVED') = 'PENDING'
+                            )
+                        THEN 0 ELSE 1
+                    END,
                     r.Create_At DESC,
                     r.Review_Id DESC
                 """);
@@ -366,7 +415,17 @@ public class ReviewDao extends BaseDao {
                 query.bind("status", status.trim().toUpperCase());
             }
 
-            return query.mapToBean(Review.class).list();
+            if (hasCategory) {
+                query.bind("categoryId", categoryId);
+            }
+
+            List<Review> reviews = query.mapToBean(Review.class).list();
+
+            for (Review review : reviews) {
+                review.setReplies(getRepliesByReviewId(review.getReviewId(), true));
+            }
+
+            return reviews;
         });
     }
 
@@ -392,6 +451,25 @@ public class ReviewDao extends BaseDao {
                         .bind("status", status)
                         .mapTo(Integer.class)
                         .one()
+        );
+    }
+
+    public int countPendingModerationItems() {
+        String pendingReviewsSql = """
+                SELECT COUNT(*)
+                FROM reviews
+                WHERE COALESCE(Status, 'APPROVED') = 'PENDING'
+                """;
+
+        String pendingRepliesSql = """
+                SELECT COUNT(*)
+                FROM review_replies
+                WHERE COALESCE(Status, 'APPROVED') = 'PENDING'
+                """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(pendingReviewsSql).mapTo(Integer.class).one()
+                        + handle.createQuery(pendingRepliesSql).mapTo(Integer.class).one()
         );
     }
 
@@ -473,4 +551,111 @@ public class ReviewDao extends BaseDao {
                         .execute() > 0
         );
     }
+
+    public boolean updateReplyStatus(int replyId, String status) {
+        String normalizedStatus = status == null ? "" : status.trim().toUpperCase();
+
+        if (!"PENDING".equals(normalizedStatus)
+                && !"APPROVED".equals(normalizedStatus)
+                && !"HIDDEN".equals(normalizedStatus)) {
+            return false;
+        }
+
+        String sql = """
+                UPDATE review_replies
+                SET Status = :status
+                WHERE Reply_Id = :replyId
+                """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createUpdate(sql)
+                        .bind("replyId", replyId)
+                        .bind("status", normalizedStatus)
+                        .execute() > 0
+        );
+    }
+
+    public ReviewReply findReplyById(int replyId) {
+        String sql = """
+                SELECT
+                    rr.Reply_Id AS replyId,
+                    rr.Review_Id AS reviewId,
+                    rr.User_Id AS userId,
+                    COALESCE(u.User_Name, u.Email, 'KhÃ¡ch hÃ ng') AS userName,
+                    rr.Reply_Text AS replyText,
+                    COALESCE(rr.Status, 'APPROVED') AS status,
+                    rr.Create_At AS createAt
+                FROM review_replies rr
+                LEFT JOIN `user` u ON u.User_Id = rr.User_Id
+                WHERE rr.Reply_Id = :replyId
+                LIMIT 1
+                """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("replyId", replyId)
+                        .mapToBean(ReviewReply.class)
+                        .findOne()
+                        .orElse(null)
+        );
+    }
+
+    public boolean isApprovedReviewForProduct(int reviewId, int productId) {
+        String sql = """
+                SELECT COUNT(*)
+                FROM reviews
+                WHERE Review_Id = :reviewId
+                  AND Product_Id = :productId
+                  AND COALESCE(Status, 'APPROVED') = 'APPROVED'
+                """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("reviewId", reviewId)
+                        .bind("productId", productId)
+                        .mapTo(Integer.class)
+                        .one() > 0
+        );
+    }
+
+    public boolean isApprovedReview(int reviewId) {
+        String sql = """
+                SELECT COUNT(*)
+                FROM reviews
+                WHERE Review_Id = :reviewId
+                  AND COALESCE(Status, 'APPROVED') = 'APPROVED'
+                """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("reviewId", reviewId)
+                        .mapTo(Integer.class)
+                        .one() > 0
+        );
+    }
+
+    public Review findReviewNotificationInfo(int reviewId) {
+        String sql = """
+                SELECT
+                    r.Review_Id AS reviewId,
+                    r.Product_Id AS productId,
+                    r.User_Id AS userId,
+                    COALESCE(p.Product_Name, 'sản phẩm') AS productName,
+                    COALESCE(r.Status, 'APPROVED') AS status,
+                    r.Shop_Reply AS shopReply
+                FROM reviews r
+                LEFT JOIN products p ON p.Product_Id = r.Product_Id
+                WHERE r.Review_Id = :reviewId
+                LIMIT 1
+                """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("reviewId", reviewId)
+                        .mapToBean(Review.class)
+                        .findOne()
+                        .orElse(null)
+        );
+    }
+
 }

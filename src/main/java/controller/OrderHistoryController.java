@@ -117,10 +117,10 @@ public class OrderHistoryController extends HttpServlet {
             success = orderDao.cancelOrderByUser(orderId, user.getUserId(), reason);
             message = success
                     ? "Đã huỷ đơn hàng và khôi phục số lượng sản phẩm trong kho."
-                    : "Không thể huỷ đơn. Vui lòng nhập lý do hoặc kiểm tra trạng thái đơn hàng.";
+                    : "Không thể huỷ đơn. Đơn chỉ được huỷ trong vòng 24 giờ kể từ khi đặt hàng và khi còn ở trạng thái chờ xử lý, đang xử lý hoặc đã xác nhận.";
             session.setAttribute("orderMessage", success
                     ? "Đã huỷ đơn hàng và khôi phục số lượng sản phẩm trong kho."
-                    : "Không thể huỷ đơn. Vui lòng nhập lý do hoặc kiểm tra trạng thái đơn hàng.");
+                    : "Không thể huỷ đơn. Đơn chỉ được huỷ trong vòng 24 giờ kể từ khi đặt hàng và khi còn ở trạng thái chờ xử lý, đang xử lý hoặc đã xác nhận.");
         } else if ("return".equals(action)) {
             String imagePath = saveReturnImageIfPresent(request);
             success = orderDao.requestReturnByUser(orderId, user.getUserId(), reason, imagePath);

@@ -231,7 +231,7 @@ a {
     display: block;
     margin-bottom: 8px;
     text-transform: uppercase;
-    letter-spacing: .04em;
+    letter-spacing: 0;
     font-size: 12px;
     font-weight: 800;
     color: #5f6877;
@@ -909,6 +909,66 @@ a {
 
 .manage-address:hover {
     text-decoration: underline;
+}
+
+.address-manage-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+button.manage-address {
+    border: 0;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.inline-address-editor {
+    display: none;
+    margin-top: 18px;
+    padding: 18px;
+    border: 1px solid #d0eee6;
+    border-radius: 8px;
+    background: #f8fffc;
+}
+
+.inline-address-editor.show {
+    display: block;
+}
+
+.inline-address-editor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+    color: #172033;
+}
+
+.inline-address-editor-header button {
+    width: 34px;
+    height: 34px;
+    border: 0;
+    background: transparent;
+    color: #667085;
+    cursor: pointer;
+    font-size: 22px;
+}
+
+.inline-address-save {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 14px;
+    border: 0;
+    border-radius: 8px;
+    padding: 11px 16px;
+    background: #11998e;
+    color: #fff;
+    font-family: inherit;
+    font-weight: 700;
+    cursor: pointer;
 }
 
 .payment-alert {

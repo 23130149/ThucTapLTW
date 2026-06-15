@@ -8,6 +8,7 @@ public class ReviewReply {
     private Integer userId;
     private String userName;
     private String replyText;
+    private String status;
     private LocalDateTime createAt;
 
     public Integer getReplyId() {
@@ -48,6 +49,14 @@ public class ReviewReply {
 
     public void setReplyText(String replyText) {
         this.replyText = replyText;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public LocalDateTime getCreateAt() {

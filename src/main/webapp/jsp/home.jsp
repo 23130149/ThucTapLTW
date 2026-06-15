@@ -1,4 +1,5 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <fmt:setLocale value="vi_VN"/>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
@@ -20,51 +21,102 @@
 <jsp:include page="/jsp/header.jsp"/>
 <section class="section__container" id="home">
   <div class="wavy-top"></div>
+
   <div class="slider-wrapper">
-    <div class="slide slide-active"
-         style="background-image: url('https://plus.unsplash.com/premium_photo-1661753115934-cdf47487b294?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=871');">
-      <div class="slide-overlay"></div>
-      <div class="slide-content">
-        <h1 class="section-title">
-          <span class="section-title-line">The Beauty</span>
-          <span class="section-title-line">Of Handmade</span>
-        </h1>
-        <p class="section-subtitle">
-          Chào mừng bạn đến với Handmade House, một chủ đề đầy cảm hứng được tạo ra riêng cho hành trình sáng
-          tạo của bạn!<br>
-          Dù là dự án thủ công hay sản phẩm nghệ thuật, Handmade House đều có mọi thứ bạn cần.
-        </p>
-        <a href="${pageContext.request.contextPath}/product" class="btn-view-more">Xem thêm</a>
-      </div>
-    </div>
-    <div class="slide"
-         style="background-image: url('https://bepos.io/wp-content/uploads/2021/08/lam-do-handmade-tai-nha-220.jpg')">
-      <div class="slide-overlay"></div>
-      <div class="slide-content">
-        <h1 class="section-title">
-          <span class="section-title-line">HANDMADE GOODS</span>
-          <span class="section-title-line">FOR GENZ</span>
-        </h1>
-        <p class="section-subtitle">
-          Tự tin thể hiện gu thẩm mỹ và sự độc đáo qua từng sản phẩm thủ công, dẫn đầu xu hướng.
-        </p>
-        <a href="${pageContext.request.contextPath}/product" class="btn-view-more">Xem thêm</a>
-      </div>
-    </div>
-    <div class="slide"
-         style="background-image: url('https://t4.ftcdn.net/jpg/03/97/34/39/360_F_397343924_6WlXOaMVHNKkhMs2l8AHJ5e9MQ03YiBU.jpg');">
-      <div class="slide-overlay"></div>
-      <div class="slide-content">
-        <h1 class="section-title">
-          <span class="section-title-line">ELEVATE YOUR SPACE</span>
-          <span class="section-title-line">AND PERSONALITY</span>
-        </h1>
-        <p class="section-subtitle">
-          Mang đến những sản phẩm thủ công chất lượng, kết hợp hoàn hảo giữa nghệ thuật và công năng.
-        </p>
-        <a href="${pageContext.request.contextPath}/product" class="btn-view-more">Xem thêm</a>
-      </div>
-    </div>
+    <c:choose>
+      <c:when test="${not empty bannerList}">
+        <c:forEach items="${bannerList}" var="banner" varStatus="loop">
+          <c:set var="bannerImage" value="${banner.imageUrl}"/>
+
+          <c:if test="${not fn:startsWith(banner.imageUrl, 'http')}">
+            <c:set var="bannerImage" value="${pageContext.request.contextPath}${banner.imageUrl}"/>
+          </c:if>
+
+          <div class="slide ${loop.first ? 'slide-active' : ''}"
+               style="background-image: url('${bannerImage}')">
+            <div class="slide-overlay"></div>
+
+            <div class="slide-content">
+              <h1 class="section-title">
+                                <span class="section-title-line">
+                                    <c:out value="${banner.titleLine1}"/>
+                                </span>
+
+                <c:if test="${not empty banner.titleLine2}">
+                                    <span class="section-title-line">
+                                        <c:out value="${banner.titleLine2}"/>
+                                    </span>
+                </c:if>
+              </h1>
+
+              <c:if test="${not empty banner.subtitle}">
+                <p class="section-subtitle">
+                  <c:out value="${banner.subtitle}"/>
+                </p>
+              </c:if>
+
+              <c:set var="bannerTarget" value="${empty banner.targetUrl ? '/product' : banner.targetUrl}"/>
+
+              <c:if test="${not fn:startsWith(bannerTarget, 'http')}">
+                <c:set var="bannerTarget" value="${pageContext.request.contextPath}${bannerTarget}"/>
+              </c:if>
+
+              <a href="${bannerTarget}" class="btn-view-more">
+                Xem thêm
+              </a>
+            </div>
+          </div>
+        </c:forEach>
+      </c:when>
+
+      <c:otherwise>
+        <div class="slide slide-active"
+             style="background-image: url('https://bepos.io/wp-content/uploads/2021/08/lam-do-handmade-tai-nha-220.jpg')">
+          <div class="slide-overlay"></div>
+
+          <div class="slide-content">
+            <h1 class="section-title">
+              <span class="section-title-line">HANDMADE GOODS</span>
+              <span class="section-title-line">FOR GENZ</span>
+            </h1>
+
+            <p class="section-subtitle">
+              Tự tin thể hiện gu thẩm mỹ và sự độc đáo qua từng sản phẩm thủ công, dẫn đầu xu hướng.
+            </p>
+
+            <a href="${pageContext.request.contextPath}/product" class="btn-view-more">
+              Xem thêm
+            </a>
+          </div>
+        </div>
+
+        <div class="slide"
+             style="background-image: url('https://t4.ftcdn.net/jpg/03/97/34/39/360_F_397343924_6WlXOaMVHNKkhMs2l8AHJ5e9MQ03YiBU.jpg')">
+          <div class="slide-overlay"></div>
+
+          <div class="slide-content">
+            <h1 class="section-title">
+              <span class="section-title-line">ELEVATE YOUR SPACE</span>
+              <span class="section-title-line">AND PERSONALITY</span>
+            </h1>
+
+            <p class="section-subtitle">
+              Mang đến những sản phẩm thủ công chất lượng, kết hợp hoàn hảo giữa nghệ thuật và công năng.
+            </p>
+
+            <c:set var="bannerTarget" value="${empty banner.targetUrl ? '/product' : banner.targetUrl}"/>
+
+            <c:if test="${not fn:startsWith(bannerTarget, 'http')}">
+              <c:set var="bannerTarget" value="${pageContext.request.contextPath}${bannerTarget}"/>
+            </c:if>
+
+            <a href="${bannerTarget}" class="btn-view-more">
+              Xem thêm
+            </a>
+          </div>
+        </div>
+      </c:otherwise>
+    </c:choose>
   </div>
 </section>
 <section class="categories">
@@ -97,6 +149,9 @@
       <c:forEach items="${productList}" var="p">
         <div class="product-item">
           <div class="product-top">
+            <c:if test="${p.stockQuantity <= 0}">
+              <span class="product-stock-badge out-of-stock">Hết hàng</span>
+            </c:if>
             <form action="${pageContext.request.contextPath}/favorite-toggle" method="post" class="favorite-form">
               <input type="hidden" name="productId" value="${p.productId}">
               <button type="submit" class="favorite-toggle ${p.favorite ? 'active' : ''}" aria-label="Yêu thích ${p.productName}">
@@ -114,15 +169,28 @@
                 </c:otherwise>
               </c:choose>
             </a>
-            <a href="${pageContext.request.contextPath}/Add-Cart?id=${p.productId}&quantity=1"
-               class="add-to-cart-btn">
-              <i class="bx bx-shopping-bag"></i>
-              Thêm vào giỏ
-            </a>
+            <c:choose>
+              <c:when test="${p.stockQuantity > 0}">
+                <a href="${pageContext.request.contextPath}/Add-Cart?id=${p.productId}&quantity=1"
+                   class="add-to-cart-btn">
+                  <i class="bx bx-shopping-bag"></i>
+                  Thêm vào giỏ
+                </a>
+              </c:when>
+              <c:otherwise>
+                <span class="add-to-cart-btn disabled">
+                  <i class="bx bx-block"></i>
+                  Hết hàng
+                </span>
+              </c:otherwise>
+            </c:choose>
           </div>
           <div class="product-info">
             <a href="${pageContext.request.contextPath}/product?categoryId=${p.categoryId}" class="product-cat">${p.categoryName}</a>
             <a href="${pageContext.request.contextPath}/product-detail?id=${p.productId}" class="product-name">${p.productName}</a>
+            <div class="product-stock ${p.stockQuantity <= 0 ? 'out-of-stock' : ''}">
+              ${p.stockQuantity > 0 ? 'Còn ' : 'Hết hàng · còn '}${p.stockQuantity > 0 ? p.stockQuantity : 0} sản phẩm
+            </div>
             <div class="product-price"><fmt:formatNumber value="${p.productPrice}" type="number" groupingUsed="true"/> đ</div>
           </div>
         </div>
@@ -161,8 +229,37 @@
   </div>
 </section>
 <jsp:include page="/jsp/footer.jsp"/>
-<script src="${pageContext.request.contextPath}/js/trangchu.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const slides = document.querySelectorAll(".slider-wrapper .slide");
 
+    if (slides.length <= 1) {
+      return;
+    }
+
+    let currentIndex = 0;
+
+    slides.forEach(function (slide, index) {
+      if (index === 0) {
+        slide.classList.add("slide-active");
+      } else {
+        slide.classList.remove("slide-active");
+      }
+    });
+
+    setInterval(function () {
+      slides[currentIndex].classList.remove("slide-active");
+
+      currentIndex++;
+
+      if (currentIndex >= slides.length) {
+        currentIndex = 0;
+      }
+
+      slides[currentIndex].classList.add("slide-active");
+    }, 4000);
+  });
+</script>
 <script>
   window.APP_CONTEXT = '${pageContext.request.contextPath}';
 </script>

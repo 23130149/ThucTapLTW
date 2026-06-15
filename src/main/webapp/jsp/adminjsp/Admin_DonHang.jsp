@@ -8,6 +8,7 @@
   <title>Admin - Quản lý đơn hàng</title>
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
   <link rel="stylesheet" href="${pageContext.request.contextPath}/css/Admin_DonHang.css">
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin-font-standard.css">
 </head>
 <body>
 <aside class="sliderbar">
@@ -29,7 +30,7 @@
   </nav>
   <div class="logout">
     <a href="${pageContext.request.contextPath}/home">
-      <i class="bx bx-log-out"></i> Đăng xuất
+      <i class="bx bx-home-alt-2"></i> Trang chủ
     </a>
   </div>
 </aside>
@@ -636,6 +637,7 @@
 
 <div id="toast-container"></div>
 </c:if>
+<script defer src="${pageContext.request.contextPath}/js/ajax-enhance.js?v=20260615-1"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     const wrappers = document.querySelectorAll(".notification-wrapper");

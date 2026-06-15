@@ -111,10 +111,19 @@ public class ForgotPassword extends HttpServlet {
 
             User user = userDao.findByEmail(email);
 
+            if (user == null) {
+                request.setAttribute("error", "Không tìm thấy tài khoản sử dụng email này.");
+                request.setAttribute("step", "OTP_SENT");
+                prepareRecaptcha(request);
+                request.getRequestDispatcher("/jsp/forgotpassword.jsp")
+                        .forward(request, response);
+                return;
+            }
+
             if (user != null && user.getGoogleId() != null) {
                 request.setAttribute("error",
                         "Tài khoản đăng nhập bằng Google/Facebook không hỗ trợ quên mật khẩu");
-                request.getRequestDispatcher("/jsp/signIn.jsp")
+                request.getRequestDispatcher("/jsp/signin.jsp")
                         .forward(request, response);
                 return;
             }

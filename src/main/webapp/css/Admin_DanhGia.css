@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
 
 * {
     margin: 0;
@@ -972,4 +972,91 @@ a {
     background: #fff1f1;
     color: #b42318;
     border: 1px solid #fecdca;
+}
+
+.review-product a {
+    color: #11998e;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.review-product a:hover {
+    text-decoration: underline;
+}
+
+.customer-reply-list {
+    margin-top: 14px;
+    display: grid;
+    gap: 10px;
+}
+
+.customer-reply-heading {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    color: #11998e;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.customer-reply-item {
+    padding: 12px 14px;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #94a3b8;
+    border-radius: 10px;
+    background: #f8fafc;
+}
+
+.customer-reply-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.customer-reply-item p {
+    margin: 0 0 6px;
+    color: #334155;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.customer-reply-item small {
+    display: block;
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+.review-action-row.compact {
+    margin-top: 10px;
+}
+
+.review-action-row.compact .review-action-btn {
+    min-height: 32px;
+    padding: 7px 12px !important;
+    font-size: 12px !important;
+}
+
+body,
+button,
+input,
+select,
+textarea,
+.main-content,
+.main-content *,
+.sliderbar,
+.sliderbar * {
+    font-family: "Poppins", sans-serif !important;
+    letter-spacing: 0 !important;
+    word-spacing: 0 !important;
+    font-stretch: normal !important;
+    font-synthesis: none;
+}
+
+.filter-select,
+.search-review-box {
+    min-height: 42px;
+    line-height: 1.3;
 }

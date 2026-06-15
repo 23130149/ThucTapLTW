@@ -134,8 +134,70 @@
     </div>
 </section>
 
+
+<c:if test="${not empty sessionScope.user}">
+    <section class="my-contact-section" id="my-contacts">
+        <div class="my-contact-head">
+            <div>
+                <span>Lịch sử liên hệ</span>
+                <h2>Liên hệ của tôi</h2>
+            </div>
+            <p>Theo dõi trạng thái và phản hồi từ admin ngay tại đây.</p>
+        </div>
+
+        <c:choose>
+            <c:when test="${empty myContacts}">
+                <div class="contact-history-empty">Bạn chưa gửi liên hệ nào.</div>
+            </c:when>
+            <c:otherwise>
+                <div class="contact-history-list">
+                    <c:forEach var="item" items="${myContacts}">
+                        <article id="contact-${item.contactId}"
+                                 class="contact-history-item ${selectedContactId == item.contactId ? 'highlight' : ''}">
+                            <div class="contact-history-top">
+                                <div>
+                                    <h3><c:out value="${item.subject}"/></h3>
+                                    <small>Gửi lúc: ${item.createAt}</small>
+                                </div>
+                                <span class="contact-status status-${item.status}">
+                                    <c:choose>
+                                        <c:when test="${item.status == 'DONE'}">Đã phản hồi</c:when>
+                                        <c:when test="${item.status == 'PROCESSING'}">Đang xử lý</c:when>
+                                        <c:otherwise>Chưa phản hồi</c:otherwise>
+                                    </c:choose>
+                                </span>
+                            </div>
+                            <p class="contact-history-message"><c:out value="${item.message}"/></p>
+                            <c:if test="${not empty item.reply}">
+                                <div class="contact-admin-reply">
+                                    <strong>Phản hồi từ admin</strong>
+                                    <span>${item.replyAt}</span>
+                                    <p><c:out value="${item.reply}"/></p>
+                                </div>
+                            </c:if>
+                        </article>
+                    </c:forEach>
+                </div>
+            </c:otherwise>
+        </c:choose>
+    </section>
+</c:if>
+
 <jsp:include page="/jsp/footer.jsp"/>
 
+
+<script>
+  (function () {
+    const hash = window.location.hash;
+    if (!hash || !hash.startsWith('#contact-')) return;
+    const target = document.querySelector(hash);
+    if (!target) return;
+    setTimeout(function () {
+      target.scrollIntoView({behavior: 'smooth', block: 'center'});
+      target.classList.add('highlight');
+    }, 250);
+  })();
+</script>
 <script>
   window.APP_CONTEXT = '${pageContext.request.contextPath}';
 </script>

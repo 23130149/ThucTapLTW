@@ -63,12 +63,18 @@ public class ChangePassword extends HttpServlet {
         if ("sendOtp".equals(action)) {
 
             String oldPassword = request.getParameter("oldPassword");
+            boolean passwordVerified = Boolean.TRUE.equals(
+                    session.getAttribute("CHANGE_PASSWORD_VERIFIED")
+            );
 
-            if (!PasswordUtil.verify(oldPassword, user.getPassword())) {
-                request.setAttribute("error", "Mật khẩu hiện tại không đúng");
-                request.getRequestDispatcher("/jsp/changepassword.jsp")
-                        .forward(request, response);
-                return;
+            if (!passwordVerified) {
+                if (oldPassword == null || !PasswordUtil.verify(oldPassword, user.getPassword())) {
+                    request.setAttribute("error", "Mật khẩu hiện tại không đúng");
+                    request.getRequestDispatcher("/jsp/changepassword.jsp")
+                            .forward(request, response);
+                    return;
+                }
+                session.setAttribute("CHANGE_PASSWORD_VERIFIED", true);
             }
 
             String otp = OtpService.generateOtp();
@@ -89,12 +95,12 @@ public class ChangePassword extends HttpServlet {
             String newPassword = request.getParameter("newPassword");
             String confirmPassword = request.getParameter("confirmPassword");
 
-            if (!newPassword.equals(confirmPassword)) {
+            if (newPassword == null || confirmPassword == null || !newPassword.equals(confirmPassword)) {
                 request.setAttribute("error", "Mật khẩu xác nhận không khớp");
                 request.setAttribute("step", "OTP_SENT");
                 request.setAttribute("resendRemain",
                         OtpService.getResendRemain(session));
-                request.getRequestDispatcher("/jsp/hangepassword.jsp")
+                request.getRequestDispatcher("/jsp/changepassword.jsp")
                         .forward(request, response);
                 return;
             }
@@ -111,7 +117,7 @@ public class ChangePassword extends HttpServlet {
                 request.setAttribute("step", "OTP_SENT");
                 request.setAttribute("resendRemain",
                         OtpService.getResendRemain(session));
-                request.getRequestDispatcher("/jsp/hangepassword.jsp")
+                request.getRequestDispatcher("/jsp/changepassword.jsp")
                         .forward(request, response);
                 return;
             }
@@ -133,6 +139,7 @@ public class ChangePassword extends HttpServlet {
             session.setAttribute("user", user);
 
             OtpService.clearOtp(session);
+            session.removeAttribute("CHANGE_PASSWORD_VERIFIED");
             response.sendRedirect(request.getContextPath() + "/Account");
         }
     }

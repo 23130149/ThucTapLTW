@@ -20,6 +20,13 @@
 <main class="about-us-container">
   <h1>Sổ địa chỉ</h1>
 
+  <c:if test="${not empty sessionScope.addressError}">
+    <div class="cart-message error">
+      <c:out value="${sessionScope.addressError}"/>
+    </div>
+    <c:remove var="addressError" scope="session"/>
+  </c:if>
+
   <div class="account-info">
     <i class='bx bxs-user-circle'></i>
     <h3>${sessionScope.user.userName}</h3>

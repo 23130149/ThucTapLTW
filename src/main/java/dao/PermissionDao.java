@@ -16,6 +16,7 @@ public class PermissionDao extends BaseDao {
                 Permission_Name AS permissionName,
                 Description AS description
             FROM permissions
+            WHERE Permission_Code <> 'VIEW_DASHBOARD'
             ORDER BY Sort_Order ASC, Permission_Id ASC
         """;
 
@@ -68,6 +69,7 @@ public class PermissionDao extends BaseDao {
             SELECT :userId, Permission_Id
             FROM permissions
             WHERE Permission_Code = :permissionCode
+              AND Permission_Code <> 'VIEW_DASHBOARD'
         """;
 
         getJdbi().useTransaction(handle -> {
@@ -76,6 +78,10 @@ public class PermissionDao extends BaseDao {
                     .execute();
 
             for (String permissionCode : permissionCodes) {
+                if ("VIEW_DASHBOARD".equalsIgnoreCase(permissionCode)) {
+                    continue;
+                }
+
                 handle.createUpdate(insertSql)
                         .bind("userId", userId)
                         .bind("permissionCode", permissionCode)

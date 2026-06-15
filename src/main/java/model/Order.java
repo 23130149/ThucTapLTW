@@ -269,7 +269,9 @@ public class Order {
     }
 
     public boolean isCancellable() {
-        return "PENDING".equals(status) || "PROCESSING".equals(status) || "CONFIRMED".equals(status);
+        return createAt != null
+                && !createAt.isBefore(LocalDateTime.now().minusHours(24))
+                && ("PENDING".equals(status) || "PROCESSING".equals(status) || "CONFIRMED".equals(status));
     }
 
     public boolean isReturnable() {

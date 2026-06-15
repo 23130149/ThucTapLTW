@@ -48,9 +48,9 @@ public class ShippingFeeApiController extends HttpServlet {
             return;
         }
 
-        UserAddress address = addressDao.findById(addressId);
+        UserAddress address = addressDao.findByIdAndUserId(addressId, user.getUserId());
 
-        if (address == null || address.getUserId() != user.getUserId()) {
+        if (address == null) {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             writeError(response, "ADDRESS_NOT_FOUND");
             return;

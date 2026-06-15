@@ -109,6 +109,33 @@ public class UserAddressDao extends BaseDao {
         );
     }
 
+    public UserAddress findByIdAndUserId(int id, int userId) {
+        String sql = """
+        SELECT
+            User_Address_Id AS userAddressId,
+            User_Id AS userId,
+            Country AS country,
+            Province AS province,
+            District AS district,
+            Street AS street,
+            Province_Id AS provinceId,
+            District_Id AS districtId,
+            Ward_Code AS wardCode
+        FROM user_address
+        WHERE User_Address_Id = :id
+          AND User_Id = :userId
+        """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createQuery(sql)
+                        .bind("id", id)
+                        .bind("userId", userId)
+                        .mapToBean(UserAddress.class)
+                        .findOne()
+                        .orElse(null)
+        );
+    }
+
     public void updateGhnCodes(int addressId, int userId, Integer provinceId, Integer districtId, String wardCode) {
         String sql = """
         UPDATE user_address
@@ -138,6 +165,21 @@ public class UserAddressDao extends BaseDao {
                 handle.createUpdate(sql)
                         .bind("id", id)
                         .execute()
+        );
+    }
+
+    public boolean deleteByIdAndUserId(int id, int userId) {
+        String sql = """
+                DELETE FROM user_address
+                WHERE User_Address_Id = :id
+                  AND User_Id = :userId
+                """;
+
+        return getJdbi().withHandle(handle ->
+                handle.createUpdate(sql)
+                        .bind("id", id)
+                        .bind("userId", userId)
+                        .execute() > 0
         );
     }
 }

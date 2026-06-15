@@ -61,9 +61,6 @@
     async function requestJson(url, options) {
         const fetchOptions = Object.assign({}, options || {});
 
-        // Ép backend nhận diện đây là Ajax bằng cả header lẫn tham số ajax=1.
-        // Một số case redirect/filter/error có thể làm header không đủ tin cậy,
-        // nên tham số này giúp controller AjaxUtil.wantsJson(request) luôn bắt đúng.
         let requestUrl = url;
         const method = (fetchOptions.method || "GET").toUpperCase();
 
@@ -190,6 +187,89 @@
             .forEach(function (node) {
                 node.textContent = cart.totalQuantity || 0;
             });
+    }
+
+    function renderEmptyFavoriteState(favoritePage) {
+        if (!favoritePage) return;
+
+        const container = favoritePage.querySelector(".container") || favoritePage;
+        const toolbar = container.querySelector(".favorite-toolbar");
+        const productList = container.querySelector(".product-list");
+        const pagination = container.querySelector(".pagination");
+        const heroText = container.querySelector(".favourite-hero p");
+
+        if (toolbar) toolbar.remove();
+        if (productList) productList.remove();
+        if (pagination) pagination.remove();
+        if (heroText) {
+            heroText.textContent = "0 món đồ đang nằm trong chiếc hộp tim của bạn.";
+        }
+
+        if (container.querySelector(".empty-favourite")) return;
+
+        const empty = document.createElement("div");
+        empty.className = "empty-favourite";
+        empty.innerHTML = "<i class='bx bx-heart-circle'></i>"
+            + "<h2>Chưa có sản phẩm yêu thích</h2>"
+            + "<p>Ra trang sản phẩm và bấm tim ở góc phải ảnh để lưu lại món bạn thích nha.</p>"
+            + "<a href=\"" + contextPath + "/product\" class=\"btn-view-products\">Khám phá sản phẩm</a>";
+        container.appendChild(empty);
+    }
+
+    function updateOrderRowAfterAction(form, data, action) {
+        const orderId = data && data.orderId;
+        const row = (orderId && document.querySelector("[data-order-row='" + orderId + "']"))
+            || (form && form.closest("[data-order-row]"));
+        if (!row) return;
+
+        const status = row.querySelector("[data-order-status]");
+        if (action === "cancel") {
+            if (status) {
+                status.className = "order-status CANCELLED";
+                status.textContent = "Đã hủy";
+            }
+            row.querySelectorAll("details.order-inline-action, .order-received-form")
+                .forEach(function (node) {
+                    node.remove();
+                });
+            return;
+        }
+
+        if (action === "confirmReceived") {
+            if (status) {
+                status.className = "order-status COMPLETED";
+                status.textContent = "Hoàn thành";
+            }
+            const receivedForm = row.querySelector(".order-received-form");
+            if (receivedForm) receivedForm.remove();
+        }
+    }
+
+    function appendReviewReply(form, data) {
+        const reviewItem = form && form.closest(".review-item");
+        if (!reviewItem) return false;
+
+        let replies = reviewItem.querySelector(".review-replies");
+        if (!replies) {
+            replies = document.createElement("div");
+            replies.className = "review-replies";
+            reviewItem.insertBefore(replies, form);
+        }
+
+        const reply = document.createElement("div");
+        reply.className = "review-reply";
+
+        const name = document.createElement("strong");
+        name.textContent = data.userName || "Khách hàng";
+
+        const text = document.createElement("span");
+        text.textContent = data.replyText || "";
+
+        reply.appendChild(name);
+        reply.appendChild(text);
+        replies.appendChild(reply);
+        form.reset();
+        return true;
     }
 
     function refreshCartSelection() {
@@ -330,9 +410,11 @@
             if (event.defaultPrevented) return;
             const form = event.target;
             const action = form.getAttribute("action") || "";
+            const isReviewSubmit = action.indexOf("/review-submit") !== -1;
             const isReviewLike = action.indexOf("/review-like") !== -1;
+            const isReviewReply = action.indexOf("/review-reply") !== -1;
 
-            if (!isReviewLike) return;
+            if (!isReviewSubmit && !isReviewLike && !isReviewReply) return;
 
             event.preventDefault();
             const request = formRequest(form);
@@ -343,6 +425,25 @@
                 console.error("Ajax detail:", data.detail);
             }
             if (!data.success) return;
+
+            if (isReviewSubmit) {
+                form.reset();
+                const ratingInput = form.querySelector("input[name='rating']");
+                if (ratingInput) ratingInput.value = "";
+                form.querySelectorAll(".star-rating i").forEach(function (star) {
+                    star.classList.remove("active", "bxs-star");
+                    star.classList.add("bx-star");
+                });
+                if (window.grecaptcha && typeof window.grecaptcha.reset === "function") {
+                    window.grecaptcha.reset();
+                }
+                return;
+            }
+
+            if (isReviewReply) {
+                appendReviewReply(form, data);
+                return;
+            }
 
             const count = form.querySelector("[data-helpful-count]");
             if (count) count.textContent = data.helpfulCount;
@@ -388,12 +489,54 @@
                 if (item) item.remove();
 
                 if (!favoritePage.querySelector(".product-item")) {
-                    window.location.reload();
+                    renderEmptyFavoriteState(favoritePage);
+                    if (button) button.disabled = false;
                     return;
                 }
             }
 
             if (button) button.disabled = false;
+        });
+    }
+
+    function setupFavoriteBulkAjax() {
+        const form = document.getElementById("favoriteBulkForm");
+        if (!form) return;
+
+        form.addEventListener("submit", async function (event) {
+            if (event.defaultPrevented) return;
+
+            const submitter = event.submitter || form.querySelector("button[type='submit']");
+            const checkedCount = document.querySelectorAll(".favorite-product-checkbox:checked").length;
+            if (checkedCount === 0) return;
+
+            event.preventDefault();
+            if (submitter) submitter.disabled = true;
+
+            const body = new URLSearchParams(new FormData(form));
+            if (submitter && submitter.name) {
+                body.set(submitter.name, submitter.value || "");
+            }
+
+            const data = await requestJson(form.getAttribute("action") || window.location.href, {
+                method: (form.method || "POST").toUpperCase(),
+                body: body
+            });
+
+            showAjaxMessage(data.message, data.success);
+            if (!data.success) {
+                if (submitter) submitter.disabled = false;
+                return;
+            }
+
+            updateCartSummary(data.cart);
+
+            if (data.redirect) {
+                window.location.href = data.redirect;
+                return;
+            }
+
+            if (submitter) submitter.disabled = false;
         });
     }
 
@@ -403,6 +546,23 @@
 
             const form = event.target;
             const actionUrl = form && (form.getAttribute("action") || "");
+
+            if (form && form.classList.contains("order-reorder-form")) {
+                event.preventDefault();
+                const submitter = event.submitter || form.querySelector("button[type='submit']");
+                if (submitter) submitter.disabled = true;
+
+                const request = formRequest(form);
+                const data = await requestJson(request.url, request.options);
+
+                showAjaxMessage(data.message, data.success);
+                if (data.success) {
+                    updateCartSummary(data.cart);
+                }
+                if (submitter) submitter.disabled = false;
+                return;
+            }
+
             if (!form || actionUrl.indexOf("/OrderHistory") === -1) return;
 
             const actionInput = form.querySelector("input[name='action']");
@@ -422,9 +582,54 @@
                 return;
             }
 
+            updateOrderRowAfterAction(form, data, action);
+            if (submitter) submitter.disabled = false;
+        });
+    }
+
+    function setupAdminAjax() {
+        const adminEndpoints = [
+            "/admin/category",
+            "/admin/products",
+            "/admin/customers",
+            "/admin/orders",
+            "/admin/reviews",
+            "/admin/contacts"
+        ];
+
+        document.addEventListener("submit", async function (event) {
+            if (event.defaultPrevented) return;
+
+            const form = event.target;
+            const actionUrl = form && (form.getAttribute("action") || "");
+            const method = (form && form.method ? form.method : "GET").toUpperCase();
+
+            if (!form || method !== "POST") return;
+            if (!adminEndpoints.some(function (endpoint) {
+                return actionUrl.indexOf(endpoint) !== -1;
+            })) return;
+
+            event.preventDefault();
+
+            const submitter = event.submitter || form.querySelector("button[type='submit']");
+            if (submitter) submitter.disabled = true;
+
+            const request = formRequest(form);
+            const data = await requestJson(request.url, request.options);
+
+            showAjaxMessage(data.message, data.success);
+
+            if (!data.success) {
+                if (data.detail) {
+                    console.error("Admin Ajax detail:", data.detail);
+                }
+                if (submitter) submitter.disabled = false;
+                return;
+            }
+
             window.setTimeout(function () {
                 window.location.reload();
-            }, 350);
+            }, 450);
         });
     }
 
@@ -503,6 +708,8 @@
         setupProductAjax();
         setupReviewAjax();
         setupFavoriteAjax();
+        setupFavoriteBulkAjax();
         setupOrderHistoryAjax();
+        setupAdminAjax();
     });
 })();

@@ -2,15 +2,29 @@ package util;
 
 import cart.Cart;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializer;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public final class AjaxUtil {
-    private static final Gson GSON = new Gson();
+    private static final Gson GSON = new GsonBuilder()
+            .registerTypeAdapter(LocalDate.class, (JsonSerializer<LocalDate>)
+                    (src, typeOfSrc, context) -> src == null ? JsonNull.INSTANCE : new JsonPrimitive(src.toString()))
+            .registerTypeAdapter(LocalDateTime.class, (JsonSerializer<LocalDateTime>)
+                    (src, typeOfSrc, context) -> src == null ? JsonNull.INSTANCE : new JsonPrimitive(src.toString()))
+            .registerTypeAdapter(LocalTime.class, (JsonSerializer<LocalTime>)
+                    (src, typeOfSrc, context) -> src == null ? JsonNull.INSTANCE : new JsonPrimitive(src.toString()))
+            .create();
 
     private AjaxUtil() {
     }

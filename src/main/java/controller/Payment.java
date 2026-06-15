@@ -3,8 +3,8 @@ package controller;
 import cart.Cart;
 import cart.CartItem;
 import dao.CartDao;
+import dao.NotificationDao;
 import dao.OrderDao;
-import dao.OrderItemDao;
 import dao.UserAddressDao;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -146,9 +146,9 @@ public class Payment extends HttpServlet {
             return;
         }
 
-        UserAddress addr = addressDao.findById(addressId);
+        UserAddress addr = addressDao.findByIdAndUserId(addressId, user.getUserId());
 
-        if (addr == null || addr.getUserId() != user.getUserId()) {
+        if (addr == null) {
             session.setAttribute("paymentError", "Địa chỉ giao hàng không tồn tại hoặc không thuộc tài khoản của bạn.");
             response.sendRedirect(request.getContextPath() + "/payment");
             return;
@@ -188,7 +188,16 @@ public class Payment extends HttpServlet {
         order.setPaymentStatus("UNPAID");
 
         OrderDao orderDao = new OrderDao();
-        int orderId = orderDao.insertAndReturnId(order);
+        NotificationDao notificationDao = new NotificationDao();
+        int orderId;
+        try {
+            orderId = orderDao.createOrderWithItemsAndReserveStock(order, selectedItems);
+        } catch (IllegalStateException e) {
+            session.setAttribute("paymentError", e.getMessage());
+            session.setAttribute("cart", cartDao.getCartByUserId(user.getUserId()));
+            response.sendRedirect(request.getContextPath() + "/cart");
+            return;
+        }
 
         if (orderId <= 0) {
             session.setAttribute("paymentError", "Không thể tạo đơn hàng. Vui lòng thử lại.");
@@ -197,12 +206,19 @@ public class Payment extends HttpServlet {
         }
 
         order.setOrderId(orderId);
+        notificationDao.addOrRefreshSafe(
+                user.getUserId(),
+                "ORDER_CREATED",
+                "Đơn hàng của bạn đã được tạo",
+                "Mã đơn hàng: " + order.getOrderCode(),
+                "/OrderDetail?orderId=" + orderId,
+                "ORDER",
+                orderId
+        );
 
-        OrderItemDao orderItemDao = new OrderItemDao();
         Set<Integer> paidProductIds = new HashSet<>();
 
         for (CartItem item : selectedItems) {
-            orderItemDao.insert(orderId, item);
             paidProductIds.add(item.getProduct().getProductId());
         }
 

@@ -12,7 +12,7 @@
             .search-form{position:relative;overflow:visible!important;}
             .hh-suggest-box{position:absolute;left:0;right:0;top:calc(100% + 10px);display:none;background:#fff;border:1px solid #e7ecef;border-radius:18px;box-shadow:0 20px 45px rgba(9,64,58,.20);z-index:5000;overflow:hidden;min-width:260px;}
             .hh-suggest-box.show{display:block;}
-            .hh-suggest-title{padding:9px 14px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#11998e;background:#f6fffb;border-bottom:1px solid #eef5f2;}
+            .hh-suggest-title{padding:9px 14px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0;color:#11998e;background:#f6fffb;border-bottom:1px solid #eef5f2;}
             .hh-suggest-item{display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;align-items:center;padding:11px 14px;color:#17211f;text-decoration:none;border-bottom:1px solid #f2f4f3;}
             .hh-suggest-item:last-child{border-bottom:none;}
             .hh-suggest-item:hover{background:#f7fff9;}

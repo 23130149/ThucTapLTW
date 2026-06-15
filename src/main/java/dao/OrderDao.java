@@ -1,5 +1,6 @@
 package dao;
 
+import cart.CartItem;
 import model.Order;
 import model.Product;
 import service.GhnService;
@@ -214,6 +215,87 @@ public class OrderDao extends BaseDao {
         );
     }
 
+    public int createOrderWithItemsAndReserveStock(Order order, List<CartItem> items) {
+        if (order == null || items == null || items.isEmpty()) {
+            return -1;
+        }
+
+        return getJdbi().inTransaction(handle -> {
+            for (CartItem item : items) {
+                if (item == null || item.getProduct() == null || item.getQuantity() <= 0) {
+                    throw new IllegalStateException("Sản phẩm trong giỏ hàng không hợp lệ.");
+                }
+
+                int availableStock = handle.createQuery("""
+                                SELECT Stock_Quantity
+                                FROM products
+                                WHERE Product_Id = :productId
+                                FOR UPDATE
+                                """)
+                        .bind("productId", item.getProduct().getProductId())
+                        .mapTo(Integer.class)
+                        .findOne()
+                        .orElse(0);
+
+                if (availableStock < item.getQuantity()) {
+                    throw new IllegalStateException(
+                            "Sản phẩm " + item.getProduct().getProductName() + " không đủ tồn kho."
+                    );
+                }
+            }
+
+            int orderId = handle.createUpdate("""
+                            INSERT INTO orders (
+                                User_Id, User_Address_Id, Payment_Method_Id, Ship_Address,
+                                ship_name, ship_phone, Note, Status, Create_At, Total_Price,
+                                Payment_Status, Payment_Provider, Order_Code
+                            )
+                            VALUES (
+                                :userId, :userAddressId, :paymentMethodId, :shipAddress,
+                                :shipName, :shipPhone, :note, :status, NOW(), :totalPrice,
+                                :paymentStatus, :paymentProvider, :orderCode
+                            )
+                            """)
+                    .bindBean(order)
+                    .executeAndReturnGeneratedKeys("Order_Id")
+                    .mapTo(Integer.class)
+                    .one();
+
+            for (CartItem item : items) {
+                int productId = item.getProduct().getProductId();
+                int quantity = item.getQuantity();
+
+                handle.createUpdate("""
+                                INSERT INTO order_items (Order_Id, Product_Id, Quantity, Unit_Price)
+                                VALUES (:orderId, :productId, :quantity, :price)
+                                """)
+                        .bind("orderId", orderId)
+                        .bind("productId", productId)
+                        .bind("quantity", quantity)
+                        .bind("price", item.getProduct().getProductPrice())
+                        .execute();
+
+                int updated = handle.createUpdate("""
+                                UPDATE products
+                                SET Stock_Quantity = Stock_Quantity - :quantity
+                                WHERE Product_Id = :productId
+                                  AND Stock_Quantity >= :quantity
+                                """)
+                        .bind("productId", productId)
+                        .bind("quantity", quantity)
+                        .execute();
+
+                if (updated != 1) {
+                    throw new IllegalStateException(
+                            "Sản phẩm " + item.getProduct().getProductName() + " vừa hết hàng."
+                    );
+                }
+            }
+
+            return orderId;
+        });
+    }
+
     public Order getOrderByIdAndUser(int orderId, int userId) {
 
         String sql = """
@@ -371,8 +453,8 @@ public class OrderDao extends BaseDao {
         }
 
         return getJdbi().inTransaction(handle -> {
-            String currentStatus = handle.createQuery("""
-                    SELECT Status
+            OrderState state = handle.createQuery("""
+                    SELECT Status, Create_At
                     FROM orders
                     WHERE Order_Id = :orderId
                       AND User_Id = :userId
@@ -380,16 +462,19 @@ public class OrderDao extends BaseDao {
                     """)
                     .bind("orderId", orderId)
                     .bind("userId", userId)
-                    .mapTo(String.class)
+                    .map((rs, ctx) -> new OrderState(
+                            rs.getString("Status"),
+                            rs.getTimestamp("Create_At").toLocalDateTime()
+                    ))
                     .findOne()
                     .orElse(null);
 
-            if (currentStatus == null
-                    || "CANCELLED".equals(currentStatus)
-                    || "DELIVERED".equals(currentStatus)
-                    || "COMPLETED".equals(currentStatus)
-                    || "RETURN_REQUESTED".equals(currentStatus)
-                    || "RETURNED".equals(currentStatus)) {
+            if (state == null
+                    || state.createAt() == null
+                    || state.createAt().isBefore(LocalDateTime.now().minusHours(24))
+                    || (!"PENDING".equals(state.status())
+                        && !"PROCESSING".equals(state.status())
+                        && !"CONFIRMED".equals(state.status()))) {
                 return false;
             }
 
@@ -549,6 +634,7 @@ public class OrderDao extends BaseDao {
             (
                 SELECT COUNT(*)
                 FROM contact
+                WHERE Status = 'NEW'
             )
             +
             (
@@ -589,12 +675,13 @@ public class OrderDao extends BaseDao {
 
             UNION ALL
 
-            SELECT 
+            SELECT
                 'CONTACT' AS type,
                 CONCAT('Liên hệ mới: ', Subject) AS message,
                 Create_At AS createdAt,
                 '/admin/contacts' AS url
             FROM contact
+                 WHERE Status = 'NEW'
 
             UNION ALL
 
@@ -887,23 +974,46 @@ public class OrderDao extends BaseDao {
     }
 
     public void markVnpayFailed(String orderCode, String responseCode) {
-        String sql = """
-        UPDATE orders
-        SET
-            Payment_Status = 'FAILED',
-            Payment_Provider = 'VNPAY',
-            Payment_Response_Code = :responseCode,
-            Status = 'PAYMENT_FAILED'
-        WHERE Order_Code = :orderCode
-          AND Payment_Status <> 'PAID'
-    """;
+        getJdbi().useTransaction(handle -> {
+            Integer orderId = handle.createQuery("""
+                            SELECT Order_Id
+                            FROM orders
+                            WHERE Order_Code = :orderCode
+                              AND Status = 'PENDING_PAYMENT'
+                              AND Payment_Status <> 'PAID'
+                            FOR UPDATE
+                            """)
+                    .bind("orderCode", orderCode)
+                    .mapTo(Integer.class)
+                    .findOne()
+                    .orElse(null);
 
-        getJdbi().useHandle(handle ->
-                handle.createUpdate(sql)
-                        .bind("orderCode", orderCode)
-                        .bind("responseCode", responseCode)
-                        .execute()
-        );
+            if (orderId == null) {
+                return;
+            }
+
+            handle.createUpdate("""
+                            UPDATE products p
+                            JOIN order_items oi ON p.Product_Id = oi.Product_Id
+                            SET p.Stock_Quantity = p.Stock_Quantity + oi.Quantity
+                            WHERE oi.Order_Id = :orderId
+                            """)
+                    .bind("orderId", orderId)
+                    .execute();
+
+            handle.createUpdate("""
+                            UPDATE orders
+                            SET Payment_Status = 'FAILED',
+                                Payment_Provider = 'VNPAY',
+                                Payment_Response_Code = :responseCode,
+                                Status = 'PAYMENT_FAILED'
+                            WHERE Order_Id = :orderId
+                              AND Status = 'PENDING_PAYMENT'
+                            """)
+                    .bind("orderId", orderId)
+                    .bind("responseCode", responseCode)
+                    .execute();
+        });
     }
 
     public Order getOrderByCode(String orderCode) {
@@ -942,6 +1052,9 @@ public class OrderDao extends BaseDao {
                         .findOne()
                         .orElse(null)
         );
+    }
+
+    private record OrderState(String status, LocalDateTime createAt) {
     }
 
     public List<Order> getAdminOrders(String keyword, String status) {

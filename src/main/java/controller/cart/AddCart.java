@@ -89,6 +89,21 @@ public class AddCart extends HttpServlet {
             return;
         }
 
+        int stockQuantity = p.getStockQuantity() == null ? 0 : p.getStockQuantity();
+        if (stockQuantity <= 0) {
+            String message = "Sản phẩm đã hết hàng.";
+            if (AjaxUtil.wantsJson(request)) {
+                AjaxUtil.writeJson(response, AjaxUtil.error(message));
+                return;
+            }
+            session.setAttribute("toastMessage", message);
+            session.setAttribute("toastType", "hh-toast-cart");
+            session.setAttribute("toastIcon", "bx-error-circle");
+            response.sendRedirect(getLocalReferer(request, request.getHeader("Referer")));
+            return;
+        }
+
+        quantity = Math.min(quantity, stockQuantity);
         cartDao.addProduct(user.getUserId(), id, quantity);
         Cart cart = cartDao.getCartByUserId(user.getUserId());
 

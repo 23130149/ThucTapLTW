@@ -2,21 +2,24 @@ package controller;
 
 import dao.OrderDao;
 import dao.UserDao;
-import jakarta.servlet.*;
-import jakarta.servlet.http.*;
-import jakarta.servlet.annotation.*;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import model.User;
 import util.AjaxUtil;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 import java.text.NumberFormat;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 @WebServlet(name = "AdminCustomerController", value = "/admin/customers")
 public class AdminCustomerController extends HttpServlet {
     private static final int PAGE_SIZE = 8;
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         UserDao uDao = new UserDao();
@@ -52,8 +55,6 @@ public class AdminCustomerController extends HttpServlet {
 
         List<User> customers = uDao.filterCustomers(keyword, customerType, minOrders, maxOrders, page, PAGE_SIZE);
 
-        List<Map<String, Object>> latestNotifications = oDao.getLatestAdminNotifications(5);
-
         request.setAttribute("customers", customers);
         request.setAttribute("keyword", keyword);
         request.setAttribute("currentCustomerType", customerType);
@@ -63,7 +64,6 @@ public class AdminCustomerController extends HttpServlet {
         request.setAttribute("newCustomersThisMonth", uDao.countNewCustomersThisMonth());
         request.setAttribute("averageSpendFormatted", formatCurrency(uDao.getAverageSpendPerCustomer()));
         request.setAttribute("selectedCustomer", selectedCustomer);
-        request.setAttribute("customers", customers);
         request.setAttribute("totalResult", totalResult);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
@@ -72,7 +72,6 @@ public class AdminCustomerController extends HttpServlet {
 
         request.getRequestDispatcher("/jsp/adminjsp/Admin_KhachHang.jsp").forward(request, response);
     }
-
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -86,13 +85,19 @@ public class AdminCustomerController extends HttpServlet {
         if ("delete".equals(action)) {
             try {
                 int userId = Integer.parseInt(request.getParameter("userId"));
-                success = uDao.deleteCustomer(userId);
+
+                if (uDao.hasOrders(userId)) {
+                    message = "Không thể xóa khách hàng đã có đơn hàng.";
+                } else {
+                    success = uDao.deleteCustomer(userId);
+                }
             } catch (NumberFormatException ignored) {
                 message = "Khách hàng không hợp lệ.";
             }
         } else {
             message = "Thao tác khách hàng không hợp lệ.";
         }
+
         if (!success && message == null) {
             message = "Không tìm thấy khách hàng cần xóa.";
         }
@@ -113,6 +118,7 @@ public class AdminCustomerController extends HttpServlet {
         NumberFormat vn = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
         return vn.format(value);
     }
+
     private int[] parseOrderRange(String orderRange) {
         return switch (orderRange) {
             case "0" -> new int[]{0, 0};
@@ -122,6 +128,7 @@ public class AdminCustomerController extends HttpServlet {
             default -> new int[]{-1, -1};
         };
     }
+
     private int parsePage(String value) {
         try {
             int page = Integer.parseInt(value);

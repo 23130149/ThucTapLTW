@@ -608,6 +608,35 @@ main.about-us-container {
     color: #fff;
 }
 
+.order-reorder-form {
+    display: inline-flex;
+    margin-top: 8px;
+}
+
+.btn-reorder {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border: none;
+    border-radius: 999px;
+    padding: 8px 14px;
+    background: #fff7ed;
+    color: #c2410c;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.btn-reorder:hover {
+    background: #c2410c;
+    color: #fff;
+    box-shadow: 0 8px 18px rgba(194, 65, 12, 0.22);
+    transform: translateY(-1px);
+}
+
 
 .account-dashboard,
 .profile-dashboard {
@@ -1198,6 +1227,18 @@ main.about-us-container {
     line-height: 1.5;
 }
 
+.order-policy-note {
+    margin: -4px 0 12px;
+    padding: 10px 12px;
+    border: 1px solid #cdeee8;
+    border-radius: 10px;
+    background: #f0fdfa;
+    color: #0f766e;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.55;
+}
+
 .btn-confirm-received {
     border: none;
     border-radius: 999px;
@@ -1332,9 +1373,20 @@ main.about-us-container {
 }
 
 .order-detail-actions {
-    max-width: 640px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-width: 860px;
     margin-left: auto;
     margin-right: auto;
+}
+
+.order-detail-reorder-form {
+    display: flex;
+}
+
+.order-detail-reorder-form button {
+    width: 100%;
+    border: none;
+    cursor: pointer;
 }
 
 @media (max-width: 768px) {

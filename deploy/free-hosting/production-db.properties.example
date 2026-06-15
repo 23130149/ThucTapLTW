@@ -1,6 +1,3 @@
-# Template tham khao neu van muon build config vao WAR.
-# Khuyen nghi production nen dung VM options trong tomcat10-env.example thay vi dien secret vao file nay.
-
 db.host=localhost
 db.port=3306
 db.username=handmade_user

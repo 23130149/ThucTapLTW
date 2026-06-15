@@ -8,8 +8,8 @@ public class VnpayConfig {
     public static final String LOCALE = "vn";
 
     public static final String PAY_URL = getConfig("VNPAY_PAY_URL", "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html");
-    public static final String TMN_CODE = getConfig("VNPAY_TMN_CODE", "0ONN2OE9");
-    public static final String HASH_SECRET = getConfig("VNPAY_HASH_SECRET", "P8GNLCN3KLRBAYZF57ZJU16JF3UIS81L");
+    public static final String TMN_CODE = getConfig("VNPAY_TMN_CODE", "");
+    public static final String HASH_SECRET = getConfig("VNPAY_HASH_SECRET", "");
 
     public static final String RETURN_PATH = "/vnpay-return";
     public static final String IPN_PATH = "/vnpay-ipn";

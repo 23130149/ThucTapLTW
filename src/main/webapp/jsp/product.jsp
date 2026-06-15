@@ -74,13 +74,13 @@
                         <div class="filter-title">Vật liệu</div>
                         <select name="material">
                             <option value="" ${empty material ? 'selected' : ''}>Tất cả</option>
-                            <option value="len" ${material == 'len' ? 'selected' : ''}>Len</option>
-                            <option value="vai" ${material == 'vai' ? 'selected' : ''}>Vải</option>
+                            <option value="len-crochet" ${material == 'len-crochet' || material == 'len' ? 'selected' : ''}>Len / crochet</option>
+                            <option value="nhua" ${material == 'nhua' ? 'selected' : ''}>Nhựa / resin</option>
+                            <option value="sap-nen" ${material == 'sap-nen' ? 'selected' : ''}>Sáp / nến thơm</option>
                             <option value="go" ${material == 'go' ? 'selected' : ''}>Gỗ</option>
-                            <option value="giay" ${material == 'giay' ? 'selected' : ''}>Giấy</option>
-                            <option value="da" ${material == 'da' ? 'selected' : ''}>Da</option>
-                            <option value="hat" ${material == 'hat' ? 'selected' : ''}>Hạt</option>
-                            <option value="soi" ${material == 'soi' ? 'selected' : ''}>Sợi</option>
+                            <option value="vai-da" ${material == 'vai-da' || material == 'vai' || material == 'da' ? 'selected' : ''}>Vải / da</option>
+                            <option value="gom-su" ${material == 'gom-su' ? 'selected' : ''}>Gốm / sứ</option>
+                            <option value="kim-loai" ${material == 'kim-loai' ? 'selected' : ''}>Kim loại</option>
                         </select>
                     </div>
 
@@ -88,10 +88,12 @@
                         <div class="filter-title">Nhu cầu sử dụng</div>
                         <select name="usage">
                             <option value="" ${empty usage ? 'selected' : ''}>Tất cả</option>
-                            <option value="trang-tri" ${usage == 'trang-tri' ? 'selected' : ''}>Trang trí</option>
-                            <option value="thoi-trang" ${usage == 'thoi-trang' ? 'selected' : ''}>Thời trang</option>
+                            <option value="trang-tri-nha" ${usage == 'trang-tri-nha' || usage == 'trang-tri' ? 'selected' : ''}>Trang trí nhà cửa</option>
+                            <option value="phu-kien-ca-nhan" ${usage == 'phu-kien-ca-nhan' || usage == 'thoi-trang' ? 'selected' : ''}>Phụ kiện cá nhân</option>
+                            <option value="thu-gian-huong-thom" ${usage == 'thu-gian-huong-thom' ? 'selected' : ''}>Thư giãn / hương thơm</option>
+                            <option value="dien-thoai" ${usage == 'dien-thoai' ? 'selected' : ''}>Ốp lưng điện thoại</option>
+                            <option value="thu-cung" ${usage == 'thu-cung' ? 'selected' : ''}>Đồ dùng thú cưng</option>
                             <option value="qua-tang" ${usage == 'qua-tang' ? 'selected' : ''}>Quà tặng</option>
-                            <option value="gia-dung" ${usage == 'gia-dung' ? 'selected' : ''}>Gia dụng</option>
                         </select>
                     </div>
 
@@ -172,10 +174,10 @@
                         <span>${status == 'instock' ? 'Còn hàng' : 'Hết hàng'}</span>
                     </c:if>
                     <c:if test="${not empty material}">
-                        <span>Vật liệu: ${material}</span>
+                        <span>Vật liệu: ${materialLabel}</span>
                     </c:if>
                     <c:if test="${not empty usage}">
-                        <span>Nhu cầu: ${usage}</span>
+                        <span>Nhu cầu: ${usageLabel}</span>
                     </c:if>
                 </div>
 

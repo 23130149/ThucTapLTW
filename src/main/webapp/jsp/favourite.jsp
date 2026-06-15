@@ -60,12 +60,17 @@
 
                 <div class="product-list">
                     <c:forEach items="${productList}" var="p">
-                        <div class="product-item">
+                        <div class="product-item ${p.stockQuantity <= 0 ? 'out-of-stock' : ''}">
                             <div class="product-top">
                                 <label class="favorite-select-box">
-                                    <input type="checkbox" name="selectedProductIds" value="${p.productId}" form="favoriteBulkForm" class="favorite-product-checkbox">
+                                    <input type="checkbox" name="selectedProductIds" value="${p.productId}" form="favoriteBulkForm"
+                                           class="favorite-product-checkbox" ${p.stockQuantity <= 0 ? 'disabled' : ''}>
                                     <span></span>
                                 </label>
+
+                                <c:if test="${p.stockQuantity <= 0}">
+                                    <span class="favorite-stock-badge">Hết hàng</span>
+                                </c:if>
 
                                 <a href="${pageContext.request.contextPath}/product-detail?id=${p.productId}" class="product-thumb">
                                     <img src="${p.imageUrl}" alt="${p.productName}">
@@ -85,10 +90,23 @@
                                 <div class="price">
                                     <fmt:formatNumber value="${p.productPrice}" type="number" groupingUsed="true"/> đ
                                 </div>
-                                <a href="${pageContext.request.contextPath}/Add-Cart?id=${p.productId}&quantity=1" class="add-to-cart">
-                                    <i class="bx bx-shopping-bag"></i>
-                                    Thêm vào giỏ
-                                </a>
+                                <div class="favorite-stock ${p.stockQuantity <= 0 ? 'out-of-stock' : ''}">
+                                    ${p.stockQuantity > 0 ? 'Còn ' : 'Hết hàng · còn '}${p.stockQuantity > 0 ? p.stockQuantity : 0} sản phẩm
+                                </div>
+                                <c:choose>
+                                    <c:when test="${p.stockQuantity > 0}">
+                                        <a href="${pageContext.request.contextPath}/Add-Cart?id=${p.productId}&quantity=1" class="add-to-cart">
+                                            <i class="bx bx-shopping-bag"></i>
+                                            Thêm vào giỏ
+                                        </a>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="add-to-cart disabled">
+                                            <i class="bx bx-block"></i>
+                                            Hết hàng
+                                        </span>
+                                    </c:otherwise>
+                                </c:choose>
                             </div>
                         </div>
                     </c:forEach>
@@ -126,7 +144,7 @@
 
     if (selectAllFavorites) {
         selectAllFavorites.addEventListener('change', function () {
-            document.querySelectorAll('.favorite-product-checkbox').forEach(function (checkbox) {
+            document.querySelectorAll('.favorite-product-checkbox:not(:disabled)').forEach(function (checkbox) {
                 checkbox.checked = selectAllFavorites.checked;
             });
         });

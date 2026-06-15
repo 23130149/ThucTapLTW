@@ -23,6 +23,12 @@ public class ContactController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         prepareRecaptcha(request);
+        HttpSession session = request.getSession(false);
+        User user = session != null ? (User) session.getAttribute("user") : null;
+        if (user != null) {
+            request.setAttribute("myContacts", contactDao.findByUserId(user.getUserId()));
+            request.setAttribute("selectedContactId", parseInt(request.getParameter("detailId"), 0));
+        }
         request.getRequestDispatcher("/jsp/contact.jsp").forward(request, response);
     }
 
@@ -76,6 +82,9 @@ public class ContactController extends HttpServlet {
         contactDao.insert(contact);
 
         request.setAttribute("success", "Gửi tin nhắn thành công! Chúng tôi sẽ phản hồi sớm.");
+        if (user != null) {
+            request.setAttribute("myContacts", contactDao.findByUserId(user.getUserId()));
+        }
         prepareRecaptcha(request);
         request.getRequestDispatcher("/jsp/contact.jsp").forward(request, response);
     }
@@ -91,6 +100,15 @@ public class ContactController extends HttpServlet {
         request.setAttribute("message", message);
         prepareRecaptcha(request);
         request.getRequestDispatcher("/jsp/contact.jsp").forward(request, response);
+    }
+
+
+    private int parseInt(String raw, int fallback) {
+        try {
+            return Integer.parseInt(raw);
+        } catch (Exception e) {
+            return fallback;
+        }
     }
 
     private void prepareRecaptcha(HttpServletRequest request) {
